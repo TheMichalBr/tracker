@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Pozadi: Nocni tema aplikace -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#060913"/>
+      <stop offset="50%" stop-color="#0c1222"/>
+      <stop offset="100%" stop-color="#181d36"/>
+    </linearGradient>
+
+    <!-- Zkoseni a svitici okraj ikony v barve aplikace -->
+    <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="40%" stop-color="#6366f1" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.2"/>
+    </linearGradient>
+
+    <!-- Hvezdna zare v pravem hornim rohu -->
+    <radialGradient id="starGlow" cx="76%" cy="23%" r="55%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.32"/>
+      <stop offset="45%" stop-color="#6366f1" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Hlavni barva aplikace pro telo dalekohledu -->
+    <linearGradient id="appBlueGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="20%" stop-color="#6366f1"/>
+      <stop offset="65%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#3730a3"/>
+    </linearGradient>
+
+    <!-- Zlate prvky a zarici hvezda -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffbeb"/>
+      <stop offset="25%" stop-color="#fde047"/>
+      <stop offset="70%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+
+    <!-- Cocka dalekohledu: Zarici azurova -->
+    <linearGradient id="lensGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a5f3fc"/>
+      <stop offset="35%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <!-- Pevna zakladna a stativ -->
+    <linearGradient id="mountGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b4866"/>
+      <stop offset="50%" stop-color="#263354"/>
+      <stop offset="100%" stop-color="#151d30"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 1. Squircle zaobleny podklad ikony -->
+  <rect width="512" height="512" rx="118" fill="url(#bgGrad)"/>
+  <rect x="4" y="4" width="504" height="504" rx="114" fill="none" stroke="url(#rimGrad)" stroke-width="2.5"/>
+
+  <!-- 2. Zare vesmirne mlhoviny -->
+  <rect width="512" height="512" rx="118" fill="url(#starGlow)"/>
+
+  <!-- 3. Velka hlavni zarici hvezda vpravo nahore -->
+  <g transform="translate(390, 115)">
+    <!-- Kruhova aura -->
+    <circle cx="0" cy="0" r="54" fill="#f59e0b" opacity="0.16"/>
+    <circle cx="0" cy="0" r="30" fill="#fde047" opacity="0.3"/>
+    <circle cx="0" cy="0" r="15" fill="#ffffff" opacity="0.45"/>
+    
+    <!-- Hlavni 4-cipa hvezda -->
+    <polygon points="0,-46 10,-11 46,0 10,11 0,46 -10,11 -46,0 -10,-11" fill="url(#goldGrad)"/>
+    
+    <!-- Mensi diagonalni paprsky -->
+    <polygon points="0,-20 5,-5 20,0 5,5 0,20 -5,5 -20,0 -5,-5" fill="#ffffff" transform="rotate(45)" opacity="0.9"/>
+    
+    <!-- Zarici jadro hvezdy -->
+    <circle cx="0" cy="0" r="6" fill="#ffffff"/>
+  </g>
+
+  <!-- 4. Vedlejsi hvezdy a souhvezdi -->
+  <g transform="translate(120, 105)">
+    <polygon points="0,-20 5,-5 20,0 5,5 0,20 -5,5 -20,0 -5,-5" fill="#38bdf8" opacity="0.95"/>
+    <circle cx="0" cy="0" r="3.5" fill="#ffffff"/>
+  </g>
+
+  <g transform="translate(255, 62)">
+    <polygon points="0,-14 3.5,-3.5 14,0 3.5,3.5 0,14 -3.5,3.5 -14,0 -3.5,-3.5" fill="#fbbf24" opacity="0.85"/>
+    <circle cx="0" cy="0" r="2.5" fill="#ffffff"/>
+  </g>
+
+  <g transform="translate(445, 235)">
+    <polygon points="0,-16 4,-4 16,0 4,4 0,16 -4,4 -16,0 -4,-4" fill="#c084fc" opacity="0.9"/>
+    <circle cx="0" cy="0" r="3" fill="#ffffff"/>
+  </g>
+
+  <circle cx="85" cy="225" r="5" fill="#ffffff" opacity="0.75"/>
+  <circle cx="210" cy="140" r="4.5" fill="#ffffff" opacity="0.65"/>
+  <circle cx="325" cy="190" r="5" fill="#ffffff" opacity="0.7"/>
+  <circle cx="155" cy="305" r="4" fill="#ffffff" opacity="0.5"/>
+
+  <!-- 5. Svetelny kuzel spojujici cocku a hvezdu -->
+  <polygon points="325,180 382,108 398,122" fill="#38bdf8" opacity="0.14"/>
+
+  <!-- 6. Pevny, masivni podstavec dalekohledu -->
+  <g id="telescopeMount">
+    <!-- Spodni robustni zakladna -->
+    <path d="M 125,450 C 125,422 160,412 205,412 C 250,412 285,422 285,450 Z" fill="url(#mountGrad)" stroke="#1e2942" stroke-width="3"/>
+    <rect x="155" y="445" width="100" height="10" rx="3" fill="#111827"/>
+
+    <!-- Masivni nosne rameno -->
+    <path d="M 180,418 L 188,335 L 222,335 L 230,418 Z" fill="url(#mountGrad)" stroke="#1e2942" stroke-width="2"/>
+    <path d="M 190,418 L 195,335 L 215,335 L 220,418 Z" fill="#4f46e5" opacity="0.4"/>
+
+    <!-- Otocny zlaty kloub -->
+    <circle cx="205" cy="335" r="28" fill="#1e293b" stroke="url(#goldGrad)" stroke-width="6"/>
+    <circle cx="205" cy="335" r="10" fill="url(#goldGrad)"/>
+  </g>
+
+  <!-- 7. Hlavni dalekohled v barve aplikace -->
+  <g transform="translate(205, 335) rotate(-42)">
+    <!-- Mekky stin -->
+    <rect x="-90" y="-12" width="265" height="56" rx="14" fill="#000000" opacity="0.4" transform="translate(0, 12)"/>
+
+    <!-- Okular vzadu -->
+    <rect x="-112" y="-18" width="30" height="36" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="3"/>
+    <rect x="-126" y="-24" width="16" height="48" rx="5" fill="url(#goldGrad)"/>
+
+    <!-- Zaostrovaci kolecko -->
+    <circle cx="-82" cy="28" r="15" fill="url(#goldGrad)"/>
+    <circle cx="-82" cy="28" r="8" fill="#0f172a"/>
+
+    <!-- Zadni tubus -->
+    <rect x="-82" y="-24" width="58" height="48" rx="5" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+    
+    <!-- Zlaty delic -->
+    <rect x="-26" y="-28" width="14" height="56" rx="3" fill="url(#goldGrad)"/>
+
+    <!-- HLAVNI TUBUS -->
+    <rect x="-14" y="-30" width="175" height="60" rx="10" fill="url(#appBlueGrad)" stroke="#818cf8" stroke-width="3.5"/>
+    
+    <!-- Svetelny odlesk -->
+    <line x1="0" y1="-24" x2="150" y2="-24" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+
+    <!-- Stredovy prstenec -->
+    <rect x="42" y="-34" width="16" height="68" rx="4" fill="url(#goldGrad)"/>
+
+    <!-- Predni konus -->
+    <path d="M 158 -30 L 208 -40 L 208 40 L 158 30 Z" fill="#3730a3" stroke="#6366f1" stroke-width="3"/>
+
+    <!-- Predni zlata obruba cocky -->
+    <rect x="202" y="-42" width="20" height="84" rx="6" fill="url(#goldGrad)"/>
+
+    <!-- Cocka objektivu s odleskem -->
+    <ellipse cx="220" cy="0" rx="8.5" ry="40" fill="url(#lensGrad)"/>
+    <ellipse cx="222" cy="-12" rx="4" ry="20" fill="#ffffff" opacity="0.85"/>
+
+    <!-- Hledacek na horni strane tubusu -->
+    <g transform="translate(38, -43)">
+      <rect x="-35" y="-12" width="120" height="18" rx="5" fill="#1e293b" stroke="#475569" stroke-width="2.5"/>
+      <rect x="78" y="-15" width="10" height="24" rx="2" fill="url(#goldGrad)"/>
+      <ellipse cx="88" cy="-3" rx="2.5" ry="10" fill="url(#lensGrad)"/>
+      <rect x="-12" y="4" width="10" height="11" rx="2" fill="#334155"/>
+      <rect x="45" y="4" width="10" height="11" rx="2" fill="#334155"/>
+    </g>
+  </g>
+</svg>

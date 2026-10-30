@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tracker</title>
+  <link rel="icon" type="image/svg+xml" href="../app-icon.svg">
+  
+  <!-- Okamžitý tmavý podklad zabraňující jakémukoliv bílému probliknutí -->
+  <style>
+    html, body {
+      background-color: #0b0f19 !important;
+      color: #f1f5f9;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Úvodní načítací obrazovka (Splash Screen) */
+    .app-splash-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at 50% 40%, #151c2e 0%, #070a12 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999999;
+      transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.45s ease;
+      user-select: none;
+    }
+
+    .app-splash-screen.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .splash-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      animation: splashAppear 0.5s ease-out;
+    }
+
+    @keyframes splashAppear {
+      from { opacity: 0; transform: translateY(12px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .splash-logo-glow {
+      position: relative;
+      margin-bottom: 6px;
+    }
+
+    .splash-logo-glow::before {
+      content: '';
+      position: absolute;
+      inset: -15px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.45) 0%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(16px);
+      animation: splashPulse 2.2s infinite ease-in-out;
+    }
+
+    @keyframes splashPulse {
+      0%, 100% { transform: scale(1); opacity: 0.6; }
+      50% { transform: scale(1.18); opacity: 0.95; }
+    }
+
+    .splash-logo-wrapper {
+      position: relative;
+      width: 82px;
+      height: 82px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1e1b4b, #0f172a);
+      border: 1px solid rgba(165, 180, 252, 0.3);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 0 30px rgba(99, 102, 241, 0.45);
+    }
+
+    .splash-telescope-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .splash-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .splash-title {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      background: linear-gradient(135deg, #ffffff, #c7d2fe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+    }
+
+    .splash-badge {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 9px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(79, 70, 229, 0.5));
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.5);
+      border-radius: 9999px;
+      letter-spacing: 0.5px;
+    }
+
+    .splash-subtitle {
+      font-size: 13.5px;
+      color: #94a3b8;
+      margin: 0 0 16px 0;
+      letter-spacing: -0.2px;
+    }
+
+    .splash-loader-bar {
+      width: 200px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .splash-loader-progress {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 40%;
+      background: linear-gradient(90deg, #6366f1, #38bdf8);
+      border-radius: 9999px;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+      animation: splashProgressSlide 1.4s infinite ease-in-out;
+    }
+
+    @keyframes splashProgressSlide {
+      0% { left: -40%; width: 30%; }
+      50% { width: 50%; }
+      100% { left: 100%; width: 30%; }
+    }
+
+    .splash-status-text {
+      font-size: 12px;
+      color: #64748b;
+      letter-spacing: 0.3px;
+    }
+  </style>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Úvodní načítací obrazovka (Splash Screen) -->
+  <div id="appSplashScreen" class="app-splash-screen">
+    <div class="splash-container">
+      <div class="splash-logo-glow">
+        <div class="splash-logo-wrapper">
+          <svg class="splash-telescope-svg" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="splashBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#060913"/>
+                <stop offset="50%" stop-color="#0c1222"/>
+                <stop offset="100%" stop-color="#181d36"/>
+              </linearGradient>
+              <linearGradient id="splashRimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
+                <stop offset="40%" stop-color="#6366f1" stop-opacity="0.6"/>
+                <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.2"/>
+              </linearGradient>
+              <radialGradient id="splashStarGlow" cx="76%" cy="23%" r="55%">
+                <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.32"/>
+                <stop offset="45%" stop-color="#6366f1" stop-opacity="0.15"/>
+                <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+              </radialGradient>
+              <linearGradient id="splashAppBlueGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#818cf8"/>
+                <stop offset="20%" stop-color="#6366f1"/>
+                <stop offset="65%" stop-color="#4f46e5"/>
+                <stop offset="100%" stop-color="#3730a3"/>
+              </linearGradient>
+              <linearGradient id="splashGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fffbeb"/>
+                <stop offset="25%" stop-color="#fde047"/>
+                <stop offset="70%" stop-color="#f59e0b"/>
+                <stop offset="100%" stop-color="#d97706"/>
+              </linearGradient>
+              <linearGradient id="splashLensGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#a5f3fc"/>
+                <stop offset="35%" stop-color="#38bdf8"/>
+                <stop offset="100%" stop-color="#0284c7"/>
+              </linearGradient>
+              <linearGradient id="splashMountGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#3b4866"/>
+                <stop offset="50%" stop-color="#263354"/>
+                <stop offset="100%" stop-color="#151d30"/>
+              </linearGradient>
+            </defs>
+
+            <rect width="512" height="512" rx="118" fill="url(#splashBgGrad)"/>
+            <rect x="4" y="4" width="504" height="504" rx="114" fill="none" stroke="url(#splashRimGrad)" stroke-width="3"/>
+            <rect width="512" height="512" rx="118" fill="url(#splashStarGlow)"/>
+
+            <g transform="translate(390, 115)">
+              <circle cx="0" cy="0" r="54" fill="#f59e0b" opacity="0.16"/>
+              <circle cx="0" cy="0" r="30" fill="#fde047" opacity="0.3"/>
+              <circle cx="0" cy="0" r="15" fill="#ffffff" opacity="0.45"/>
+              <polygon points="0,-46 10,-11 46,0 10,11 0,46 -10,11 -46,0 -10,-11" fill="url(#splashGoldGrad)"/>
+              <polygon points="0,-20 5,-5 20,0 5,5 0,20 -5,5 -20,0 -5,-5" fill="#ffffff" transform="rotate(45)" opacity="0.9"/>
+              <circle cx="0" cy="0" r="6" fill="#ffffff"/>
+            </g>
+
+            <g transform="translate(120, 105)">
+              <polygon points="0,-20 5,-5 20,0 5,5 0,20 -5,5 -20,0 -5,-5" fill="#38bdf8" opacity="0.95"/>
+              <circle cx="0" cy="0" r="3.5" fill="#ffffff"/>
+            </g>
+            <g transform="translate(255, 62)">
+              <polygon points="0,-14 3.5,-3.5 14,0 3.5,3.5 0,14 -3.5,3.5 -14,0 -3.5,-3.5" fill="#fbbf24" opacity="0.85"/>
+              <circle cx="0" cy="0" r="2.5" fill="#ffffff"/>
+            </g>
+            <g transform="translate(445, 235)">
+              <polygon points="0,-16 4,-4 16,0 4,4 0,16 -4,4 -16,0 -4,-4" fill="#c084fc" opacity="0.9"/>
+              <circle cx="0" cy="0" r="3" fill="#ffffff"/>
+            </g>
+            <circle cx="85" cy="225" r="5" fill="#ffffff" opacity="0.75"/>
+            <circle cx="210" cy="140" r="4.5" fill="#ffffff" opacity="0.65"/>
+            <circle cx="325" cy="190" r="5" fill="#ffffff" opacity="0.7"/>
+            <circle cx="155" cy="305" r="4" fill="#ffffff" opacity="0.5"/>
+
+            <polygon points="325,180 382,108 398,122" fill="#38bdf8" opacity="0.14"/>
+
+            <g>
+              <path d="M 125,450 C 125,422 160,412 205,412 C 250,412 285,422 285,450 Z" fill="url(#splashMountGrad)" stroke="#1e2942" stroke-width="3"/>
+              <rect x="155" y="445" width="100" height="10" rx="3" fill="#111827"/>
+              <path d="M 180,418 L 188,335 L 222,335 L 230,418 Z" fill="url(#splashMountGrad)" stroke="#1e2942" stroke-width="2"/>
+              <path d="M 190,418 L 195,335 L 215,335 L 220,418 Z" fill="#4f46e5" opacity="0.4"/>
+              <circle cx="205" cy="335" r="28" fill="#1e293b" stroke="url(#splashGoldGrad)" stroke-width="6"/>
+              <circle cx="205" cy="335" r="10" fill="url(#splashGoldGrad)"/>
+            </g>
+
+            <g transform="translate(205, 335) rotate(-42)">
+              <rect x="-90" y="-12" width="265" height="56" rx="14" fill="#000000" opacity="0.4" transform="translate(0, 12)"/>
+              <rect x="-112" y="-18" width="30" height="36" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="3"/>
+              <rect x="-126" y="-24" width="16" height="48" rx="5" fill="url(#splashGoldGrad)"/>
+              <circle cx="-82" cy="28" r="15" fill="url(#splashGoldGrad)"/>
+              <circle cx="-82" cy="28" r="8" fill="#0f172a"/>
+              <rect x="-82" y="-24" width="58" height="48" rx="5" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+              <rect x="-26" y="-28" width="14" height="56" rx="3" fill="url(#splashGoldGrad)"/>
+              <rect x="-14" y="-30" width="175" height="60" rx="10" fill="url(#splashAppBlueGrad)" stroke="#818cf8" stroke-width="3.5"/>
+              <line x1="0" y1="-24" x2="150" y2="-24" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+              <rect x="42" y="-34" width="16" height="68" rx="4" fill="url(#splashGoldGrad)"/>
+              <path d="M 158 -30 L 208 -40 L 208 40 L 158 30 Z" fill="#3730a3" stroke="#6366f1" stroke-width="3"/>
+              <rect x="202" y="-42" width="20" height="84" rx="6" fill="url(#splashGoldGrad)"/>
+              <ellipse cx="220" cy="0" rx="8.5" ry="40" fill="url(#splashLensGrad)"/>
+              <ellipse cx="222" cy="-12" rx="4" ry="20" fill="#ffffff" opacity="0.85"/>
+              <g transform="translate(38, -43)">
+                <rect x="-35" y="-12" width="120" height="18" rx="5" fill="#1e293b" stroke="#475569" stroke-width="2.5"/>
+                <rect x="78" y="-15" width="10" height="24" rx="2" fill="url(#splashGoldGrad)"/>
+                <ellipse cx="88" cy="-3" rx="2.5" ry="10" fill="url(#splashLensGrad)"/>
+                <rect x="-12" y="4" width="10" height="11" rx="2" fill="#334155"/>
+                <rect x="45" y="4" width="10" height="11" rx="2" fill="#334155"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+      <div class="splash-brand">
+        <h1 class="splash-title">Tracker</h1>
+        <span class="splash-badge">v1.0</span>
+      </div>
+      <p class="splash-subtitle">Evidence filmů, seriálů a her.</p>
+      <div class="splash-loader-bar">
+        <div class="splash-loader-progress"></div>
+      </div>
+      <span class="splash-status-text">Spouštění a načítání sbírky...</span>
+    </div>
+  </div>
+
+  <!-- Hlavní kontejner aplikace -->
+  <div class="app-layout">
+    
+    <!-- Horní navigační lišta -->
+    <header class="navbar">
+      <div class="brand">
+        <!-- SVG Ikona Dalekohledu -->
+        <div class="brand-icon-wrapper">
+          <svg class="telescope-svg" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="navBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#060913"/>
+                <stop offset="50%" stop-color="#0c1222"/>
+                <stop offset="100%" stop-color="#181d36"/>
+              </linearGradient>
+              <linearGradient id="navRimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
+                <stop offset="40%" stop-color="#6366f1" stop-opacity="0.6"/>
+                <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.2"/>
+              </linearGradient>
+              <radialGradient id="navStarGlow" cx="76%" cy="23%" r="55%">
+                <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.32"/>
+                <stop offset="45%" stop-color="#6366f1" stop-opacity="0.15"/>
+                <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+              </radialGradient>
+              <linearGradient id="navAppBlueGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#818cf8"/>
+                <stop offset="20%" stop-color="#6366f1"/>
+                <stop offset="65%" stop-color="#4f46e5"/>
+                <stop offset="100%" stop-color="#3730a3"/>
+              </linearGradient>
+              <linearGradient id="navGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fffbeb"/>
+                <stop offset="25%" stop-color="#fde047"/>
+                <stop offset="70%" stop-color="#f59e0b"/>
+                <stop offset="100%" stop-color="#d97706"/>
+              </linearGradient>
+              <linearGradient id="navLensGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#a5f3fc"/>
+                <stop offset="35%" stop-color="#38bdf8"/>
+                <stop offset="100%" stop-color="#0284c7"/>
+              </linearGradient>
+              <linearGradient id="navMountGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#3b4866"/>
+                <stop offset="50%" stop-color="#263354"/>
+                <stop offset="100%" stop-color="#151d30"/>
+              </linearGradient>
+            </defs>
+
+            <rect width="512" height="512" rx="118" fill="url(#navBgGrad)"/>
+            <rect x="4" y="4" width="504" height="504" rx="114" fill="none" stroke="url(#navRimGrad)" stroke-width="3"/>
+            <rect width="512" height="512" rx="118" fill="url(#navStarGlow)"/>
+
+            <g transform="translate(390, 115)">
+              <circle cx="0" cy="0" r="54" fill="#f59e0b" opacity="0.16"/>
+              <circle cx="0" cy="0" r="30" fill="#fde047" opacity="0.3"/>
+              <circle cx="0" cy="0" r="15" fill="#ffffff" opacity="0.45"/>
+              <polygon points="0,-46 10,-11 46,0 10,11 0,46 -10,11 -46,0 -10,-11" fill="url(#navGoldGrad)"/>
+              <polygon points="0,-20 5,-5 20,0 5,5 0,20 -5,5 -20,0 -5,-5" fill="#ffffff" transform="rotate(45)" opacity="0.9"/>
+              <circle cx="0" cy="0" r="6" fill="#ffffff"/>
+            </g>
+
+            <g transform="translate(120, 105)">
+              <polygon points="0,-20 5,-5 20,0 5,5 0,20 -5,5 -20,0 -5,-5" fill="#38bdf8" opacity="0.95"/>
+              <circle cx="0" cy="0" r="3.5" fill="#ffffff"/>
+            </g>
+            <g transform="translate(255, 62)">
+              <polygon points="0,-14 3.5,-3.5 14,0 3.5,3.5 0,14 -3.5,3.5 -14,0 -3.5,-3.5" fill="#fbbf24" opacity="0.85"/>
+              <circle cx="0" cy="0" r="2.5" fill="#ffffff"/>
+            </g>
+            <g transform="translate(445, 235)">
+              <polygon points="0,-16 4,-4 16,0 4,4 0,16 -4,4 -16,0 -4,-4" fill="#c084fc" opacity="0.9"/>
+              <circle cx="0" cy="0" r="3" fill="#ffffff"/>
+            </g>
+            <circle cx="85" cy="225" r="5" fill="#ffffff" opacity="0.75"/>
+            <circle cx="210" cy="140" r="4.5" fill="#ffffff" opacity="0.65"/>
+            <circle cx="325" cy="190" r="5" fill="#ffffff" opacity="0.7"/>
+            <circle cx="155" cy="305" r="4" fill="#ffffff" opacity="0.5"/>
+
+            <polygon points="325,180 382,108 398,122" fill="#38bdf8" opacity="0.14"/>
+
+            <g>
+              <path d="M 125,450 C 125,422 160,412 205,412 C 250,412 285,422 285,450 Z" fill="url(#navMountGrad)" stroke="#1e2942" stroke-width="3"/>
+              <rect x="155" y="445" width="100" height="10" rx="3" fill="#111827"/>
+              <path d="M 180,418 L 188,335 L 222,335 L 230,418 Z" fill="url(#navMountGrad)" stroke="#1e2942" stroke-width="2"/>
+              <path d="M 190,418 L 195,335 L 215,335 L 220,418 Z" fill="#4f46e5" opacity="0.4"/>
+              <circle cx="205" cy="335" r="28" fill="#1e293b" stroke="url(#navGoldGrad)" stroke-width="6"/>
+              <circle cx="205" cy="335" r="10" fill="url(#navGoldGrad)"/>
+            </g>
+
+            <g transform="translate(205, 335) rotate(-42)">
+              <rect x="-90" y="-12" width="265" height="56" rx="14" fill="#000000" opacity="0.4" transform="translate(0, 12)"/>
+              <rect x="-112" y="-18" width="30" height="36" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="3"/>
+              <rect x="-126" y="-24" width="16" height="48" rx="5" fill="url(#navGoldGrad)"/>
+              <circle cx="-82" cy="28" r="15" fill="url(#navGoldGrad)"/>
+              <circle cx="-82" cy="28" r="8" fill="#0f172a"/>
+              <rect x="-82" y="-24" width="58" height="48" rx="5" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+              <rect x="-26" y="-28" width="14" height="56" rx="3" fill="url(#navGoldGrad)"/>
+              <rect x="-14" y="-30" width="175" height="60" rx="10" fill="url(#navAppBlueGrad)" stroke="#818cf8" stroke-width="3.5"/>
+              <line x1="0" y1="-24" x2="150" y2="-24" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+              <rect x="42" y="-34" width="16" height="68" rx="4" fill="url(#navGoldGrad)"/>
+              <path d="M 158 -30 L 208 -40 L 208 40 L 158 30 Z" fill="#3730a3" stroke="#6366f1" stroke-width="3"/>
+              <rect x="202" y="-42" width="20" height="84" rx="6" fill="url(#navGoldGrad)"/>
+              <ellipse cx="220" cy="0" rx="8.5" ry="40" fill="url(#navLensGrad)"/>
+              <ellipse cx="222" cy="-12" rx="4" ry="20" fill="#ffffff" opacity="0.85"/>
+              <g transform="translate(38, -43)">
+                <rect x="-35" y="-12" width="120" height="18" rx="5" fill="#1e293b" stroke="#475569" stroke-width="2.5"/>
+                <rect x="78" y="-15" width="10" height="24" rx="2" fill="url(#navGoldGrad)"/>
+                <ellipse cx="88" cy="-3" rx="2.5" ry="10" fill="url(#navLensGrad)"/>
+                <rect x="-12" y="4" width="10" height="11" rx="2" fill="#334155"/>
+                <rect x="45" y="4" width="10" height="11" rx="2" fill="#334155"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title-row">
+            <h1>Tracker</h1>
+            <span class="version-tag">v1.0</span>
+          </div>
+          <p class="subtitle">Evidence filmů, seriálů a her.</p>
+        </div>
+      </div>
+
+      <div class="navbar-actions">
+        <!-- Vyhledávací pole -->
+        <div class="search-box">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="searchInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Hledat podle názvu, žánru, studia, herců...">
+          <button id="clearSearchBtn" class="clear-search-btn hidden" title="Vymazat hledání">
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <!-- Tlačítko Znovu načíst aplikaci (F5) -->
+        <button id="reloadAppBtn" class="btn btn-icon-only" title="Znovu načíst (F5)">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+        </button>
+
+        <!-- Tlačítko Nastavení -->
+        <button id="openSettingsBtn" class="btn btn-icon-only" title="Nastavení aplikace">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+
+        <!-- Tlačítko pro přidání záznamu s rozbalovací nabídkou -->
+        <div class="add-btn-dropdown-wrapper">
+          <button id="openAddMenuBtn" class="btn btn-primary add-menu-btn" title="Přidat položku">
+            <svg class="btn-svg-icon add-plus-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Přidat</span>
+            <svg class="dropdown-chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          
+          <div id="addDropdownMenu" class="add-dropdown-menu hidden">
+            <button type="button" id="addManualBtn" class="add-dropdown-item">
+              <div class="dropdown-item-icon manual-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 20h9"></path>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+              </div>
+              <div class="dropdown-item-text">
+                <span class="dropdown-item-title">Přidat ručně</span>
+                <span class="dropdown-item-sub">Vytvořit položku od začátku (film, seriál, hra)</span>
+              </div>
+            </button>
+
+            <div class="add-dropdown-divider"></div>
+
+            <button type="button" id="addTmdbBtn" class="add-dropdown-item tmdb-item">
+              <div class="dropdown-item-icon tmdb-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </div>
+              <div class="dropdown-item-text">
+                <div class="dropdown-item-title-row">
+                  <span class="dropdown-item-title">Přidat pomocí API (TMDB)</span>
+                  <span class="tmdb-pill">ONLINE</span>
+                </div>
+                <span class="dropdown-item-sub">Automaticky stáhne obálku, popis, herce, rok i skóre</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Ovládací lišta: Filtry, Přepínač zobrazení a Řazení -->
+    <div class="toolbar">
+      <!-- Filtrovací taby s harmonickými SVG ikonami stejné geometrie -->
+      <div class="filter-tabs">
+        <button class="filter-btn active" data-filter="all">
+          <svg class="tab-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+          </svg>
+          <span>Vše</span>
+          <span class="badge" id="countAll">0</span>
+        </button>
+        <button class="filter-btn" data-filter="Film">
+          <!-- Klapka (Film) -->
+          <svg class="tab-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4.5" width="20" height="15" rx="2.5"></rect>
+            <path d="M2 9.5h20"></path>
+            <path d="m6 4.5 2.5 5"></path>
+            <path d="m11 4.5 2.5 5"></path>
+            <path d="m16 4.5 2.5 5"></path>
+          </svg>
+          <span>Filmy</span>
+          <span class="badge" id="countFilms">0</span>
+        </button>
+        <button class="filter-btn" data-filter="Seriál">
+          <!-- Televize / TV obrazovka (Seriál) -->
+          <svg class="tab-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4.5" width="20" height="13" rx="2.5"></rect>
+            <line x1="12" y1="17.5" x2="12" y2="20"></line>
+            <line x1="8" y1="20" x2="16" y2="20"></line>
+          </svg>
+          <span>Seriály</span>
+          <span class="badge" id="countSeries">0</span>
+        </button>
+        <button class="filter-btn" data-filter="Hra">
+          <!-- Herní ovladač (Hra) -->
+          <svg class="tab-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path>
+            <line x1="6" y1="11" x2="10" y2="11"></line>
+            <line x1="8" y1="9" x2="8" y2="13"></line>
+            <circle cx="15" cy="12" r="0.75" fill="currentColor"></circle>
+            <circle cx="18" cy="10" r="0.75" fill="currentColor"></circle>
+          </svg>
+          <span>Hry</span>
+          <span class="badge" id="countGames">0</span>
+        </button>
+      </div>
+
+      <div class="toolbar-right">
+        <!-- Přepínač rozvržení: Dlaždice / Mřížka / Seznam -->
+        <div class="view-switcher" title="Způsob zobrazení">
+          <button class="view-btn active" data-view="grid" title="Dlaždice (Plakáty)">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span class="view-btn-label">Dlaždice</span>
+          </button>
+          <button class="view-btn" data-view="compact" title="Kompaktní mřížka">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+              <rect x="3" y="3" width="4" height="4"></rect>
+              <rect x="10" y="3" width="4" height="4"></rect>
+              <rect x="17" y="3" width="4" height="4"></rect>
+              <rect x="3" y="10" width="4" height="4"></rect>
+              <rect x="10" y="10" width="4" height="4"></rect>
+              <rect x="17" y="10" width="4" height="4"></rect>
+              <rect x="3" y="17" width="4" height="4"></rect>
+              <rect x="10" y="17" width="4" height="4"></rect>
+              <rect x="17" y="17" width="4" height="4"></rect>
+            </svg>
+            <span class="view-btn-label">Mřížka</span>
+          </button>
+          <button class="view-btn" data-view="list" title="Detailní seznam">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+            <span class="view-btn-label">Seznam</span>
+          </button>
+        </div>
+
+        <!-- Filtr podle stavu sledování / hraní -->
+        <div class="status-controls">
+          <span class="sort-label">Stav:</span>
+          <div class="sort-dropdown-wrapper" id="statusDropdownWrapper">
+            <button type="button" class="sort-dropdown-btn" id="statusDropdownBtn" aria-haspopup="listbox" aria-expanded="false" title="Filtrovat podle stavu">
+              <svg class="sort-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span id="statusCurrentLabel">Všechny stavy</span>
+              <svg class="sort-chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="sort-dropdown-menu hidden" id="statusDropdownMenu" role="listbox">
+              <button type="button" class="sort-option status-option active" data-status-val="all" role="option">
+                <span class="status-bullet bullet-all"></span>
+                <span>Všechny stavy</span>
+                <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button type="button" class="sort-option status-option" data-status-val="backlog" role="option">
+                <span class="status-bullet bullet-backlog"></span>
+                <span>Chci vidět / hrát</span>
+                <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button type="button" class="sort-option status-option" data-status-val="in_progress" role="option">
+                <span class="status-bullet bullet-progress"></span>
+                <span>Právě sleduji / hraji</span>
+                <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button type="button" class="sort-option status-option" data-status-val="completed" role="option">
+                <span class="status-bullet bullet-completed"></span>
+                <span>Dokončeno</span>
+                <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button type="button" class="sort-option status-option" data-status-val="dropped" role="option">
+                <span class="status-bullet bullet-dropped"></span>
+                <span>Odloženo / Zrušeno</span>
+                <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Možnosti řazení -->
+        <div class="sort-controls">
+          <span class="sort-label">Řadit:</span>
+          <div class="sort-dropdown-wrapper" id="sortDropdownWrapper">
+            <button type="button" class="sort-dropdown-btn" id="sortDropdownBtn" aria-haspopup="listbox" aria-expanded="false" title="Vyberte způsob řazení">
+              <svg class="sort-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="4" y1="6" x2="20" y2="6"></line>
+                <line x1="4" y1="12" x2="14" y2="12"></line>
+                <line x1="4" y1="18" x2="8" y2="18"></line>
+              </svg>
+              <span id="sortCurrentLabel">Nejnovější přidané</span>
+              <svg class="sort-chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="sort-dropdown-menu hidden" id="sortDropdownMenu" role="listbox">
+              <button type="button" class="sort-option active" data-value="newest" role="option">
+                <span>Nejnovější přidané</span>
+                <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button type="button" class="sort-option" data-value="ratingDesc" role="option">
+                <span>Hodnocení (nejvyšší)</span>
+                <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button type="button" class="sort-option" data-value="ratingAsc" role="option">
+                <span>Hodnocení (nejnižší)</span>
+                <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button type="button" class="sort-option" data-value="yearDesc" role="option">
+                <span>Rok vydání (nejnovější)</span>
+                <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button type="button" class="sort-option" data-value="titleAsc" role="option">
+                <span>Název (A - Z)</span>
+                <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+            </div>
+            <!-- Skrytý původní select pro 100% zpětnou kompatibilitu -->
+            <select id="sortSelect" class="hidden">
+              <option value="newest">Nejnovější přidané</option>
+              <option value="ratingDesc">Hodnocení (nejvyšší)</option>
+              <option value="ratingAsc">Hodnocení (nejnižší)</option>
+              <option value="yearDesc">Rok vydání (nejnovější)</option>
+              <option value="titleAsc">Název (A - Z)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hlavní obsah: Mřížka položek -->
+    <main class="content-area">
+      <!-- Hlavička pro zobrazení seznamu (zobrazí se pouze v režimu view-list) -->
+      <div id="listHeader" class="list-table-header hidden">
+        <span class="col-hdr-poster">Plakát</span>
+        <div class="list-table-header-cols">
+          <span class="col-hdr-title">Název a rok</span>
+          <span class="col-hdr-type">Druh</span>
+          <span class="col-hdr-genre">Žánr</span>
+          <span class="col-hdr-creator">Tvůrce / Studio</span>
+          <span class="col-hdr-ratings">Hodnocení</span>
+          <span class="col-hdr-action">Akce</span>
+        </div>
+      </div>
+
+      <div id="mediaGrid" class="media-grid view-grid"></div>
+
+      <!-- Prázdný stav -->
+      <div id="emptyState" class="empty-state hidden">
+        <div class="empty-icon-box">
+          <svg class="empty-svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="32" cy="32" r="28" stroke-dasharray="4 4" opacity="0.3"></circle>
+            <circle cx="32" cy="28" r="14" opacity="0.6"></circle>
+            <line x1="22" y1="48" x2="42" y2="48" stroke-width="3" stroke-linecap="round"></line>
+            <path d="M26 48 L22 56 M38 48 L42 56"></path>
+          </svg>
+        </div>
+        <h2>Žádné záznamy k zobrazení</h2>
+        <p id="emptyStateText">Zatím jste nepřidali žádný film, seriál ani hru. Začněte tvořit svou sbírku kliknutím na tlačítko níže.</p>
+        <button id="emptyAddBtn" class="btn btn-primary">
+          <svg class="btn-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>Přidat první záznam</span>
+        </button>
+      </div>
+
+      <!-- Stránkování (Pagination) -->
+      <div id="paginationBar" class="pagination-bar hidden">
+        <span id="paginationInfo" class="pagination-info">Zobrazeno 0–0 z 0</span>
+        <div class="pagination-controls">
+          <button id="prevPageBtn" class="pagination-btn" title="Předchozí strana">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <div id="pageNumbers" class="page-numbers"></div>
+          <button id="nextPageBtn" class="pagination-btn" title="Další strana">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ==========================================================================
+       MODÁLNÍ OKNO: FORMULÁŘ (PŘIDAT / EDITOVAT)
+       ========================================================================== -->
+  <div id="formModal" class="modal-overlay hidden">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-header-icon" id="modalHeaderIcon">
+            <svg class="modal-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </div>
+          <div class="modal-title-with-btn">
+            <h2 id="modalTitle">Přidat novou položku</h2>
+            <button type="button" id="formImportTmdbBtn" class="btn btn-sm btn-outline tmdb-trigger-btn" title="Předvyplnit z mezinárodní databáze TMDB">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <span>Načíst z TMDB</span>
+            </button>
+          </div>
+        </div>
+        <button id="closeFormModalBtn" class="close-btn" aria-label="Zavřít">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <form id="mediaForm" class="modal-form" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <input type="hidden" id="editItemId" value="">
+
+        <!-- Volba typu položky -->
+        <div class="form-section">
+          <label class="section-label">Typ</label>
+          <div class="segmented-control">
+            <label class="segment">
+              <input type="radio" name="itemType" value="Film" checked>
+              <span>
+                <svg class="segment-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="4.5" width="20" height="15" rx="2.5"></rect>
+                  <path d="M2 9.5h20"></path>
+                  <path d="m6 4.5 2.5 5"></path>
+                  <path d="m11 4.5 2.5 5"></path>
+                  <path d="m16 4.5 2.5 5"></path>
+                </svg>
+                Film
+              </span>
+            </label>
+            <label class="segment">
+              <input type="radio" name="itemType" value="Seriál">
+              <span>
+                <svg class="segment-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="4.5" width="20" height="13" rx="2.5"></rect>
+                  <line x1="12" y1="17.5" x2="12" y2="20"></line>
+                  <line x1="8" y1="20" x2="16" y2="20"></line>
+                </svg>
+                Seriál
+              </span>
+            </label>
+            <label class="segment">
+              <input type="radio" name="itemType" value="Hra">
+              <span>
+                <svg class="segment-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path>
+                  <line x1="6" y1="11" x2="10" y2="11"></line>
+                  <line x1="8" y1="9" x2="8" y2="13"></line>
+                  <circle cx="15" cy="12" r="0.75" fill="currentColor"></circle>
+                  <circle cx="18" cy="10" r="0.75" fill="currentColor"></circle>
+                </svg>
+                Hra
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Volba stavu položky -->
+        <div class="form-group form-status-select-wrap">
+          <label class="form-section-label">Stav sledování / hraní</label>
+          <div class="status-segmented-control" id="formStatusSegmented">
+            <label class="status-segment-option">
+              <input type="radio" name="itemStatus" value="backlog">
+              <span class="status-segment-btn segment-backlog">
+                <span class="status-bullet bullet-backlog"></span>
+                <span class="status-text-label" id="statusLabelBacklog">Chci vidět / hrát</span>
+              </span>
+            </label>
+            <label class="status-segment-option">
+              <input type="radio" name="itemStatus" value="in_progress">
+              <span class="status-segment-btn segment-progress">
+                <span class="status-bullet bullet-progress"></span>
+                <span class="status-text-label" id="statusLabelProgress">Právě sleduji / hraji</span>
+              </span>
+            </label>
+            <label class="status-segment-option">
+              <input type="radio" name="itemStatus" value="completed" checked>
+              <span class="status-segment-btn segment-completed">
+                <span class="status-bullet bullet-completed"></span>
+                <span class="status-text-label" id="statusLabelCompleted">Dokončeno</span>
+              </span>
+            </label>
+            <label class="status-segment-option">
+              <input type="radio" name="itemStatus" value="dropped">
+              <span class="status-segment-btn segment-dropped">
+                <span class="status-bullet bullet-dropped"></span>
+                <span class="status-text-label" id="statusLabelDropped">Odloženo</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 1. Sekce: Základní informace -->
+        <div class="form-section">
+          <h3 class="section-title">Základní informace</h3>
+          
+          <div class="form-row">
+            <div class="form-group flex-2">
+              <label for="itemTitle">Název <span class="required">*</span></label>
+              <input type="text" id="itemTitle" required autocomplete="off" placeholder="Např. Interstellar, The Last of Us, Cyberpunk...">
+            </div>
+            <div class="form-group flex-1">
+              <label for="itemReleaseYear">Rok vydání</label>
+              <input type="number" id="itemReleaseYear" min="0" max="5000" autocomplete="off" placeholder="2024">
+            </div>
+            <div class="form-group flex-1">
+              <label for="itemGenre">Žánr</label>
+              <input type="text" id="itemGenre" autocomplete="off" placeholder="Sci-Fi, RPG, Drama...">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="itemTags">Klíčová slova</label>
+            <input type="text" id="itemTags" autocomplete="off" placeholder="Oddělujte čárkou, např.: vesmír, cyberpunk, kooperace, otevřený svět">
+          </div>
+
+          <div class="form-group">
+            <label for="itemDescription">Popis</label>
+            <textarea id="itemDescription" rows="3" autocomplete="off" placeholder="Stručný popis příběhu nebo konceptu..."></textarea>
+          </div>
+        </div>
+
+        <!-- 2. Sekce: Dynamická pole specifická pro FILMY a SERIÁLY -->
+        <div id="sectionFilmSeries" class="form-section dynamic-section">
+          <h3 class="section-title">Informace o filmu / seriálu</h3>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="itemDirector">Režie</label>
+              <input type="text" id="itemDirector" autocomplete="off" placeholder="Např. Christopher Nolan">
+            </div>
+            <div class="form-group flex-1">
+              <label for="itemWriter">Scénář</label>
+              <input type="text" id="itemWriter" autocomplete="off" placeholder="Např. Jonathan Nolan">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="itemProduction">Produkce / Studio</label>
+              <input type="text" id="itemProduction" autocomplete="off" placeholder="Např. Warner Bros., HBO, Netflix">
+            </div>
+            <div class="form-group flex-1">
+              <label for="itemDuration">Délka</label>
+              <input type="text" id="itemDuration" autocomplete="off" placeholder="Např. 169 min nebo 50 min/ep">
+            </div>
+          </div>
+
+          <!-- POUZE PRO SERIÁL: Číslo řady / epizody -->
+          <div id="fieldSeasonEpisodes" class="form-group hidden">
+            <label for="itemSeasonEpisodes">Struktura - Číslo řady nebo epizody</label>
+            <input type="text" id="itemSeasonEpisodes" autocomplete="off" placeholder="Např. 2. série (8 epizod) nebo S02E05">
+          </div>
+
+          <div class="form-group">
+            <label for="itemCast">Herecké obsazení</label>
+            <input type="text" id="itemCast" autocomplete="off" placeholder="Herci oddělení čárkou, např.: Matthew McConaughey, Anne Hathaway...">
+          </div>
+        </div>
+
+        <!-- 3. Sekce: Dynamická pole specifická pro HRY -->
+        <div id="sectionGames" class="form-section dynamic-section hidden">
+          <h3 class="section-title">Informace o hře</h3>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="itemDeveloper">Vývojářské studio</label>
+              <input type="text" id="itemDeveloper" autocomplete="off" placeholder="Např. CD Projekt RED, FromSoftware">
+            </div>
+            <div class="form-group flex-1">
+              <label for="itemPublisher">Vydavatel</label>
+              <input type="text" id="itemPublisher" autocomplete="off" placeholder="Např. Sony, Bandai Namco, Xbox">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="itemGameMode">Herní režim</label>
+              <input type="text" id="itemGameMode" autocomplete="off" placeholder="Singleplayer, Kooperace, Multiplayer...">
+            </div>
+            <div class="form-group flex-1">
+              <label for="itemPlatforms">Platformy</label>
+              <input type="text" id="itemPlatforms" autocomplete="off" placeholder="PC, PlayStation 5, Xbox Series X, Switch...">
+            </div>
+            <div class="form-group flex-1">
+              <label for="itemEngine">Herní Engine</label>
+              <input type="text" id="itemEngine" autocomplete="off" placeholder="Unreal Engine 5, Unity, Custom...">
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Sekce: Vlastní dynamická metadata (přesunuto přímo pod specifická data) -->
+        <div class="form-section">
+          <div class="section-header-row">
+            <div>
+              <h3 class="section-title">Vlastní metadata</h3>
+              <p class="section-subtitle">Přidejte libovolná další data podle potřeby (např. Dabing, Herní doba, Soundtrack...)</p>
+            </div>
+            <button type="button" id="addMetaFieldBtn" class="btn btn-sm btn-outline">
+              <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              <span>Přidat parametr</span>
+            </button>
+          </div>
+
+          <div id="customMetadataContainer" class="custom-meta-list"></div>
+        </div>
+
+        <!-- 5. Sekce: Hodnocení & Poznámky -->
+        <div class="form-section">
+          <h3 class="section-title">Hodnocení & Poznámky</h3>
+
+          <div class="form-row">
+            <!-- Hodnocení -->
+            <div class="form-group flex-2" id="ratingControlGroup">
+              <div class="rating-header">
+                <div class="rating-header-left">
+                  <label for="itemRatingInput">Hodnocení (0 - 10)</label>
+                  <button type="button" id="toggleNoRatingBtn" class="no-rating-btn" title="Uložit tuto položku bez hodnocení">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="no-rating-icon">
+                      <path d="M8.34 8.34 2 9.27l5 4.87L5.82 21 12 17.77 18.18 21l-.59-3.43"></path>
+                      <path d="M18.42 12.76 22 9.27l-6.91-1L12 2l-1.44 2.91"></path>
+                      <line x1="2" y1="2" x2="22" y2="22"></line>
+                    </svg>
+                    <span>Nehodnotit</span>
+                  </button>
+                </div>
+                <div class="rating-input-badge">
+                  <svg class="star-svg" viewBox="0 0 24 24" fill="#f59e0b"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                  <input type="text" id="itemRatingInput" class="rating-custom-input" value="8" inputmode="decimal" autocomplete="off" placeholder="8">
+                  <span class="rating-max-hint">/ 10</span>
+                </div>
+              </div>
+              <input type="range" id="itemRating" min="0" max="10" value="8" step="0.25">
+              <div class="rating-ticks">
+                <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span>
+              </div>
+            </div>
+
+            <!-- Celkové hodnocení (příprava na budoucí API) -->
+            <div class="form-group flex-1">
+              <label for="itemApiRating">
+                Veřejné / API hodnocení
+                <span class="info-badge" title="Příprava pro napojení na filmové/herní API">API</span>
+              </label>
+              <input type="number" id="itemApiRating" step="0.1" min="0" max="100" autocomplete="off" placeholder="Např. 8.6 nebo 92">
+              <span class="input-hint">Např. IMDb / ČSFD / Metacritic skóre</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="itemNote">Poznámky</label>
+            <textarea id="itemNote" rows="2" autocomplete="off" placeholder="Osobní postřehy, památné momenty, doporučení..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="itemTrailerUrl">
+              Odkaz na trailer (YouTube nebo video)
+              <span class="info-badge" title="Zadejte odkaz na YouTube upoutávku">Trailer</span>
+            </label>
+            <input type="url" id="itemTrailerUrl" autocomplete="off" placeholder="Např. https://www.youtube.com/watch?v=... nebo ID videa">
+            <span class="input-hint">V detailu se pak zobrazí tlačítko pro okamžité přehrání</span>
+          </div>
+        </div>
+
+        <!-- 6. Sekce: Obrázek / Cover art -->
+        <div class="form-section">
+          <h3 class="section-title">Obrázek / Cover art</h3>
+          <div class="image-upload-wrapper">
+            <div class="image-picker-controls">
+              <button type="button" id="selectImageBtn" class="btn btn-outline">
+                <svg class="btn-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span>Vybrat obrázek z disku</span>
+              </button>
+              <span id="selectedImagePathText" class="file-path-hint">Žádný nový soubor nevybrán</span>
+            </div>
+
+            <div id="imagePreviewContainer" class="image-preview-container hidden">
+              <div class="preview-card">
+                <img id="imagePreviewImg" src="" alt="Náhled obrázku" draggable="false">
+                <button type="button" id="removeImageBtn" class="btn-remove-image" title="Odebrat obrázek">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tlačítka formuláře -->
+        <div class="modal-actions">
+          <button type="button" id="cancelFormBtn" class="btn btn-secondary">Zrušit</button>
+          <button type="submit" id="saveFormBtn" class="btn btn-primary">Uložit položku</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODÁLNÍ OKNO: DETAIL POLOŽKY (ZDE SE SMAŽE / UPRAVÍ)
+       ========================================================================== -->
+  <div id="detailModal" class="modal-overlay hidden">
+    <div class="modal-card modal-detail">
+      <!-- Vrchní lišta: Název položky vlevo + zavírací tlačítko -->
+      <div class="modal-header detail-modal-header">
+        <div class="detail-header-title-wrap">
+          <h2 id="detailTitle" class="detail-header-title">Název položky</h2>
+        </div>
+        <button id="closeDetailModalBtn" class="close-btn" aria-label="Zavřít">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="detail-body">
+        <!-- LEVÝ SLOUPEC: Plakát + Trailer + Stav + Klíčová slova + Databáze -->
+        <div class="detail-left-col">
+          <div class="detail-poster-wrap" id="detailPosterWrap"></div>
+
+          <!-- Tlačítko pro spuštění traileru (pokud je odkaz k dispozici) -->
+          <button type="button" id="detailTrailerBtn" class="detail-trailer-btn hidden" title="Přehrát oficiální videoupoutávku">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>Přehrát trailer</span>
+          </button>
+
+          <!-- Rychlá změna stavu sledování / hraní -->
+          <div class="detail-status-box" id="detailStatusBox">
+            <span class="detail-sidebar-label">Stav</span>
+            <div class="detail-status-pills" id="detailStatusPills">
+              <button type="button" class="detail-status-btn" data-status="backlog" title="Chci vidět / hrát">
+                <span class="status-bullet bullet-backlog"></span>
+                <span class="status-btn-text" id="detailStatusTextBacklog">Chci vidět</span>
+              </button>
+              <button type="button" class="detail-status-btn" data-status="in_progress" title="Právě sleduji / hraji">
+                <span class="status-bullet bullet-progress"></span>
+                <span class="status-btn-text" id="detailStatusTextProgress">Sleduji</span>
+              </button>
+              <button type="button" class="detail-status-btn active" data-status="completed" title="Dokončeno / zhlédnuto">
+                <span class="status-bullet bullet-completed"></span>
+                <span class="status-btn-text" id="detailStatusTextCompleted">Dokončeno</span>
+              </button>
+              <button type="button" class="detail-status-btn" data-status="dropped" title="Odloženo / zrušeno">
+                <span class="status-bullet bullet-dropped"></span>
+                <span class="status-btn-text" id="detailStatusTextDropped">Odloženo</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Klíčová slova pod plakátem -->
+          <div id="detailTagsWrap" class="detail-tags-sidebar-box">
+            <span class="detail-sidebar-label">Klíčová slova</span>
+            <div id="detailTags" class="detail-tags-list"></div>
+          </div>
+
+          <!-- Externí filmové a herní databáze (ČSFD, IMDb, Metacritic, Steam) -->
+          <div id="detailLinksWrap" class="detail-links-sidebar-box">
+            <span class="detail-sidebar-label">Odkazy & Databáze</span>
+            <div id="detailLinksList" class="detail-links-list"></div>
+          </div>
+        </div>
+
+        <!-- PRAVÝ SLOUPEC: Informační páska (Typ, Rok, Stav, Velké Hodnocení) -> Žánry -> Popis -> Podrobnosti -> Další podrobnosti -> Poznámky -->
+        <div class="detail-right-col">
+          <!-- 1. Vrchní řádek informací: Typ a Rok vlevo, velké výrazné Hodnocení vpravo -->
+          <div class="detail-top-ribbon">
+            <div class="detail-badges-group">
+              <span id="detailTypeBadge" class="card-type-badge">Film</span>
+              <span id="detailYearBadge" class="year-badge">2024</span>
+            </div>
+
+            <!-- Hodnocení vpravo nahoře - výrazné velké karty -->
+            <div class="detail-ratings-row" id="detailRatingsRow">
+              <div class="rating-stat-card rating-user-badge" id="detailUserRatingBox">
+                <span class="rating-stat-label">Hodnocení</span>
+                <span class="rating-stat-val" id="detailUserRating"></span>
+              </div>
+              <div class="rating-stat-card rating-api-badge" id="detailApiRatingBox">
+                <span class="rating-stat-label">Veřejné / API</span>
+                <span class="rating-stat-val api-val" id="detailApiRating"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Samostatný řádek pro Žánry s ikonkou -->
+          <div id="detailGenreWrap" class="detail-genre-section">
+            <span class="detail-genre-header">
+              <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+              </svg>
+              <span>Žánry:</span>
+            </span>
+            <div id="detailGenre" class="detail-genre-row"></div>
+          </div>
+
+          <!-- Oddělovací linka přesně uprostřed mezi záhlavím a popisem -->
+          <div class="detail-divider"></div>
+
+          <!-- 3. Popis děje -->
+          <div id="detailDescriptionWrap" class="detail-card detail-description-card">
+            <h4 class="detail-section-title">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              <span>Popis</span>
+            </h4>
+            <p id="detailDescription" class="detail-description-text"></p>
+          </div>
+
+          <!-- 3. Technické podrobnosti a tvůrci -->
+          <div id="detailMetaWrap" class="detail-card detail-specs-card">
+            <h4 class="detail-section-title">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              <span>Podrobnosti</span>
+            </h4>
+            <div id="detailMetaGrid" class="detail-meta-grid"></div>
+          </div>
+
+          <!-- 4. Vlastní přidaná metadata (přejmenováno na Další podrobnosti, hned za Podrobnostmi) -->
+          <div id="detailCustomMetaWrap" class="detail-card detail-custom-card hidden">
+            <h4 class="detail-section-title">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+              <span>Další podrobnosti</span>
+            </h4>
+            <div id="detailCustomMetaGrid" class="detail-meta-grid"></div>
+          </div>
+
+          <!-- 5. Osobní poznámky -->
+          <div id="detailNoteWrap" class="detail-card detail-note-card">
+            <h4 class="detail-section-title">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              <span>Poznámky</span>
+            </h4>
+            <div id="detailNote" class="detail-note-box"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Patička s akcemi: Zde se maže a upravuje -->
+      <div class="modal-footer">
+        <button id="detailDeleteBtn" class="btn btn-danger-outline">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          <span>Smazat záznam</span>
+        </button>
+        <div class="footer-right-actions">
+          <button id="detailCloseBtn" class="btn btn-secondary">Zavřít</button>
+          <button id="detailEditBtn" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            <span>Upravit položku</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODÁLNÍ OKNO: NASTAVENÍ APLIKACE (SETTINGS)
+       ========================================================================== -->
+  <div id="settingsModal" class="modal-overlay hidden">
+    <div class="modal-card modal-settings">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-header-icon">
+            <svg class="modal-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </div>
+          <h2>Nastavení aplikace</h2>
+        </div>
+        <button id="closeSettingsModalBtn" class="close-btn" aria-label="Zavřít">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="settings-content">
+        <!-- 1. Předvolby zobrazení -->
+        <div class="settings-section">
+          <h3 class="settings-section-title">Předvolby zobrazení</h3>
+          
+          <div class="settings-item">
+            <div>
+              <div class="settings-item-label">Výchozí rozvržení</div>
+              <div class="settings-item-desc">Jakým způsobem se mají načíst položky při spuštění</div>
+            </div>
+            <select id="settingsDefaultView" class="sort-select">
+              <option value="grid">Dlaždice (Plakáty)</option>
+              <option value="compact">Kompaktní mřížka</option>
+              <option value="list">Detailní seznam</option>
+            </select>
+          </div>
+
+          <div class="settings-item">
+            <div>
+              <div class="settings-item-label">Položek na stránku</div>
+              <div class="settings-item-desc">Počet záznamů v jednom zobrazení (nebo nekonečné rolování)</div>
+            </div>
+            <select id="settingsItemsPerPage" class="sort-select">
+              <option value="12">12 položek</option>
+              <option value="24">24 položek</option>
+              <option value="48">48 položek</option>
+              <option value="all">Vše (Nekonečné rolování)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 3. Integrace a online API -->
+        <div class="settings-section">
+          <h3 class="settings-section-title">Integrace a online API</h3>
+          <div class="settings-item">
+            <div>
+              <div class="settings-item-label">TMDB API klíč (The Movie Database)</div>
+              <div class="settings-item-desc">Umožňuje vyhledávat a automaticky stahovat informace i obálky filmů a seriálů</div>
+            </div>
+          </div>
+          <div class="settings-key-wrap" style="margin-top: 8px;">
+            <input type="password" id="settingsTmdbApiKey" class="settings-key-input" placeholder="Zadejte váš TMDB API klíč...">
+            <button type="button" id="toggleSettingsTmdbKeyBtn" class="settings-eye-btn" title="Zobrazit / skrýt klíč">
+              <svg id="settingsTmdbEyeIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+
+          <div class="settings-item" style="margin-top: 16px;">
+            <div>
+              <div class="settings-item-label">RAWG.io API klíč (Videohry)</div>
+              <div class="settings-item-desc">Umožňuje vyhledávat a stahovat data, hodnocení a obálky her (zdarma na rawg.io)</div>
+            </div>
+          </div>
+          <div class="settings-key-wrap" style="margin-top: 8px;">
+            <input type="password" id="settingsRawgApiKey" class="settings-key-input" placeholder="Zadejte váš RAWG API klíč...">
+            <button type="button" id="toggleSettingsRawgKeyBtn" class="settings-eye-btn" title="Zobrazit / skrýt klíč">
+              <svg id="settingsRawgEyeIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Úložiště a databáze -->
+        <div class="settings-section">
+          <h3 class="settings-section-title">Úložiště a databáze</h3>
+          <div class="settings-info-box">
+            <div class="info-row">
+              <span class="info-label">Systém databáze:</span>
+              <span class="info-val">SQLite (vestavěný, bez externích závislostí)</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Úložiště obalů:</span>
+              <span class="info-val">Lokální složka aplikace (%LOCALAPPDATA% / .local/share)</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Položek v evidenci:</span>
+              <span class="info-val" id="settingsItemCount">0</span>
+            </div>
+          </div>
+          <div class="settings-actions-row" style="margin-top: 12px;">
+            <button type="button" id="openDataFolderBtn" class="btn btn-secondary">
+              <svg class="btn-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span>Otevřít složku s daty v Průzkumníku</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Export a záloha -->
+        <div class="settings-section">
+          <h3 class="settings-section-title">Záloha sbírky</h3>
+          <p class="settings-item-desc">Uložte celou svou databázi do záložního souboru JSON pro bezpečné uchování nebo přenos. Soubor se automaticky stáhne do vaší systémové složky <strong>Stažené soubory (Downloads)</strong>.</p>
+          <div class="settings-actions-row" style="align-items: center; flex-wrap: wrap;">
+            <button type="button" id="exportDataBtn" class="btn btn-secondary">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Exportovat zálohu (.json)</span>
+            </button>
+            <span class="settings-backup-hint">Uloží se do: 📁 Stažené soubory (Downloads)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer modal-settings-footer">
+        <div class="settings-creator-tag">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <span>Created by <strong>MichalBr</strong></span>
+        </div>
+        <div class="settings-footer-buttons">
+          <button type="button" id="cancelSettingsBtn" class="btn btn-secondary">Zavřít</button>
+          <button type="button" id="saveSettingsBtn" class="btn btn-primary">Uložit nastavení</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODÁLNÍ OKNO: IMPORT Z ONLINE API (TMDB PRO FILMY/SERIÁLY & RAWG PRO HRY)
+       ========================================================================== -->
+  <div id="tmdbModal" class="modal-overlay hidden">
+    <div class="modal-card modal-tmdb">
+      <!-- Hlavička modálního okna -->
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-header-icon tmdb-header-icon">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+          <div>
+            <h2 id="apiModalHeaderTitle">Přidat pomocí online API</h2>
+            <p class="modal-subtitle">Vyhledejte film, seriál nebo videohru a nechte automaticky předvyplnit všechny údaje i obálku.</p>
+          </div>
+        </div>
+        <button id="closeTmdbModalBtn" class="close-btn" aria-label="Zavřít">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="modal-body tmdb-modal-body">
+        <!-- Přepínač poskytovatele API: TMDB vs. RAWG -->
+        <div class="api-provider-switch">
+          <button type="button" class="api-provider-btn active" id="apiSwitchTmdb">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>
+            <span>Filmy a seriály (TMDB)</span>
+          </button>
+          <button type="button" class="api-provider-btn" id="apiSwitchRawg">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path><line x1="6" y1="11" x2="10" y2="11"></line><line x1="8" y1="9" x2="8" y2="13"></line><circle cx="15" cy="12" r="0.75" fill="currentColor"></circle><circle cx="18" cy="10" r="0.75" fill="currentColor"></circle></svg>
+            <span>Videohry (RAWG.io)</span>
+          </button>
+        </div>
+
+        <!-- ================= SEKCE TMDB (FILMY A SERIÁLY) ================= -->
+        <div id="tmdbSectionWrapper">
+          <!-- 1. Nastavení a stav API klíče TMDB -->
+          <div class="tmdb-key-box">
+            <div class="tmdb-key-header">
+              <label for="tmdbApiKeyInput" class="tmdb-key-label">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <span>Váš TMDB API klíč</span>
+              </label>
+              <div id="tmdbKeyBadge" class="tmdb-key-badge badge-missing">Klíč nezadán</div>
+            </div>
+            <div class="tmdb-key-input-row">
+              <div class="tmdb-key-input-wrap">
+                <input type="password" id="tmdbApiKeyInput" autocomplete="off" spellcheck="false" placeholder="Vložte váš TMDB API klíč (v3 auth nebo v4 token)...">
+                <button type="button" id="toggleTmdbKeyVisibilityBtn" class="tmdb-icon-btn" title="Zobrazit / skrýt klíč">
+                  <svg id="tmdbEyeIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
+              <button type="button" id="saveTmdbKeyBtn" class="btn btn-secondary">Uložit klíč</button>
+            </div>
+            <p class="tmdb-key-hint">
+              Klíč se bezpečně uloží v aplikaci. Zdarma jej získáte na <strong>themoviedb.org</strong> (Profil &rarr; Nastavení &rarr; API).
+            </p>
+          </div>
+
+          <!-- 2. Vyhledávací pole a volba typu TMDB -->
+          <div class="tmdb-search-box">
+            <div class="tmdb-search-controls-row">
+              <div class="tmdb-type-segments">
+                <label class="tmdb-type-segment">
+                  <input type="radio" name="tmdbSearchType" value="multi" checked>
+                  <span>Vše (Filmy i seriály)</span>
+                </label>
+                <label class="tmdb-type-segment">
+                  <input type="radio" name="tmdbSearchType" value="movie">
+                  <span>Pouze filmy</span>
+                </label>
+                <label class="tmdb-type-segment">
+                  <input type="radio" name="tmdbSearchType" value="tv">
+                  <span>Pouze seriály</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="tmdb-search-input-row">
+              <div class="tmdb-search-input-wrap">
+                <svg class="search-svg-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="tmdbQueryInput" autocomplete="off" spellcheck="false" placeholder="Zadejte název filmu nebo seriálu (např. Inception, Temný rytíř, Fallout)...">
+                <button type="button" id="clearTmdbQueryBtn" class="clear-search-btn hidden" title="Vymazat">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+              <button type="button" id="executeTmdbSearchBtn" class="btn btn-primary tmdb-search-submit-btn">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <span>Vyhledat</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. Oblast výsledků TMDB -->
+          <div id="tmdbResultsArea" class="tmdb-results-area">
+            <div class="tmdb-placeholder-state">
+              <svg viewBox="0 0 24 24" width="46" height="46" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4.5" width="20" height="15" rx="2.5"></rect><path d="M2 9.5h20"></path><circle cx="12" cy="14.5" r="2.5"></circle></svg>
+              <p class="tmdb-placeholder-title">Vyhledejte film nebo seriál</p>
+              <p class="tmdb-placeholder-sub">Zadejte váš API klíč a název titulu pro okamžité nalezení a automatické předvyplnění.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= SEKCE RAWG (VIDEOHRY) ================= -->
+        <div id="rawgSectionWrapper" class="hidden">
+          <!-- 1. Nastavení a stav API klíče RAWG -->
+          <div class="tmdb-key-box">
+            <div class="tmdb-key-header">
+              <label for="rawgApiKeyInput" class="tmdb-key-label">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <span>Váš RAWG.io API klíč</span>
+              </label>
+              <div id="rawgKeyBadge" class="tmdb-key-badge badge-missing">Klíč nezadán</div>
+            </div>
+            <div class="tmdb-key-input-row">
+              <div class="tmdb-key-input-wrap">
+                <input type="password" id="rawgApiKeyInput" autocomplete="off" spellcheck="false" placeholder="Vložte váš RAWG API klíč (z rawg.io/apidocs)...">
+                <button type="button" id="toggleRawgKeyVisibilityBtn" class="tmdb-icon-btn" title="Zobrazit / skrýt klíč">
+                  <svg id="rawgEyeIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
+              <button type="button" id="saveRawgKeyBtn" class="btn btn-secondary">Uložit klíč</button>
+            </div>
+            <p class="tmdb-key-hint">
+              Klíč je 100% zdarma. Získáte jej během minuty na <strong>rawg.io/apidocs</strong> (po bezplatné registraci klikněte na <em>Get an API key</em>).
+            </p>
+          </div>
+
+          <!-- 2. Vyhledávací pole RAWG -->
+          <div class="tmdb-search-box">
+            <div class="tmdb-search-input-row">
+              <div class="tmdb-search-input-wrap">
+                <svg class="search-svg-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="rawgQueryInput" autocomplete="off" spellcheck="false" placeholder="Zadejte název videohry (např. Cyberpunk 2077, Witcher 3, Elden Ring, Half-Life)...">
+                <button type="button" id="clearRawgQueryBtn" class="clear-search-btn hidden" title="Vymazat">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+              <button type="button" id="executeRawgSearchBtn" class="btn btn-primary tmdb-search-submit-btn">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <span>Vyhledat hru</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. Oblast výsledků RAWG -->
+          <div id="rawgResultsArea" class="tmdb-results-area">
+            <div class="tmdb-placeholder-state">
+              <svg viewBox="0 0 24 24" width="46" height="46" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg>
+              <p class="tmdb-placeholder-title">Vyhledejte videohru</p>
+              <p class="tmdb-placeholder-sub">Zadejte váš bezplatný RAWG klíč a název hry pro načtení obálky, žánrů, platforem a hodnocení.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer tmdb-modal-footer">
+        <button type="button" id="cancelTmdbModalBtn" class="btn btn-secondary">Zavřít</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODÁLNÍ OKNO: PŘEHRÁVAČ TRAILERŮ (YOUTUBE / VIDEO)
+       ========================================================================== -->
+  <div id="trailerModal" class="modal-overlay hidden">
+    <div class="modal-card modal-trailer">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-header-icon trailer-header-icon">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="#ef4444">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+          </div>
+          <div>
+            <h2 id="trailerModalTitle">Trailer</h2>
+            <p class="modal-subtitle" id="trailerModalSubtitle">Oficiální videoupoutávka</p>
+          </div>
+        </div>
+        <div class="trailer-header-actions">
+          <button type="button" id="trailerExternalBtn" class="btn btn-secondary btn-sm" title="Otevřít ve výchozím prohlížeči">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            <span>Otevřít v prohlížeči</span>
+          </button>
+          <button id="closeTrailerModalBtn" class="close-btn" aria-label="Zavřít trailer">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      </div>
+      <div class="trailer-modal-body">
+        <div class="trailer-player-wrap" id="trailerPlayerWrap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODÁLNÍ OKNO: VLASTNÍ POTVRZOVACÍ DIALOG (ŽÁDNÉ "WEB ŘÍKÁ")
+       ========================================================================== -->
+  <div id="confirmModal" class="modal-overlay hidden">
+    <div class="modal-card modal-confirm">
+      <div class="confirm-body">
+        <div class="confirm-icon-wrap" id="confirmIconWrap">
+          <svg class="danger-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+        </div>
+        <div class="confirm-text-wrap">
+          <h3 id="confirmTitle">Potvrdit akci</h3>
+          <p id="confirmMessage">Opravdu si přejete provést tuto akci?</p>
+        </div>
+      </div>
+      <div class="confirm-actions">
+        <button type="button" id="confirmCancelBtn" class="btn btn-secondary">Zrušit</button>
+        <button type="button" id="confirmOkBtn" class="btn btn-danger">Ano, smazat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notifikace -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="main.js"></script>
+</body>
+</html>

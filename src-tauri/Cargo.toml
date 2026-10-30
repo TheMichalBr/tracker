@@ -1,0 +1,22 @@
+[package]
+name = "tracker"
+version = "1.0.1"
+description = "Tracker - Osobní databáze pro evidenci filmů, seriálů a videoher"
+authors = ["MichalBr"]
+edition = "2021"
+
+[lib]
+name = "tracker_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+rusqlite = { version = "0.32", features = ["bundled"] }
+rfd = "0.15"
+uuid = { version = "1.10", features = ["v4"] }
+base64 = "0.22"
