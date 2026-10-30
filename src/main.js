@@ -125,6 +125,39 @@ function handlePosterError(img) {
   `;
 }
 
+// Obsluha načtení plakátu – spuštění plynulého fade-in rozsvícení
+function handlePosterLoad(img) {
+  if (!img) return;
+  img.classList.add("loaded");
+}
+
+// Sdílený IntersectionObserver pro spolehlivý lazy-loading při nekonečném rolování
+let gridImageObserver = null;
+
+function setupGridImageObserver() {
+  if (gridImageObserver) {
+    gridImageObserver.disconnect();
+  }
+
+  if ("IntersectionObserver" in window) {
+    gridImageObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          if (img.dataset.src) {
+            img.src = img.dataset.src;
+            img.removeAttribute("data-src");
+          }
+          observer.unobserve(img);
+        }
+      });
+    }, {
+      rootMargin: "450px 0px",
+      threshold: 0.01
+    });
+  }
+}
+
 // Globální stav
 let allItems = [];
 let activeFilter = "all";
@@ -1754,15 +1787,11 @@ function openDetailModal(item) {
     detailYearBadge.classList.add("hidden");
   }
 
-  // Plakát
+  // Plakát (v modálu se zobrazí ihned bez zpoždění a bez animace)
   detailPosterWrap.innerHTML = "";
   const detailCoverSrc = getCoverUrl(item.image_data);
   if (detailCoverSrc) {
-    detailPosterWrap.innerHTML = `<img src="${detailCoverSrc}" alt="${escapeHtml(item.title)}" draggable="false" onload="this.classList.add('loaded')" onerror="handlePosterError(this)">`;
-    const detailImg = detailPosterWrap.querySelector("img");
-    if (detailImg && detailImg.complete && detailImg.naturalWidth > 0) {
-      detailImg.classList.add("loaded");
-    }
+    detailPosterWrap.innerHTML = `<img src="${detailCoverSrc}" alt="${escapeHtml(item.title)}" draggable="false" onerror="handlePosterError(this)">`;
   } else {
     detailPosterWrap.innerHTML = `
       <div class="poster-placeholder">
@@ -2146,7 +2175,10 @@ function renderGrid() {
   }
 
   // 4. Vykreslení karet podle zvoleného rozvržení
-  itemsToRender.forEach((item) => {
+  setupGridImageObserver();
+  const isInfinite = itemsPerPage === "all";
+
+  itemsToRender.forEach((item, index) => {
     const card = document.createElement("div");
     card.className = "card";
 
@@ -2156,7 +2188,13 @@ function renderGrid() {
     let posterHtml = "";
     const coverSrc = getCoverUrl(item.image_data);
     if (coverSrc) {
-      posterHtml = `<img src="${coverSrc}" alt="${escapeHtml(item.title)}" loading="lazy" draggable="false" onload="this.classList.add('loaded')" onerror="handlePosterError(this)">`;
+      const shouldLazy = isInfinite && index >= 24;
+
+      if (shouldLazy) {
+        posterHtml = `<img data-src="${coverSrc}" alt="${escapeHtml(item.title)}" decoding="async" draggable="false" onload="handlePosterLoad(this)" onerror="handlePosterError(this)">`;
+      } else {
+        posterHtml = `<img src="${coverSrc}" alt="${escapeHtml(item.title)}" decoding="async" draggable="false" onload="handlePosterLoad(this)" onerror="handlePosterError(this)">`;
+      }
     } else {
       posterHtml = `
         <div class="poster-placeholder">
@@ -2236,12 +2274,29 @@ function renderGrid() {
     mediaGrid.appendChild(card);
   });
 
-  // Okamžitá aktivace pro obrázky, které jsou již načtené v mezipaměti
-  mediaGrid.querySelectorAll(".card-poster img").forEach((img) => {
-    if (img.complete && img.naturalWidth > 0) {
-      img.classList.add("loaded");
-    }
+  if (gridImageObserver) {
+    mediaGrid.querySelectorAll("img[data-src]").forEach((img) => {
+      gridImageObserver.observe(img);
+    });
+  }
+
+  // Zajištění plynulého rozsvícení pro obrázky načtené okamžitě z mezipaměti
+  requestAnimationFrame(() => {
+    mediaGrid.querySelectorAll(".card-poster img:not(.loaded)").forEach((img) => {
+      if (img.complete && img.naturalWidth > 0) {
+        img.classList.add("loaded");
+      }
+    });
   });
+
+  // Bezpečnostní pojistka: žádný obrázek nezůstane neviditelný
+  setTimeout(() => {
+    mediaGrid.querySelectorAll(".card-poster img:not(.loaded)").forEach((img) => {
+      if (!img.dataset.src) {
+        img.classList.add("loaded");
+      }
+    });
+  }, 600);
 }
 
 // Vykreslení ovládací lišty stránkování

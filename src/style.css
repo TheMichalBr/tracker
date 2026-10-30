@@ -722,6 +722,15 @@ img {
   contain: paint;
 }
 
+@keyframes posterFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .card-poster img {
   width: 100%;
   height: 100%;
@@ -731,12 +740,13 @@ img {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   transform: scale(1) translateZ(0);
-  will-change: transform, opacity;
-  transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1), transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), filter 0.38s ease;
+  will-change: opacity, transform;
+  transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), filter 0.38s ease;
 }
 
 .card-poster img.loaded {
   opacity: 1;
+  animation: posterFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .card:hover .card-poster img {
@@ -2102,14 +2112,9 @@ input[type="range"]::-webkit-slider-thumb {
   height: 100%;
   object-fit: cover;
   display: block;
-  opacity: 0;
-  transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 1;
   user-select: none;
   -webkit-user-drag: none;
-}
-
-.detail-poster-wrap img.loaded {
-  opacity: 1;
 }
 
 /* Klíčová slova (Tagy) v postranním panelu pod obrázkem */
