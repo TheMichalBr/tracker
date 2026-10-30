@@ -1,18 +1,18 @@
-name: "Release - TEST"
+name: "Tracker - Windows 11/10 Release"
 on:
-  workflow_dispatch: # Umožní spustit build kdykoliv ručně jedním kliknutím v GitHubu
+  workflow_dispatch:
   push:
     tags:
-      - 'v*' # Nebo se automaticky spustí, když pushneš tag (např. v1.0.0)
+      - 'v*'
 jobs:
   build-tauri:
     permissions:
-      contents: write # Povolení pro GitHub Actions vytvořit Release a nahrát soubory
+      contents: write
     strategy:
       fail-fast: false
       matrix:
         include:
-          - platform: 'windows-latest' # Virtuální Windows stroj na GitHubu
+          - platform: 'windows-latest'
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Stáhnutí kódu (Checkout)
@@ -22,9 +22,9 @@ jobs:
       - name: Sestavení a vytvoření instalátoru
         uses: tauri-apps/tauri-action@v0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Vestavěný token GitHubu (nemusíš nic generovat)
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v__VERSION__ # Převezme verzi automaticky z tauri.conf.json
+          tagName: v__VERSION__
           releaseName: 'Tracker v__VERSION__'
           releaseBody: 'Automaticky vytvořený release aplikace Tracker.'
           releaseDraft: false
