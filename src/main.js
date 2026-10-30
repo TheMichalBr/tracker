@@ -286,6 +286,7 @@ const settingsDefaultView = document.getElementById("settingsDefaultView");
 const settingsItemsPerPage = document.getElementById("settingsItemsPerPage");
 const settingsItemCount = document.getElementById("settingsItemCount");
 const openDataFolderBtn = document.getElementById("openDataFolderBtn");
+const clearTempBtn = document.getElementById("clearTempBtn");
 const exportDataBtn = document.getElementById("exportDataBtn");
 const reportBugBtn = document.getElementById("reportBugBtn");
 const settingsTmdbApiKey = document.getElementById("settingsTmdbApiKey");
@@ -691,6 +692,7 @@ function setupEventListeners() {
   if (cancelSettingsBtn) cancelSettingsBtn.addEventListener("click", closeSettingsModal);
   saveSettingsBtn.addEventListener("click", handleSaveSettings);
   if (openDataFolderBtn) openDataFolderBtn.addEventListener("click", handleOpenDataFolder);
+  if (clearTempBtn) clearTempBtn.addEventListener("click", handleClearTempFiles);
   exportDataBtn.addEventListener("click", handleExportData);
   if (reportBugBtn) {
     reportBugBtn.addEventListener("click", () => {
@@ -1969,6 +1971,20 @@ async function handleOpenDataFolder() {
   } catch (err) {
     console.error("Chyba při otevírání složky:", err);
     showToast("Nepodařilo se otevřít složku: " + err);
+  }
+}
+
+async function handleClearTempFiles() {
+  try {
+    const deletedCount = await tauriInvoke("clear_temp_files");
+    if (deletedCount > 0) {
+      showToast(`Dočasné soubory byly vyčištěny (smazáno: ${deletedCount}).`);
+    } else {
+      showToast("Složka dočasných souborů je již prázdná.");
+    }
+  } catch (err) {
+    console.error("Chyba při čištění dočasných souborů:", err);
+    showToast("Nepodařilo se vyčistit dočasné soubory: " + err);
   }
 }
 

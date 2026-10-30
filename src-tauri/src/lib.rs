@@ -760,7 +760,32 @@ fn open_data_folder(state: tauri::State<'_, AppState>) -> Result<(), String> {
     Ok(())
 }
 
-/// 7. Příkaz: Rychlá aktualizace pouze stavu položky (backlog, in_progress, completed, dropped)
+/// 7. Příkaz: Vyčištění dočasných importovaných souborů ze složky temp_imports
+#[tauri::command]
+fn clear_temp_files(state: tauri::State<'_, AppState>) -> Result<usize, String> {
+    let temp_dir = state.app_data_dir.join("temp_imports");
+    if !temp_dir.exists() {
+        return Ok(0);
+    }
+
+    let mut deleted_count = 0;
+    if let Ok(entries) = fs::read_dir(&temp_dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_file() {
+                if fs::remove_file(&path).is_ok() {
+                    deleted_count += 1;
+                }
+            } else if path.is_dir() {
+                let _ = fs::remove_dir_all(&path);
+            }
+        }
+    }
+
+    Ok(deleted_count)
+}
+
+/// 8. Příkaz: Rychlá aktualizace pouze stavu položky (backlog, in_progress, completed, dropped)
 #[tauri::command]
 fn update_item_status(
     state: tauri::State<'_, AppState>,
@@ -1084,6 +1109,7 @@ pub fn run() {
             delete_item,
             select_image,
             open_data_folder,
+            clear_temp_files,
             show_main_window,
             save_image_from_base64,
             download_and_save_image,
