@@ -287,6 +287,7 @@ const settingsItemsPerPage = document.getElementById("settingsItemsPerPage");
 const settingsItemCount = document.getElementById("settingsItemCount");
 const openDataFolderBtn = document.getElementById("openDataFolderBtn");
 const exportDataBtn = document.getElementById("exportDataBtn");
+const reportBugBtn = document.getElementById("reportBugBtn");
 const settingsTmdbApiKey = document.getElementById("settingsTmdbApiKey");
 const settingsRawgApiKey = document.getElementById("settingsRawgApiKey");
 
@@ -691,6 +692,11 @@ function setupEventListeners() {
   saveSettingsBtn.addEventListener("click", handleSaveSettings);
   if (openDataFolderBtn) openDataFolderBtn.addEventListener("click", handleOpenDataFolder);
   exportDataBtn.addEventListener("click", handleExportData);
+  if (reportBugBtn) {
+    reportBugBtn.addEventListener("click", () => {
+      openExternalUrl("https://github.com/TheMichalBr/tracker/issues?q=sort%3Aupdated-desc+is%3Aissue+state%3Aopen+");
+    });
+  }
 
   // Zavření klikem mimo obsah
   formModal.addEventListener("click", (e) => {

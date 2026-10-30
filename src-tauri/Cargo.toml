@@ -1,6 +1,6 @@
 [package]
 name = "tracker"
-version = "1.0.1"
+version = "1.0.2"
 description = "Tracker - Osobní databáze pro evidenci filmů, seriálů a videoher"
 authors = ["MichalBr"]
 edition = "2021"
