@@ -112,7 +112,8 @@ pub struct AppState {
     pub app_data_dir: PathBuf,
 }
 
-/// Načte obrázek z disku a převede jej na data URL (base64)
+/// Načte obrázek z disku a převede jej na data URL (base64) - záložní pomocná funkce
+#[allow(dead_code)]
 fn load_image_as_data_url(path: &PathBuf) -> Option<String> {
     if !path.exists() || !path.is_file() {
         return None;
@@ -255,7 +256,11 @@ fn get_items(state: tauri::State<'_, AppState>) -> Result<Vec<MediaItem>, String
 
         let image_data = if let Some(ref file_name) = image_path {
             let full_path = state.covers_dir.join(file_name);
-            load_image_as_data_url(&full_path)
+            if full_path.exists() {
+                Some(full_path.to_string_lossy().to_string())
+            } else {
+                None
+            }
         } else {
             None
         };
@@ -357,7 +362,7 @@ fn add_item(
                 format!("Nepodařilo se zkopírovat obrázek do složky aplikace: {}", e)
             })?;
 
-            saved_image_data = load_image_as_data_url(&dest_path);
+            saved_image_data = Some(dest_path.to_string_lossy().to_string());
             saved_rel_path = Some(unique_file_name);
         }
     }
@@ -513,13 +518,15 @@ fn update_item(
                 format!("Nepodařilo se zkopírovat nový obrázek: {}", e)
             })?;
 
-            final_image_data = load_image_as_data_url(&dest_path);
+            final_image_data = Some(dest_path.to_string_lossy().to_string());
             final_image_path = Some(unique_file_name);
         }
     } else if let Some(ref existing_file) = final_image_path {
-        // Obrázek zůstává nezměněn, načteme jeho náhled
+        // Obrázek zůstává nezměněn, nastavíme cestu pro náhled
         let full_path = state.covers_dir.join(existing_file);
-        final_image_data = load_image_as_data_url(&full_path);
+        if full_path.exists() {
+            final_image_data = Some(full_path.to_string_lossy().to_string());
+        }
     }
 
     let item_type = item.item_type;
@@ -964,6 +971,8 @@ pub fn run() {
             let covers_dir = app_data_dir.join("covers");
             fs::create_dir_all(&covers_dir)
                 .expect("Nepodařilo se vytvořit podsložku 'covers'");
+
+            let _ = app.asset_protocol_scope().allow_directory(&app_data_dir, true);
 
             let db_path = app_data_dir.join("tracker.sqlite");
             let conn = Connection::open(&db_path)

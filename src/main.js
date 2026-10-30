@@ -78,6 +78,25 @@ async function tauriInvoke(cmd, args = {}) {
   throw new Error("Tauri IPC není dostupné. Spusťte aplikaci v prostředí Tauri.");
 }
 
+// Pomocná funkce pro bezpečný převod cesty k souboru na nativní Tauri Asset URL
+function getCoverUrl(src) {
+  if (!src) return "";
+  // Pokud je to již webová URL nebo data URL
+  if (src.startsWith("data:") || src.startsWith("http:") || src.startsWith("https:") || src.startsWith("asset:")) {
+    return src;
+  }
+  // Nativní Tauri Asset Protocol (bleskové streamování přímo z disku bez Base64)
+  const convert = window.__TAURI__?.core?.convertFileSrc || window.__TAURI__?.convertFileSrc;
+  if (typeof convert === "function") {
+    try {
+      return convert(src);
+    } catch (err) {
+      console.warn("Chyba při konverzi asset cesty:", err);
+    }
+  }
+  return src;
+}
+
 // ==========================================================================
 // Knihovna SVG Ikon (Sjednocený moderní outline styl: 24x24, stroke-width 2)
 // ==========================================================================
@@ -94,6 +113,17 @@ const SVG_ICONS = {
   calendar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`,
   clock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
 };
+
+// Ošetření chyby načtení obrázku obálky (nahrazení placeholderem)
+function handlePosterError(img) {
+  if (!img || !img.parentElement) return;
+  img.onerror = null;
+  img.parentElement.innerHTML = `
+    <div class="poster-placeholder">
+      <div class="placeholder-eye-off">${SVG_ICONS.eyeOff}</div>
+    </div>
+  `;
+}
 
 // Globální stav
 let allItems = [];
@@ -1077,7 +1107,7 @@ async function handleSelectImage() {
       selectedImagePathText.title = filePath;
 
       imagePreviewContainer.classList.remove("hidden");
-      imagePreviewImg.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='150'><rect width='100%' height='100%' fill='%2310182b'/><text x='50%' y='50%' fill='%236366f1' font-size='12' font-weight='bold' text-anchor='middle' dominant-baseline='middle'>Vybráno</text></svg>";
+      imagePreviewImg.src = getCoverUrl(filePath);
     }
   } catch (err) {
     console.error("Chyba při výběru obrázku:", err);
@@ -1319,7 +1349,7 @@ function openFormModal(itemToEdit = null, prefillData = null) {
     // Plakát
     if (itemToEdit.image_data) {
       existingImageData = itemToEdit.image_data;
-      imagePreviewImg.src = itemToEdit.image_data;
+      imagePreviewImg.src = getCoverUrl(itemToEdit.image_data);
       imagePreviewContainer.classList.remove("hidden");
       selectedImagePathText.textContent = itemToEdit.image_path || "Uložený plakát";
     } else {
@@ -1380,10 +1410,10 @@ function openFormModal(itemToEdit = null, prefillData = null) {
     itemEngine.value = prefillData.engine || "";
 
     // Plakát
-    if (prefillData.imageData && prefillData.imagePath) {
-      selectedImagePath = prefillData.imagePath;
-      existingImageData = prefillData.imageData;
-      imagePreviewImg.src = prefillData.imageData;
+    if (prefillData.imageData || prefillData.imagePath) {
+      selectedImagePath = prefillData.imagePath || "";
+      existingImageData = prefillData.imageData || "";
+      imagePreviewImg.src = getCoverUrl(prefillData.imageData || prefillData.imagePath);
       imagePreviewContainer.classList.remove("hidden");
       selectedImagePathText.textContent = "Plakát načten z online databáze";
     } else {
@@ -1726,8 +1756,13 @@ function openDetailModal(item) {
 
   // Plakát
   detailPosterWrap.innerHTML = "";
-  if (item.image_data) {
-    detailPosterWrap.innerHTML = `<img src="${item.image_data}" alt="${escapeHtml(item.title)}" draggable="false">`;
+  const detailCoverSrc = getCoverUrl(item.image_data);
+  if (detailCoverSrc) {
+    detailPosterWrap.innerHTML = `<img src="${detailCoverSrc}" alt="${escapeHtml(item.title)}" draggable="false" onload="this.classList.add('loaded')" onerror="handlePosterError(this)">`;
+    const detailImg = detailPosterWrap.querySelector("img");
+    if (detailImg && detailImg.complete && detailImg.naturalWidth > 0) {
+      detailImg.classList.add("loaded");
+    }
   } else {
     detailPosterWrap.innerHTML = `
       <div class="poster-placeholder">
@@ -2119,8 +2154,9 @@ function renderGrid() {
 
     // Plakát
     let posterHtml = "";
-    if (item.image_data) {
-      posterHtml = `<img src="${item.image_data}" alt="${escapeHtml(item.title)}" loading="lazy" draggable="false">`;
+    const coverSrc = getCoverUrl(item.image_data);
+    if (coverSrc) {
+      posterHtml = `<img src="${coverSrc}" alt="${escapeHtml(item.title)}" loading="lazy" draggable="false" onload="this.classList.add('loaded')" onerror="handlePosterError(this)">`;
     } else {
       posterHtml = `
         <div class="poster-placeholder">
@@ -2198,6 +2234,13 @@ function renderGrid() {
     });
 
     mediaGrid.appendChild(card);
+  });
+
+  // Okamžitá aktivace pro obrázky, které jsou již načtené v mezipaměti
+  mediaGrid.querySelectorAll(".card-poster img").forEach((img) => {
+    if (img.complete && img.naturalWidth > 0) {
+      img.classList.add("loaded");
+    }
   });
 }
 

@@ -712,7 +712,7 @@ img {
   width: 100%;
   aspect-ratio: 2 / 3;
   position: relative;
-  background: #090e1a;
+  background: radial-gradient(circle at 50% 30%, #151d32 0%, #090e1a 100%);
   overflow: hidden;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   -webkit-backface-visibility: hidden;
@@ -727,11 +727,16 @@ img {
   height: 100%;
   object-fit: cover;
   display: block;
+  opacity: 0;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   transform: scale(1) translateZ(0);
-  will-change: transform;
-  transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), filter 0.38s ease;
+  will-change: transform, opacity;
+  transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1), transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), filter 0.38s ease;
+}
+
+.card-poster img.loaded {
+  opacity: 1;
 }
 
 .card:hover .card-poster img {
@@ -2088,7 +2093,7 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 14px 32px -6px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  background: #090e18;
+  background: radial-gradient(circle at 50% 30%, #151d32 0%, #090e18 100%);
   position: relative;
 }
 
@@ -2097,8 +2102,14 @@ input[type="range"]::-webkit-slider-thumb {
   height: 100%;
   object-fit: cover;
   display: block;
+  opacity: 0;
+  transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
   -webkit-user-drag: none;
+}
+
+.detail-poster-wrap img.loaded {
+  opacity: 1;
 }
 
 /* Klíčová slova (Tagy) v postranním panelu pod obrázkem */
