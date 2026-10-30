@@ -15,17 +15,17 @@ jobs:
           - platform: 'windows-latest'
     runs-on: ${{ matrix.platform }}
     steps:
-      - name: Stáhnutí kódu (Checkout)
+      - name: Download code
         uses: actions/checkout@v4
-      - name: Instalace Rustu
+      - name: Installing rust
         uses: dtolnay/rust-toolchain@stable
-      - name: Sestavení a vytvoření instalátoru
+      - name: Compiling and creating an installer
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: v__VERSION__
           releaseName: 'Tracker v__VERSION__'
-          releaseBody: 'Automaticky vytvořený release aplikace Tracker.'
+          releaseBody: 'Automatically generated release of the Tracker app for Windows 11/10.'
           releaseDraft: false
           prerelease: false
