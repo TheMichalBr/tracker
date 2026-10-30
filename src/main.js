@@ -873,15 +873,39 @@ function setupEventListeners() {
   // Odeslání formuláře
   mediaForm.addEventListener("submit", handleFormSubmit);
 
-  // Vyhledávání v reálném čase
+  // Vyhledávání v reálném čase s debounce (140 ms) pro plynulý chod bez problikávání
+  let searchDebounceTimer = null;
   searchInput.addEventListener("input", (e) => {
-    searchQuery = e.target.value.trim().toLowerCase();
-    clearSearchBtn.classList.toggle("hidden", searchQuery === "");
-    currentPage = 1;
-    renderGrid();
+    const val = e.target.value.trim().toLowerCase();
+    clearSearchBtn.classList.toggle("hidden", val === "");
+
+    if (searchDebounceTimer) {
+      clearTimeout(searchDebounceTimer);
+    }
+
+    searchDebounceTimer = setTimeout(() => {
+      searchQuery = val;
+      currentPage = 1;
+      renderGrid();
+    }, 140);
+  });
+
+  // Okamžité vyhledání při stisku klávesy Enter bez čekání na debounce
+  searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+      }
+      searchQuery = searchInput.value.trim().toLowerCase();
+      currentPage = 1;
+      renderGrid();
+    }
   });
 
   clearSearchBtn.addEventListener("click", () => {
+    if (searchDebounceTimer) {
+      clearTimeout(searchDebounceTimer);
+    }
     searchInput.value = "";
     searchQuery = "";
     clearSearchBtn.classList.add("hidden");
