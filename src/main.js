@@ -437,6 +437,7 @@ const saveSettingsBtn = document.getElementById("saveSettingsBtn");
 const settingsDefaultView = document.getElementById("settingsDefaultView");
 const settingsItemsPerPage = document.getElementById("settingsItemsPerPage");
 const settingsItemCount = document.getElementById("settingsItemCount");
+const settingsTempCount = document.getElementById("settingsTempCount");
 const openDataFolderBtn = document.getElementById("openDataFolderBtn");
 const clearTempBtn = document.getElementById("clearTempBtn");
 const optimizeCoversBtn = document.getElementById("optimizeCoversBtn");
@@ -2108,6 +2109,32 @@ function closeDetailModal() {
   updateModalBodyLock();
 }
 
+function formatFileSize(bytes) {
+  if (!bytes || bytes <= 0) return "0 B";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+async function refreshSettingsTempCount() {
+  if (!settingsTempCount) return;
+  try {
+    const info = await tauriInvoke("get_temp_files_info");
+    if (info && typeof info.count === "number") {
+      if (info.count === 0) {
+        settingsTempCount.textContent = "0 položek (0 B)";
+      } else {
+        const itemWord = info.count === 1 ? "položka" : (info.count >= 2 && info.count <= 4 ? "položky" : "položek");
+        settingsTempCount.textContent = `${info.count} ${itemWord} (${formatFileSize(info.total_size_bytes || 0)})`;
+      }
+    } else {
+      settingsTempCount.textContent = "0 položek (0 B)";
+    }
+  } catch (err) {
+    settingsTempCount.textContent = "0 položek";
+  }
+}
+
 // ==========================================================================
 // Modál: Nastavení aplikace
 // ==========================================================================
@@ -2115,6 +2142,7 @@ function openSettingsModal() {
   settingsDefaultView.value = localStorage.getItem("tracker_view_mode") || "grid";
   settingsItemsPerPage.value = localStorage.getItem("tracker_items_per_page") || "24";
   settingsItemCount.textContent = `${allItems.length} položek`;
+  refreshSettingsTempCount();
   if (settingsTmdbApiKey) {
     settingsTmdbApiKey.value = localStorage.getItem("tracker_tmdb_api_key") || "";
   }
@@ -2195,6 +2223,7 @@ async function handleClearTempFiles() {
     } else {
       showToast("Složka dočasných souborů je již prázdná.");
     }
+    await refreshSettingsTempCount();
   } catch (err) {
     console.error("Chyba při čištění dočasných souborů:", err);
     showToast("Nepodařilo se vyčistit dočasné soubory: " + err);

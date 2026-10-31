@@ -767,6 +767,43 @@ fn open_data_folder(state: tauri::State<'_, AppState>) -> Result<(), String> {
     Ok(())
 }
 
+#[derive(serde::Serialize)]
+struct TempFilesInfo {
+    count: usize,
+    total_size_bytes: u64,
+}
+
+/// Zjištění počtu a celkové velikosti dočasných souborů ve složce temp_imports
+#[tauri::command]
+fn get_temp_files_info(state: tauri::State<'_, AppState>) -> Result<TempFilesInfo, String> {
+    let temp_dir = state.app_data_dir.join("temp_imports");
+    if !temp_dir.exists() {
+        return Ok(TempFilesInfo {
+            count: 0,
+            total_size_bytes: 0,
+        });
+    }
+
+    let mut count = 0;
+    let mut total_size_bytes: u64 = 0;
+    if let Ok(entries) = fs::read_dir(&temp_dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_file() {
+                count += 1;
+                if let Ok(metadata) = fs::metadata(&path) {
+                    total_size_bytes += metadata.len();
+                }
+            }
+        }
+    }
+
+    Ok(TempFilesInfo {
+        count,
+        total_size_bytes,
+    })
+}
+
 /// 7. Příkaz: Vyčištění dočasných importovaných souborů ze složky temp_imports
 #[tauri::command]
 fn clear_temp_files(state: tauri::State<'_, AppState>) -> Result<usize, String> {
@@ -1118,6 +1155,7 @@ pub fn run() {
             delete_item,
             select_image,
             open_data_folder,
+            get_temp_files_info,
             clear_temp_files,
             show_main_window,
             save_image_from_base64,
