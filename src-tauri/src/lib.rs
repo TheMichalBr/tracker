@@ -724,7 +724,7 @@ fn save_image_from_base64(
         let _ = fs::create_dir_all(&temp_dir);
     }
 
-    let file_name = format!("tmdb_{}.{}", Uuid::new_v4(), clean_ext);
+    let file_name = format!("edited_{}.{}", Uuid::new_v4(), clean_ext);
     let dest_path = temp_dir.join(&file_name);
     fs::write(&dest_path, bytes).map_err(|e| format!("Chyba při ukládání souboru obrázku: {}", e))?;
 

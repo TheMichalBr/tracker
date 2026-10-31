@@ -131,6 +131,95 @@ function handlePosterLoad(img) {
   img.classList.add("loaded");
 }
 
+/**
+ * Zpracuje a zoptimalizuje jakýkoliv obrázek (z lokálního disku, API nebo Base64):
+ * 1. Vyřízne střed (center-crop) na filmový/herní poměr stran 2:3.
+ *    - Pokud je obrázek široký (16:9, 2K/4K tapety z her), vyřízne středový výřez a ořízne boky.
+ *    - Pokud je příliš vysoký, vyřízne střed a ořízne vršek a spodek.
+ * 2. Zmenší rozlišení na optimální zlatý střed 500 × 750 px s vysoce kvalitním vyhlazením.
+ * 3. Zkomprimuje a převede do moderního formátu WebP (kvalita 0.88, velikost cca 40–60 kB).
+ * 4. Uloží přes Tauri do dočasné složky jako .webp a vrátí cestu i dataUrl.
+ */
+function processAndOptimizeImageToWebP(imageSourceUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = async () => {
+      try {
+        const origW = img.naturalWidth;
+        const origH = img.naturalHeight;
+
+        if (!origW || !origH) {
+          throw new Error("Neplatné rozměry obrázku.");
+        }
+
+        // Cílový poměr stran 2:3 (standardní plakát)
+        const targetRatio = 2 / 3;
+        const currentRatio = origW / origH;
+
+        let cropX = 0;
+        let cropY = 0;
+        let cropW = origW;
+        let cropH = origH;
+
+        if (currentRatio > targetRatio) {
+          // Obrázek je širší (např. 16:9, 2K nebo 4K tapeta ze hry) -> ořízneme boky a vezmeme přesný střed
+          cropW = Math.round(origH * targetRatio);
+          cropX = Math.round((origW - cropW) / 2);
+        } else if (currentRatio < targetRatio) {
+          // Obrázek je vyšší než 2:3 -> ořízneme vršek a spodek a vezmeme střed
+          cropH = Math.round(origW / targetRatio);
+          cropY = Math.round((origH - cropH) / 2);
+        }
+
+        // Cílové rozlišení: zlatý střed 500 × 750 px
+        // Pokud je původní obrázek menší, nezvětšujeme ho uměle (aby neztratil ostrost)
+        const finalW = Math.min(500, cropW);
+        const finalH = Math.round(finalW / targetRatio);
+
+        const canvas = document.createElement("canvas");
+        canvas.width = finalW;
+        canvas.height = finalH;
+
+        const ctx = canvas.getContext("2d");
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+
+        // Vykreslíme oříznutý střed zmenšený do 500x750
+        ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, finalW, finalH);
+
+        // Získání uživatelsky nastavené kvality z Nastavení (výchozí 88 %)
+        const qualityPercent = parseInt(localStorage.getItem("tracker_webp_quality") || "88", 10);
+        const webpQuality = Math.max(0.6, Math.min(1.0, (isNaN(qualityPercent) ? 88 : qualityPercent) / 100));
+
+        // Export do WebP (dle uživatelského nastavení)
+        const webpDataUrl = canvas.toDataURL("image/webp", webpQuality);
+
+        const savedPath = await tauriInvoke("save_image_from_base64", {
+          base64Data: webpDataUrl,
+          ext: "webp",
+        });
+
+        resolve({
+          filePath: savedPath,
+          dataUrl: webpDataUrl,
+        });
+      } catch (err) {
+        console.error("Chyba při zpracování obrázku do WebP:", err);
+        reject(err);
+      }
+    };
+
+    img.onerror = (err) => {
+      console.error("Nepodařilo se načíst obrázek pro optimalizaci:", err);
+      reject(err);
+    };
+
+    img.src = imageSourceUrl;
+  });
+}
+
 // Sdílený IntersectionObserver pro spolehlivý lazy-loading při nekonečném rolování
 let gridImageObserver = null;
 
@@ -350,8 +439,11 @@ const settingsItemsPerPage = document.getElementById("settingsItemsPerPage");
 const settingsItemCount = document.getElementById("settingsItemCount");
 const openDataFolderBtn = document.getElementById("openDataFolderBtn");
 const clearTempBtn = document.getElementById("clearTempBtn");
+const optimizeCoversBtn = document.getElementById("optimizeCoversBtn");
 const exportDataBtn = document.getElementById("exportDataBtn");
 const reportBugBtn = document.getElementById("reportBugBtn");
+const settingsWebpQuality = document.getElementById("settingsWebpQuality");
+const settingsWebpQualityVal = document.getElementById("settingsWebpQualityVal");
 const settingsTmdbApiKey = document.getElementById("settingsTmdbApiKey");
 const settingsRawgApiKey = document.getElementById("settingsRawgApiKey");
 
@@ -756,6 +848,12 @@ function setupEventListeners() {
   saveSettingsBtn.addEventListener("click", handleSaveSettings);
   if (openDataFolderBtn) openDataFolderBtn.addEventListener("click", handleOpenDataFolder);
   if (clearTempBtn) clearTempBtn.addEventListener("click", handleClearTempFiles);
+  if (optimizeCoversBtn) optimizeCoversBtn.addEventListener("click", handleOptimizeExistingCovers);
+  if (settingsWebpQuality && settingsWebpQualityVal) {
+    settingsWebpQuality.addEventListener("input", (e) => {
+      settingsWebpQualityVal.textContent = `${e.target.value} %`;
+    });
+  }
   exportDataBtn.addEventListener("click", handleExportData);
   if (reportBugBtn) {
     reportBugBtn.addEventListener("click", () => {
@@ -1153,18 +1251,34 @@ async function loadItems() {
   }
 }
 
-// Výběr obrázku přes nativní dialog
+// Výběr obrázku přes nativní dialog s automatickou optimalizací do WebP (500×750 px)
 async function handleSelectImage() {
   try {
     const filePath = await tauriInvoke("select_image");
     if (filePath) {
-      selectedImagePath = filePath;
-      removeImageFlag = false;
-      selectedImagePathText.textContent = filePath;
-      selectedImagePathText.title = filePath;
+      const localUrl = getCoverUrl(filePath);
 
+      // Zobrazíme dočasný náhled ihned
       imagePreviewContainer.classList.remove("hidden");
-      imagePreviewImg.src = getCoverUrl(filePath);
+      imagePreviewImg.src = localUrl;
+      selectedImagePathText.textContent = "Optimalizuji obrázek (500×750 WebP)...";
+
+      try {
+        const optimized = await processAndOptimizeImageToWebP(localUrl);
+        selectedImagePath = optimized.filePath;
+        removeImageFlag = false;
+        selectedImagePathText.textContent = `${filePath} (optimalizováno na WebP)`;
+        selectedImagePathText.title = filePath;
+        imagePreviewImg.src = optimized.dataUrl || getCoverUrl(optimized.filePath);
+        showToast("Obrázek byl vycentrován, zmenšen na 500×750 a převeden na WebP.");
+      } catch (optErr) {
+        console.warn("Optimalizace selhala, použiji původní soubor:", optErr);
+        selectedImagePath = filePath;
+        removeImageFlag = false;
+        selectedImagePathText.textContent = filePath;
+        selectedImagePathText.title = filePath;
+        imagePreviewImg.src = localUrl;
+      }
     }
   } catch (err) {
     console.error("Chyba při výběru obrázku:", err);
@@ -2007,6 +2121,13 @@ function openSettingsModal() {
   if (settingsRawgApiKey) {
     settingsRawgApiKey.value = localStorage.getItem("tracker_rawg_api_key") || "";
   }
+  const savedQuality = localStorage.getItem("tracker_webp_quality") || "88";
+  if (settingsWebpQuality) {
+    settingsWebpQuality.value = savedQuality;
+  }
+  if (settingsWebpQualityVal) {
+    settingsWebpQualityVal.textContent = `${savedQuality} %`;
+  }
 
   settingsModal.classList.remove("hidden");
   updateModalBodyLock();
@@ -2023,6 +2144,10 @@ function handleSaveSettings() {
 
   localStorage.setItem("tracker_view_mode", newView);
   localStorage.setItem("tracker_items_per_page", newItemsPerPage);
+
+  if (settingsWebpQuality) {
+    localStorage.setItem("tracker_webp_quality", settingsWebpQuality.value);
+  }
 
   if (settingsTmdbApiKey) {
     let key = settingsTmdbApiKey.value.trim().replace(/^["']|["']$/g, "").trim();
@@ -2074,6 +2199,81 @@ async function handleClearTempFiles() {
     console.error("Chyba při čištění dočasných souborů:", err);
     showToast("Nepodařilo se vyčistit dočasné soubory: " + err);
   }
+}
+
+// Hromadná optimalizace stávající knihovny: převede všechny obrázky do WebP (500x750)
+async function handleOptimizeExistingCovers() {
+  const itemsToOptimize = allItems.filter(
+    (item) => item.image_data && !item.image_data.toLowerCase().endsWith(".webp")
+  );
+
+  if (itemsToOptimize.length === 0) {
+    showToast("Všechny vaše obálky již jsou v moderním formátu WebP (500×750 px).");
+    return;
+  }
+
+  const confirmed = await showConfirmDialog({
+    title: "Optimalizovat stávající obálky",
+    message: `Nalezeno ${itemsToOptimize.length} obálek ke konverzi. Obrázky budou oříznuty na poměr 2:3, zmenšeny na zlatý střed 500×750 px a převedeny na WebP. Ušetří se místo na disku a zrychlí načítání. Chcete pokračovat?`,
+    confirmText: "Ano, optimalizovat",
+    cancelText: "Zrušit",
+  });
+
+  if (!confirmed) return;
+
+  if (optimizeCoversBtn) optimizeCoversBtn.disabled = true;
+  showToast(`Zahajuji optimalizaci ${itemsToOptimize.length} obálek...`);
+
+  let successCount = 0;
+  for (let i = 0; i < itemsToOptimize.length; i++) {
+    const item = itemsToOptimize[i];
+    try {
+      const coverUrl = getCoverUrl(item.image_data);
+      const optimized = await processAndOptimizeImageToWebP(coverUrl);
+
+      const payload = {
+        id: item.id,
+        itemType: item.item_type,
+        title: item.title,
+        releaseYear: item.release_year,
+        genre: item.genre || "",
+        tags: item.tags || "",
+        description: item.description || "",
+        rating: item.rating,
+        apiRating: item.api_rating,
+        note: item.note || "",
+        director: item.director || "",
+        writer: item.writer || "",
+        castMembers: item.cast_members || "",
+        production: item.production || "",
+        duration: item.duration || "",
+        seasonEpisodes: item.season_episodes || "",
+        developer: item.developer || "",
+        publisher: item.publisher || "",
+        gameMode: item.game_mode || "",
+        platforms: item.platforms || "",
+        engine: item.engine || "",
+        customMetadata: item.custom_metadata || {},
+        status: item.status || "completed",
+        trailerUrl: item.trailer_url || "",
+        imageSourcePath: optimized.filePath,
+        removeImage: false,
+      };
+
+      const updated = await tauriInvoke("update_item", { item: payload });
+      const idx = allItems.findIndex((it) => it.id === item.id);
+      if (idx !== -1) {
+        allItems[idx] = updated;
+      }
+      successCount++;
+    } catch (err) {
+      console.warn(`Optimalizace položky "${item.title}" selhala:`, err);
+    }
+  }
+
+  if (optimizeCoversBtn) optimizeCoversBtn.disabled = false;
+  renderGrid();
+  showToast(`Hotovo! Převedeno a zmenšeno ${successCount} z ${itemsToOptimize.length} obálek do WebP.`);
 }
 
 function handleExportData() {
@@ -2752,13 +2952,20 @@ async function importTmdbItemDetails(item, btn) {
     const posterPath = data.poster_path || item.poster_path;
 
     if (posterPath) {
-      if (btn) btn.innerHTML = `<span class="tmdb-spinner-small"></span> Stahuji obálku...`;
+      if (btn) btn.innerHTML = `<span class="tmdb-spinner-small"></span> Stahuji a optimalizuji obálku...`;
       const fullPosterUrl = `https://image.tmdb.org/t/p/w500${posterPath}`;
       try {
         const res = await tauriInvoke("download_and_save_image", { url: fullPosterUrl });
         if (res && res.image_path) {
-          savedImagePath = res.image_path;
-          base64ImageData = res.base64_data;
+          try {
+            const optimized = await processAndOptimizeImageToWebP(getCoverUrl(res.image_path));
+            savedImagePath = optimized.filePath;
+            base64ImageData = optimized.dataUrl;
+          } catch (optErr) {
+            console.warn("Optimalizace TMDB plakátu selhala, použiji původní:", optErr);
+            savedImagePath = res.image_path;
+            base64ImageData = res.base64_data;
+          }
         }
       } catch (rustErr) {
         console.warn("Stažení plakátu přes Rust selhalo, zkouším přímý fetch:", rustErr);
@@ -2766,17 +2973,14 @@ async function importTmdbItemDetails(item, btn) {
           const imgRes = await fetch(fullPosterUrl);
           if (imgRes.ok) {
             const blob = await imgRes.blob();
-            base64ImageData = await new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            });
-
-            savedImagePath = await tauriInvoke("save_image_from_base64", {
-              base64Data: base64ImageData,
-              ext: "jpg",
-            });
+            const blobUrl = URL.createObjectURL(blob);
+            try {
+              const optimized = await processAndOptimizeImageToWebP(blobUrl);
+              savedImagePath = optimized.filePath;
+              base64ImageData = optimized.dataUrl;
+            } finally {
+              URL.revokeObjectURL(blobUrl);
+            }
           }
         } catch (fetchErr) {
           console.warn("Stažení plakátu přes fetch selhalo:", fetchErr);
@@ -3073,13 +3277,20 @@ async function importRawgGameDetails(gameSummary, btn) {
     const imageUrl = data.background_image || gameSummary.background_image;
 
     if (imageUrl) {
-      if (btn) btn.innerHTML = `<span class="tmdb-spinner-small"></span> Stahuji obal...`;
+      if (btn) btn.innerHTML = `<span class="tmdb-spinner-small"></span> Stahuji a optimalizuji obal...`;
       try {
         // 1. Primární spolehlivá metoda přes Rust backend (obejde CORS, Cloudflare i 307 přesměrování)
         const res = await tauriInvoke("download_and_save_image", { url: imageUrl });
         if (res && res.image_path) {
-          savedImagePath = res.image_path;
-          base64ImageData = res.base64_data;
+          try {
+            const optimized = await processAndOptimizeImageToWebP(getCoverUrl(res.image_path));
+            savedImagePath = optimized.filePath;
+            base64ImageData = optimized.dataUrl;
+          } catch (optErr) {
+            console.warn("Optimalizace RAWG obalu selhala, použiji původní:", optErr);
+            savedImagePath = res.image_path;
+            base64ImageData = res.base64_data;
+          }
         }
       } catch (rustErr) {
         console.warn("Stažení obalu přes Rust selhalo, zkouším přímý fetch:", rustErr);
@@ -3088,17 +3299,14 @@ async function importRawgGameDetails(gameSummary, btn) {
           const imgRes = await fetch(imageUrl);
           if (imgRes.ok) {
             const blob = await imgRes.blob();
-            base64ImageData = await new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            });
-
-            savedImagePath = await tauriInvoke("save_image_from_base64", {
-              base64Data: base64ImageData,
-              ext: "jpg",
-            });
+            const blobUrl = URL.createObjectURL(blob);
+            try {
+              const optimized = await processAndOptimizeImageToWebP(blobUrl);
+              savedImagePath = optimized.filePath;
+              base64ImageData = optimized.dataUrl;
+            } finally {
+              URL.revokeObjectURL(blobUrl);
+            }
           }
         } catch (fetchErr) {
           console.warn("Stažení obalu přes fetch selhalo:", fetchErr);
