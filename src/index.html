@@ -1225,14 +1225,44 @@
       <div class="settings-content">
         <!-- 1. Předvolby zobrazení -->
         <div class="settings-section">
-          <h3 class="settings-section-title">Předvolby zobrazení</h3>
+          <div class="settings-section-header">
+            <svg class="settings-section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <h3 class="settings-section-title">Předvolby zobrazení</h3>
+          </div>
           
           <div class="settings-item">
             <div>
               <div class="settings-item-label">Výchozí rozvržení</div>
-              <div class="settings-item-desc">Jakým způsobem se mají načtené položky zobrazovat</div>
+              <div class="settings-item-desc">Způsob jakým se budou načtené položky zobrazovat</div>
             </div>
-            <select id="settingsDefaultView" class="sort-select">
+            <div class="sort-dropdown-wrapper settings-dropdown-wrap" id="settingsViewDropdownWrapper">
+              <button type="button" class="sort-dropdown-btn settings-dropdown-btn" id="settingsViewDropdownBtn" aria-haspopup="listbox" aria-expanded="false">
+                <span id="settingsViewCurrentLabel">Dlaždice</span>
+                <svg class="sort-chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              <div class="sort-dropdown-menu hidden" id="settingsViewDropdownMenu" role="listbox">
+                <button type="button" class="sort-option active" data-value="grid" role="option">
+                  <span>Dlaždice</span>
+                  <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+                <button type="button" class="sort-option" data-value="compact" role="option">
+                  <span>Kompaktní mřížka</span>
+                  <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+                <button type="button" class="sort-option" data-value="list" role="option">
+                  <span>Detailní seznam</span>
+                  <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+              </div>
+            </div>
+            <select id="settingsDefaultView" style="display: none;">
               <option value="grid">Dlaždice</option>
               <option value="compact">Kompaktní mřížka</option>
               <option value="list">Detailní seznam</option>
@@ -1242,64 +1272,129 @@
           <div class="settings-item">
             <div>
               <div class="settings-item-label">Položek na stránku</div>
-              <div class="settings-item-desc">Počet záznamů v jednom zobrazení</div>
+              <div class="settings-item-desc">Počet položek zobrazených na jedné stránce</div>
             </div>
-            <select id="settingsItemsPerPage" class="sort-select">
+            <div class="sort-dropdown-wrapper settings-dropdown-wrap" id="settingsPerPageDropdownWrapper">
+              <button type="button" class="sort-dropdown-btn settings-dropdown-btn" id="settingsPerPageDropdownBtn" aria-haspopup="listbox" aria-expanded="false">
+                <span id="settingsPerPageCurrentLabel">24 položek</span>
+                <svg class="sort-chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              <div class="sort-dropdown-menu hidden" id="settingsPerPageDropdownMenu" role="listbox">
+                <button type="button" class="sort-option" data-value="12" role="option">
+                  <span>12 položek</span>
+                  <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+                <button type="button" class="sort-option active" data-value="24" role="option">
+                  <span>24 položek</span>
+                  <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+                <button type="button" class="sort-option" data-value="48" role="option">
+                  <span>48 položek</span>
+                  <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+                <button type="button" class="sort-option" data-value="96" role="option">
+                  <span>96 položek</span>
+                  <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+                <button type="button" class="sort-option" data-value="all" role="option">
+                  <span>Vše (Nekonečné rolování)</span>
+                  <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+              </div>
+            </div>
+            <select id="settingsItemsPerPage" style="display: none;">
               <option value="12">12 položek</option>
               <option value="24">24 položek</option>
               <option value="48">48 položek</option>
+              <option value="96">96 položek</option>
               <option value="all">Vše (Nekonečné rolování)</option>
             </select>
           </div>
         </div>
 
-        <!-- 3. Integrace a online API -->
+        <!-- 2. Integrace a online API -->
         <div class="settings-section">
-          <h3 class="settings-section-title">Integrace a online API</h3>
-          <div class="settings-item">
-            <div>
-              <div class="settings-item-label">TMDB API klíč</div>
-              <div class="settings-item-desc">Umožňuje vyhledávat a automaticky stahovat informace i obálky filmů a seriálů</div>
-            </div>
-          </div>
-          <div class="settings-key-wrap" style="margin-top: 8px;">
-            <input type="password" id="settingsTmdbApiKey" class="settings-key-input" placeholder="Zadejte váš TMDB API klíč...">
-            <button type="button" id="toggleSettingsTmdbKeyBtn" class="settings-eye-btn" title="Zobrazit / skrýt klíč">
-              <svg id="settingsTmdbEyeIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-            </button>
+          <div class="settings-section-header">
+            <svg class="settings-section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+            </svg>
+            <h3 class="settings-section-title">Integrace a online API</h3>
           </div>
 
-          <div class="settings-item" style="margin-top: 16px;">
-            <div>
-              <div class="settings-item-label">RAWG.io API klíč</div>
-              <div class="settings-item-desc">Umožňuje vyhledávat a stahovat data, hodnocení a obálky her</div>
+          <div class="settings-api-group">
+            <div class="settings-api-header">
+              <div class="settings-api-header-row">
+                <div class="settings-item-label">TMDB API klíč</div>
+                <button type="button" id="openTmdbApiWebBtn" class="settings-api-link-btn" title="Otevřít stránku themoviedb.org a získat API klíč (v prohlížeči)">
+                  <span>Získat klíč</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
+                </button>
+              </div>
+              <div class="settings-item-desc">Umožňuje vyhledávat a automaticky stahovat informace i obálky filmů a seriálů</div>
+            </div>
+            <div class="settings-key-wrap">
+              <input type="password" id="settingsTmdbApiKey" class="settings-key-input" placeholder="Zadejte váš TMDB API klíč...">
+              <button type="button" id="toggleSettingsTmdbKeyBtn" class="settings-eye-btn" title="Zobrazit / skrýt klíč">
+                <svg id="settingsTmdbEyeIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
             </div>
           </div>
-          <div class="settings-key-wrap" style="margin-top: 8px;">
-            <input type="password" id="settingsRawgApiKey" class="settings-key-input" placeholder="Zadejte váš RAWG API klíč...">
-            <button type="button" id="toggleSettingsRawgKeyBtn" class="settings-eye-btn" title="Zobrazit / skrýt klíč">
-              <svg id="settingsRawgEyeIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-            </button>
+
+          <div class="settings-api-group">
+            <div class="settings-api-header">
+              <div class="settings-api-header-row">
+                <div class="settings-item-label">RAWG.io API klíč</div>
+                <button type="button" id="openRawgApiWebBtn" class="settings-api-link-btn" title="Otevřít stránku rawg.io a získat API klíč (v prohlížeči)">
+                  <span>Získat klíč</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
+                </button>
+              </div>
+              <div class="settings-item-desc">Umožňuje vyhledávat a automaticky stahovat informace i obálky her</div>
+            </div>
+            <div class="settings-key-wrap">
+              <input type="password" id="settingsRawgApiKey" class="settings-key-input" placeholder="Zadejte váš RAWG API klíč...">
+              <button type="button" id="toggleSettingsRawgKeyBtn" class="settings-eye-btn" title="Zobrazit / skrýt klíč">
+                <svg id="settingsRawgEyeIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- 2. Úložiště a databáze -->
+        <!-- 3. Úložiště a databáze -->
         <div class="settings-section">
-          <h3 class="settings-section-title">Úložiště a databáze</h3>
+          <div class="settings-section-header">
+            <svg class="settings-section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+            </svg>
+            <h3 class="settings-section-title">Úložiště a databáze</h3>
+          </div>
+
           <div class="settings-info-box">
             <div class="info-row">
               <span class="info-label">Systém databáze:</span>
               <span class="info-val">SQLite (vestavěný, bez externích závislostí)</span>
             </div>
             <div class="info-row">
-              <span class="info-label">Uložiště:</span>
-              <span class="info-val">Lokální složka aplikace (%LOCALAPPDATA% / .local/share)</span>
+              <span class="info-label">Úložiště:</span>
+              <span class="info-val">Lokální složka aplikace (User\AppData\Local\com.tracker.app)</span>
             </div>
             <div class="info-row">
               <span class="info-label">Počet uložených položek:</span>
@@ -1311,23 +1406,12 @@
             </div>
           </div>
 
-          <div class="settings-item" style="margin-top: 14px;">
-            <div>
-              <div class="settings-item-label">Kvalita komprese obálek (formát WebP)</div>
-              <div class="settings-item-desc">Ovlivňuje ostrost detailů vs. velikost souborů (doporučeno kolem 85–90 %)</div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 12px; min-width: 170px; justify-content: flex-end;">
-              <input type="range" id="settingsWebpQuality" min="70" max="98" step="1" value="88" style="width: 110px; cursor: pointer; accent-color: #6366f1;">
-              <span id="settingsWebpQualityVal" style="min-width: 42px; font-weight: 700; font-size: 13px; color: #38bdf8; text-align: right;">88 %</span>
-            </div>
-          </div>
-
-          <div class="settings-actions-row" style="margin-top: 12px;">
-            <button type="button" id="openDataFolderBtn" class="btn btn-secondary">
+          <div class="settings-btn-grid">
+            <button type="button" id="openDataFolderBtn" class="btn btn-secondary" title="Otevřít složku s daty aplikace v systémovém Průzkumníku">
               <svg class="btn-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
               </svg>
-              <span>Otevřít složku s daty v Průzkumníku</span>
+              <span>Otevřít složku s daty</span>
             </button>
             <button type="button" id="clearTempBtn" class="btn btn-secondary" title="Smazat dočasně stažené soubory obálek">
               <svg class="btn-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1338,7 +1422,23 @@
               </svg>
               <span>Vyčistit dočasné soubory</span>
             </button>
-            <button type="button" id="optimizeCoversBtn" class="btn btn-secondary" title="Převede stávající obálky na úsporný formát WebP (500×750 px)">
+          </div>
+
+          <div class="settings-divider"></div>
+
+          <div class="settings-item">
+            <div>
+              <div class="settings-item-label">Kvalita komprese obálek (formát WebP)</div>
+              <div class="settings-item-desc">Ovlivňuje ostrost detailů vs. velikost souborů (doporučeno kolem 85–90 %)</div>
+            </div>
+            <div class="settings-range-wrap">
+              <input type="range" id="settingsWebpQuality" class="settings-range-input" min="70" max="98" step="1" value="88">
+              <span id="settingsWebpQualityVal" class="settings-range-val">88 %</span>
+            </div>
+          </div>
+
+          <div>
+            <button type="button" id="optimizeCoversBtn" class="btn btn-secondary" style="width: 100%; justify-content: center;" title="Legacy: Převede stávající obálky na úsporný formát WebP (500×750 px)">
               <svg class="btn-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
               </svg>
@@ -1347,26 +1447,48 @@
           </div>
         </div>
 
-        <!-- 3. Export a záloha -->
+        <!-- 4. Záloha -->
         <div class="settings-section">
-          <h3 class="settings-section-title">Záloha</h3>
-          <p class="settings-item-desc">Uložte celou svou databázi do záložního souboru JSON pro bezpečné uchování nebo přenos. Soubor se automaticky vytvoří <strong>do vaší systémové složky</strong>.</p>
-          <div class="settings-actions-row" style="align-items: center; flex-wrap: wrap;">
-            <button type="button" id="exportDataBtn" class="btn btn-secondary">
-              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              <span>Exportovat zálohu (.json)</span>
+          <div class="settings-section-header">
+            <svg class="settings-section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <h3 class="settings-section-title">Záloha</h3>
+          </div>
+          
+          <div class="settings-card-row">
+            <div class="settings-card-text">
+              <div class="settings-item-desc">Uložte celou svou databázi do záložního souboru JSON pro bezpečné uchování nebo přenos. Soubor se automaticky vytvoří <strong>do vaší systémové složky</strong>.</div>
+              <div class="settings-backup-hint">📁 Uloží se do složky: Stažené soubory</div>
+            </div>
+            <button type="button" id="exportDataBtn" class="btn btn-secondary settings-action-btn">
+              <svg class="btn-svg-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Vytvořit zálohu (.json)</span>
             </button>
-            <span class="settings-backup-hint">Uloží se do složky: 📁 Stažené soubory (Downloads)</span>
           </div>
         </div>
 
-        <!-- 4. Podpora a hlášení chyb -->
+        <!-- 5. Podpora a hlášení chyb -->
         <div class="settings-section">
-          <h3 class="settings-section-title">Podpora a hlášení chyb</h3>
-          <p class="settings-item-desc">Našli jste v aplikaci chybu nebo máte nápad na vylepšení? Otevřete issue na GitHubu projektu.</p>
-          <div class="settings-actions-row">
-            <button type="button" id="reportBugBtn" class="btn btn-secondary">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <div class="settings-section-header">
+            <svg class="settings-section-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+            </svg>
+            <h3 class="settings-section-title">Podpora a hlášení chyb</h3>
+          </div>
+          
+          <div class="settings-card-row">
+            <div class="settings-card-text">
+              <div class="settings-item-desc">Našli jste v aplikaci chybu nebo máte nápad na vylepšení? Otevřete issue na GitHubu projektu.</div>
+            </div>
+            <button type="button" id="reportBugBtn" class="btn btn-secondary settings-action-btn">
+              <svg class="btn-svg-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                 <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
               </svg>
               <span>Nahlásit chybu</span>

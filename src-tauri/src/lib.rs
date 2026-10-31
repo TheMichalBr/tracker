@@ -804,6 +804,42 @@ fn get_temp_files_info(state: tauri::State<'_, AppState>) -> Result<TempFilesInf
     })
 }
 
+#[derive(serde::Serialize)]
+struct CoversFilesInfo {
+    count: usize,
+    total_size_bytes: u64,
+}
+
+/// Zjištění počtu a celkové velikosti obálek ve složce covers
+#[tauri::command]
+fn get_covers_files_info(state: tauri::State<'_, AppState>) -> Result<CoversFilesInfo, String> {
+    if !state.covers_dir.exists() {
+        return Ok(CoversFilesInfo {
+            count: 0,
+            total_size_bytes: 0,
+        });
+    }
+
+    let mut count = 0;
+    let mut total_size_bytes: u64 = 0;
+    if let Ok(entries) = fs::read_dir(&state.covers_dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_file() {
+                count += 1;
+                if let Ok(metadata) = fs::metadata(&path) {
+                    total_size_bytes += metadata.len();
+                }
+            }
+        }
+    }
+
+    Ok(CoversFilesInfo {
+        count,
+        total_size_bytes,
+    })
+}
+
 /// 7. Příkaz: Vyčištění dočasných importovaných souborů ze složky temp_imports
 #[tauri::command]
 fn clear_temp_files(state: tauri::State<'_, AppState>) -> Result<usize, String> {
@@ -1156,6 +1192,7 @@ pub fn run() {
             select_image,
             open_data_folder,
             get_temp_files_info,
+            get_covers_files_info,
             clear_temp_files,
             show_main_window,
             save_image_from_base64,

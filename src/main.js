@@ -255,8 +255,8 @@ let currentSort = "newest";
 let currentStatusFilter = "all"; // 'all', 'backlog', 'in_progress', 'completed', 'dropped'
 let currentTrailerUrl = "";
 
-// Nastavení rozvržení a stránkování (načteno z localStorage)
-let currentView = localStorage.getItem("tracker_view_mode") || "grid"; // 'grid', 'compact', 'list'
+// Nastavení rozvržení a stránkování (při spuštění se vždy použije výchozí nastavení ze Settings)
+let currentView = localStorage.getItem("tracker_default_view_mode") || "grid"; // 'grid', 'compact', 'list'
 let itemsPerPage = localStorage.getItem("tracker_items_per_page") || "24"; // '12', '24', '48', 'all'
 let currentPage = 1;
 
@@ -853,12 +853,27 @@ function setupEventListeners() {
   if (settingsWebpQuality && settingsWebpQualityVal) {
     settingsWebpQuality.addEventListener("input", (e) => {
       settingsWebpQualityVal.textContent = `${e.target.value} %`;
+      updateWebpQualityProgress(e.target.value);
     });
+    updateWebpQualityProgress(settingsWebpQuality.value || 88);
   }
+  setupSettingsDropdowns();
   exportDataBtn.addEventListener("click", handleExportData);
   if (reportBugBtn) {
     reportBugBtn.addEventListener("click", () => {
       openExternalUrl("https://github.com/TheMichalBr/tracker/issues?q=sort%3Aupdated-desc+is%3Aissue+state%3Aopen+");
+    });
+  }
+  const openTmdbApiWebBtn = document.getElementById("openTmdbApiWebBtn");
+  if (openTmdbApiWebBtn) {
+    openTmdbApiWebBtn.addEventListener("click", () => {
+      openExternalUrl("https://www.themoviedb.org/settings/api");
+    });
+  }
+  const openRawgApiWebBtn = document.getElementById("openRawgApiWebBtn");
+  if (openRawgApiWebBtn) {
+    openRawgApiWebBtn.addEventListener("click", () => {
+      openExternalUrl("https://rawg.io/apidocs");
     });
   }
 
@@ -1108,7 +1123,6 @@ function setupEventListeners() {
 // ==========================================================================
 function setupViewMode(view) {
   currentView = view;
-  localStorage.setItem("tracker_view_mode", view);
 
   viewButtons.forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.view === view);
@@ -2116,33 +2130,167 @@ function formatFileSize(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-async function refreshSettingsTempCount() {
-  if (!settingsTempCount) return;
-  try {
-    const info = await tauriInvoke("get_temp_files_info");
-    if (info && typeof info.count === "number") {
-      if (info.count === 0) {
-        settingsTempCount.textContent = "0 položek (0 B)";
-      } else {
-        const itemWord = info.count === 1 ? "položka" : (info.count >= 2 && info.count <= 4 ? "položky" : "položek");
-        settingsTempCount.textContent = `${info.count} ${itemWord} (${formatFileSize(info.total_size_bytes || 0)})`;
-      }
-    } else {
-      settingsTempCount.textContent = "0 položek (0 B)";
+async function refreshSettingsStorageInfo() {
+  if (settingsItemCount) {
+    const count = allItems.length;
+    const itemWord = count === 1 ? "položka" : (count >= 2 && count <= 4 ? "položky" : "položek");
+    try {
+      const coversInfo = await tauriInvoke("get_covers_files_info");
+      const sizeStr = formatFileSize(coversInfo?.total_size_bytes || 0);
+      settingsItemCount.textContent = `${count} ${itemWord} (${sizeStr})`;
+    } catch (err) {
+      settingsItemCount.textContent = `${count} ${itemWord}`;
     }
-  } catch (err) {
-    settingsTempCount.textContent = "0 položek";
   }
+
+  if (settingsTempCount) {
+    try {
+      const info = await tauriInvoke("get_temp_files_info");
+      if (info && typeof info.count === "number") {
+        if (info.count === 0) {
+          settingsTempCount.textContent = "0 položek (0 B)";
+        } else {
+          const itemWord = info.count === 1 ? "položka" : (info.count >= 2 && info.count <= 4 ? "položky" : "položek");
+          settingsTempCount.textContent = `${info.count} ${itemWord} (${formatFileSize(info.total_size_bytes || 0)})`;
+        }
+      } else {
+        settingsTempCount.textContent = "0 položek (0 B)";
+      }
+    } catch (err) {
+      settingsTempCount.textContent = "0 položek";
+    }
+  }
+}
+
+// ==========================================================================
+// Nastavení: Vlastní zaoblené rozbalovací nabídky
+// ==========================================================================
+function updateSettingsDropdownUI(viewVal, perPageVal) {
+  const viewMap = {
+    grid: "Dlaždice",
+    compact: "Kompaktní mřížka",
+    list: "Detailní seznam"
+  };
+  const perPageMap = {
+    "12": "12 položek",
+    "24": "24 položek",
+    "48": "48 položek",
+    "96": "96 položek",
+    "all": "Vše (Nekonečné rolování)"
+  };
+
+  const viewLabel = document.getElementById("settingsViewCurrentLabel");
+  if (viewLabel) viewLabel.textContent = viewMap[viewVal] || "Dlaždice";
+
+  const perPageLabel = document.getElementById("settingsPerPageCurrentLabel");
+  if (perPageLabel) perPageLabel.textContent = perPageMap[perPageVal] || "24 položek";
+
+  const viewMenu = document.getElementById("settingsViewDropdownMenu");
+  if (viewMenu) {
+    viewMenu.querySelectorAll(".sort-option").forEach((opt) => {
+      opt.classList.toggle("active", opt.dataset.value === viewVal);
+    });
+  }
+
+  const perPageMenu = document.getElementById("settingsPerPageDropdownMenu");
+  if (perPageMenu) {
+    perPageMenu.querySelectorAll(".sort-option").forEach((opt) => {
+      opt.classList.toggle("active", opt.dataset.value === perPageVal);
+    });
+  }
+}
+
+function setupSettingsDropdowns() {
+  const viewBtn = document.getElementById("settingsViewDropdownBtn");
+  const viewMenu = document.getElementById("settingsViewDropdownMenu");
+  const viewWrap = document.getElementById("settingsViewDropdownWrapper");
+
+  const perPageBtn = document.getElementById("settingsPerPageDropdownBtn");
+  const perPageMenu = document.getElementById("settingsPerPageDropdownMenu");
+  const perPageWrap = document.getElementById("settingsPerPageDropdownWrapper");
+
+  function closeSettingsMenus() {
+    viewMenu?.classList.add("hidden");
+    viewWrap?.classList.remove("open");
+    viewBtn?.setAttribute("aria-expanded", "false");
+
+    perPageMenu?.classList.add("hidden");
+    perPageWrap?.classList.remove("open");
+    perPageBtn?.setAttribute("aria-expanded", "false");
+  }
+
+  if (viewBtn && viewMenu) {
+    viewBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isHidden = viewMenu.classList.contains("hidden");
+      closeSettingsMenus();
+      if (isHidden) {
+        viewMenu.classList.remove("hidden");
+        viewWrap?.classList.add("open");
+        viewBtn.setAttribute("aria-expanded", "true");
+      }
+    });
+
+    viewMenu.querySelectorAll(".sort-option").forEach((opt) => {
+      opt.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const val = opt.dataset.value;
+        if (settingsDefaultView) settingsDefaultView.value = val;
+        updateSettingsDropdownUI(val, settingsItemsPerPage?.value || "24");
+        closeSettingsMenus();
+      });
+    });
+  }
+
+  if (perPageBtn && perPageMenu) {
+    perPageBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isHidden = perPageMenu.classList.contains("hidden");
+      closeSettingsMenus();
+      if (isHidden) {
+        perPageMenu.classList.remove("hidden");
+        perPageWrap?.classList.add("open");
+        perPageBtn.setAttribute("aria-expanded", "true");
+      }
+    });
+
+    perPageMenu.querySelectorAll(".sort-option").forEach((opt) => {
+      opt.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const val = opt.dataset.value;
+        if (settingsItemsPerPage) settingsItemsPerPage.value = val;
+        updateSettingsDropdownUI(settingsDefaultView?.value || "grid", val);
+        closeSettingsMenus();
+      });
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    if (viewWrap && !viewWrap.contains(e.target) && perPageWrap && !perPageWrap.contains(e.target)) {
+      closeSettingsMenus();
+    }
+  });
+}
+
+function updateWebpQualityProgress(val) {
+  if (!settingsWebpQuality) return;
+  const num = Number(val) || 88;
+  const min = Number(settingsWebpQuality.min) || 70;
+  const max = Number(settingsWebpQuality.max) || 98;
+  const pct = Math.max(0, Math.min(100, ((num - min) / (max - min)) * 100));
+  settingsWebpQuality.style.setProperty("--range-progress", `${pct.toFixed(1)}%`);
 }
 
 // ==========================================================================
 // Modál: Nastavení aplikace
 // ==========================================================================
 function openSettingsModal() {
-  settingsDefaultView.value = localStorage.getItem("tracker_view_mode") || "grid";
-  settingsItemsPerPage.value = localStorage.getItem("tracker_items_per_page") || "24";
-  settingsItemCount.textContent = `${allItems.length} položek`;
-  refreshSettingsTempCount();
+  const savedView = localStorage.getItem("tracker_default_view_mode") || "grid";
+  const savedPerPage = localStorage.getItem("tracker_items_per_page") || "24";
+  settingsDefaultView.value = savedView;
+  settingsItemsPerPage.value = savedPerPage;
+  updateSettingsDropdownUI(savedView, savedPerPage);
+  refreshSettingsStorageInfo();
   if (settingsTmdbApiKey) {
     settingsTmdbApiKey.value = localStorage.getItem("tracker_tmdb_api_key") || "";
   }
@@ -2152,6 +2300,7 @@ function openSettingsModal() {
   const savedQuality = localStorage.getItem("tracker_webp_quality") || "88";
   if (settingsWebpQuality) {
     settingsWebpQuality.value = savedQuality;
+    updateWebpQualityProgress(savedQuality);
   }
   if (settingsWebpQualityVal) {
     settingsWebpQualityVal.textContent = `${savedQuality} %`;
@@ -2170,7 +2319,7 @@ function handleSaveSettings() {
   const newView = settingsDefaultView.value;
   const newItemsPerPage = settingsItemsPerPage.value;
 
-  localStorage.setItem("tracker_view_mode", newView);
+  localStorage.setItem("tracker_default_view_mode", newView);
   localStorage.setItem("tracker_items_per_page", newItemsPerPage);
 
   if (settingsWebpQuality) {
@@ -2223,7 +2372,7 @@ async function handleClearTempFiles() {
     } else {
       showToast("Složka dočasných souborů je již prázdná.");
     }
-    await refreshSettingsTempCount();
+    await refreshSettingsStorageInfo();
   } catch (err) {
     console.error("Chyba při čištění dočasných souborů:", err);
     showToast("Nepodařilo se vyčistit dočasné soubory: " + err);
@@ -2302,6 +2451,7 @@ async function handleOptimizeExistingCovers() {
 
   if (optimizeCoversBtn) optimizeCoversBtn.disabled = false;
   renderGrid();
+  await refreshSettingsStorageInfo();
   showToast(`Hotovo! Převedeno a zmenšeno ${successCount} z ${itemsToOptimize.length} obálek do WebP.`);
 }
 
