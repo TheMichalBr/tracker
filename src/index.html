@@ -1230,10 +1230,10 @@
           <div class="settings-item">
             <div>
               <div class="settings-item-label">Výchozí rozvržení</div>
-              <div class="settings-item-desc">Jakým způsobem se mají načíst položky při spuštění</div>
+              <div class="settings-item-desc">Jakým způsobem se mají načtené položky zobrazovat</div>
             </div>
             <select id="settingsDefaultView" class="sort-select">
-              <option value="grid">Dlaždice (Plakáty)</option>
+              <option value="grid">Dlaždice</option>
               <option value="compact">Kompaktní mřížka</option>
               <option value="list">Detailní seznam</option>
             </select>
@@ -1242,7 +1242,7 @@
           <div class="settings-item">
             <div>
               <div class="settings-item-label">Položek na stránku</div>
-              <div class="settings-item-desc">Počet záznamů v jednom zobrazení (nebo nekonečné rolování)</div>
+              <div class="settings-item-desc">Počet záznamů v jednom zobrazení</div>
             </div>
             <select id="settingsItemsPerPage" class="sort-select">
               <option value="12">12 položek</option>
@@ -1258,7 +1258,7 @@
           <h3 class="settings-section-title">Integrace a online API</h3>
           <div class="settings-item">
             <div>
-              <div class="settings-item-label">TMDB API klíč (The Movie Database)</div>
+              <div class="settings-item-label">TMDB API klíč</div>
               <div class="settings-item-desc">Umožňuje vyhledávat a automaticky stahovat informace i obálky filmů a seriálů</div>
             </div>
           </div>
@@ -1274,8 +1274,8 @@
 
           <div class="settings-item" style="margin-top: 16px;">
             <div>
-              <div class="settings-item-label">RAWG.io API klíč (Videohry)</div>
-              <div class="settings-item-desc">Umožňuje vyhledávat a stahovat data, hodnocení a obálky her (zdarma na rawg.io)</div>
+              <div class="settings-item-label">RAWG.io API klíč</div>
+              <div class="settings-item-desc">Umožňuje vyhledávat a stahovat data, hodnocení a obálky her</div>
             </div>
           </div>
           <div class="settings-key-wrap" style="margin-top: 8px;">
@@ -1298,23 +1298,23 @@
               <span class="info-val">SQLite (vestavěný, bez externích závislostí)</span>
             </div>
             <div class="info-row">
-              <span class="info-label">Úložiště obalů:</span>
+              <span class="info-label">Uložiště:</span>
               <span class="info-val">Lokální složka aplikace (%LOCALAPPDATA% / .local/share)</span>
             </div>
             <div class="info-row">
-              <span class="info-label">Položek v evidenci:</span>
+              <span class="info-label">Počet uložených položek:</span>
               <span class="info-val" id="settingsItemCount">0</span>
             </div>
             <div class="info-row">
-              <span class="info-label">Položek v temp:</span>
+              <span class="info-label">Počet dočasných položek:</span>
               <span class="info-val" id="settingsTempCount">0 položek</span>
             </div>
           </div>
 
           <div class="settings-item" style="margin-top: 14px;">
             <div>
-              <div class="settings-item-label">Kvalita WebP komprese obálek</div>
-              <div class="settings-item-desc">Ovlivňuje ostrost detailů vs. velikost souborů (doporučeno 85–90 %)</div>
+              <div class="settings-item-label">Kvalita komprese obálek (formát WebP)</div>
+              <div class="settings-item-desc">Ovlivňuje ostrost detailů vs. velikost souborů (doporučeno kolem 85–90 %)</div>
             </div>
             <div style="display: flex; align-items: center; gap: 12px; min-width: 170px; justify-content: flex-end;">
               <input type="range" id="settingsWebpQuality" min="70" max="98" step="1" value="88" style="width: 110px; cursor: pointer; accent-color: #6366f1;">
@@ -1349,14 +1349,14 @@
 
         <!-- 3. Export a záloha -->
         <div class="settings-section">
-          <h3 class="settings-section-title">Záloha sbírky</h3>
-          <p class="settings-item-desc">Uložte celou svou databázi do záložního souboru JSON pro bezpečné uchování nebo přenos. Soubor se automaticky stáhne do vaší systémové složky <strong>Stažené soubory (Downloads)</strong>.</p>
+          <h3 class="settings-section-title">Záloha</h3>
+          <p class="settings-item-desc">Uložte celou svou databázi do záložního souboru JSON pro bezpečné uchování nebo přenos. Soubor se automaticky vytvoří <strong>do vaší systémové složky</strong>.</p>
           <div class="settings-actions-row" style="align-items: center; flex-wrap: wrap;">
             <button type="button" id="exportDataBtn" class="btn btn-secondary">
               <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               <span>Exportovat zálohu (.json)</span>
             </button>
-            <span class="settings-backup-hint">Uloží se do: 📁 Stažené soubory (Downloads)</span>
+            <span class="settings-backup-hint">Uloží se do složky: 📁 Stažené soubory (Downloads)</span>
           </div>
         </div>
 
