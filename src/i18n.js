@@ -98,6 +98,191 @@ const TRANSLATIONS = {
       optimizedDoneToast: "Hotovo! Převedeno a zmenšeno {success} z {total} obálek do WebP.",
       exportSuccessToast: "Záloha \"{fileName}\" byla stažena do složky Downloads.",
       exportErrorToast: "Nepodařilo se exportovat zálohu: "
+    },
+    form: {
+      modalTitleAdd: "Přidat novou položku",
+      modalTitleEdit: "Upravit položku",
+      modalTitleEditWithTitle: "Upravit: {title}",
+      modalTitleAddWithTitle: "Přidat: {title}",
+      importTmdbBtnTitle: "Předvyplnit z mezinárodní databáze TMDB",
+      importTmdbBtnText: "Načíst z TMDB",
+      importRawgBtnTitle: "Předvyplnit z herní databáze RAWG.io",
+      importRawgBtnText: "Načíst z RAWG",
+      closeBtnAria: "Zavřít",
+
+      // 1. Kategorie a stav
+      sectionCategoryStatus: "Kategorie a stav",
+      itemTypeLabel: "Typ položky",
+      typeFilm: "Film",
+      typeSeries: "Seriál",
+      typeGame: "Hra",
+      statusLabel: "Stav sledování / hraní",
+      statusBacklogMovie: "Chci vidět",
+      statusBacklogGame: "Chci hrát",
+      statusProgressMovie: "Právě sleduji",
+      statusProgressGame: "Právě hraji",
+      statusCompletedMovie: "Zhlédnuto",
+      statusCompletedGame: "Dohráno",
+      statusDropped: "Odloženo",
+
+      // 2. Základní informace
+      sectionBasicInfo: "Základní informace",
+      titleLabel: "Název",
+      requiredTitle: "Povinné pole",
+      titlePlaceholder: "Např. Interstellar, The Last of Us, Cyberpunk...",
+      yearLabel: "Rok vydání",
+      yearPlaceholder: "2024",
+      genreLabel: "Žánr",
+      genrePlaceholder: "Sci-Fi, RPG, Drama...",
+      tagsLabel: "Klíčová slova (Tagy)",
+      tagsPlaceholder: "Oddělujte čárkou, např.: vesmír, cyberpunk, kooperace, otevřený svět",
+      descLabel: "Popis",
+      descPlaceholder: "Stručný popis příběhu, herního konceptu nebo synopse...",
+
+      // 3. Informace o filmu / seriálu
+      sectionFilmSeries: "Informace o filmu / seriálu",
+      directorLabel: "Režie",
+      directorPlaceholder: "Např. Christopher Nolan",
+      writerLabel: "Scénář",
+      writerPlaceholder: "Např. Jonathan Nolan",
+      productionLabel: "Produkce / Studio",
+      productionPlaceholder: "Např. Warner Bros., HBO, Netflix",
+      durationLabel: "Délka",
+      durationPlaceholder: "Např. 169 min nebo 50 min/ep",
+      seasonEpisodesLabel: "Struktura - Číslo řady nebo epizody",
+      seasonEpisodesPlaceholder: "Např. 2. série (8 epizod) nebo S02E05",
+      castLabel: "Herecké obsazení",
+      castPlaceholder: "Herci oddělení čárkou, např.: Matthew McConaughey, Anne Hathaway...",
+
+      // 4. Informace o hře
+      sectionGame: "Informace o hře",
+      developerLabel: "Vývojářské studio",
+      developerPlaceholder: "Např. CD Projekt RED, FromSoftware",
+      publisherLabel: "Vydavatel",
+      publisherPlaceholder: "Např. Sony, Bandai Namco, Xbox",
+      gameModeLabel: "Herní režim",
+      gameModePlaceholder: "Singleplayer, Kooperace, Multiplayer...",
+      platformsLabel: "Platformy",
+      platformsPlaceholder: "PC, PlayStation 5, Xbox Series X, Switch...",
+      engineLabel: "Herní Engine",
+      enginePlaceholder: "Unreal Engine 5, Unity, Custom...",
+
+      // 5. Hodnocení & Poznámky
+      sectionRatingNotes: "Hodnocení & Poznámky",
+      myRatingLabel: "Moje hodnocení (0 - 10)",
+      noRatingBtnTitle: "Uložit tuto položku bez hodnocení",
+      noRatingBtnText: "Nehodnotit",
+      apiRatingLabel: "Veřejné / API hodnocení",
+      apiBadgeTitle: "Příprava pro napojení na filmové/herní API",
+      apiRatingPlaceholder: "Např. 8.6 nebo 92",
+      apiRatingHint: "Např. IMDb / ČSFD / Metacritic skóre",
+      notesLabel: "Osobní poznámky",
+      notesPlaceholder: "Osobní postřehy, památné momenty, doporučení...",
+      trailerLabel: "Odkaz na trailer (YouTube nebo video)",
+      trailerBadgeTitle: "Zadejte odkaz na YouTube upoutávku",
+      trailerPlaceholder: "Např. https://www.youtube.com/watch?v=... nebo ID videa",
+      trailerHint: "V detailu se pak zobrazí tlačítko pro okamžité přehrání",
+
+      // 6. Obrázek / Plakát
+      sectionPoster: "Obrázek / Plakát",
+      selectImageBtn: "Vybrat obrázek z disku",
+      noImageSelected: "Žádný nový soubor nevybrán",
+      removeImageBtnTitle: "Odebrat obrázek",
+      savedPoster: "Uložený plakát",
+      noPoster: "Položka nemá plakát",
+      posterFromDatabase: "Plakát načten z online databáze",
+      noPosterFound: "Žádný plakát nebyl nalezen",
+
+      // 7. Vlastní metadata
+      sectionCustomMeta: "Vlastní metadata",
+      customMetaSubtitle: "Přidejte libovolné doplňující parametry (např. Dabing, Herní doba, Soundtrack...)",
+      addMetaParamBtn: "Přidat parametr",
+      metaKeyPlaceholder: "Název (např. Dabing)",
+      metaValPlaceholder: "Hodnota (např. CZ dabing)",
+      removeParamBtnTitle: "Odebrat parametr",
+
+      // Patička
+      requiredHint: "* Povinné pole",
+      cancelBtn: "Zrušit",
+      saveBtn: "Uložit položku",
+      saveChangesBtn: "Uložit změny"
+    },
+    apiModal: {
+      headerTitle: "Přidat pomocí online API",
+      headerSubtitle: "Vyhledejte a nechte automaticky předvyplnit všechny údaje i obálku.",
+      closeBtnAria: "Zavřít",
+
+      // Přepínač poskytovatelů
+      switchTmdb: "Filmy a seriály",
+      switchRawg: "Videohry",
+
+      // TMDB Sekce
+      tmdbKeyTitle: "API klíč TMDB",
+      tmdbKeySubtitle: "Potřebný pro načítání filmové a seriálové databáze",
+      tmdbKeyPlaceholder: "Vložte váš TMDB API klíč (v3 auth nebo v4 token)...",
+      keyMissing: "Klíč nezadán",
+      keySaved: "✓ Klíč uložen",
+      saveKeyBtn: "Uložit klíč",
+      toggleKeyTitle: "Zobrazit / skrýt klíč",
+      tmdbKeyHint: "Klíč zdarma získáte registrací na <strong>themoviedb.org</strong> (Profil &rarr; Nastavení &rarr; API).",
+
+      tmdbSearchTitle: "Vyhledávání",
+      tmdbSearchSubtitle: "Vyhledejte film nebo seriál v databázi",
+      typeAll: "Vše",
+      typeMovies: "Filmy",
+      typeSeries: "Seriály",
+      tmdbQueryPlaceholder: "Zadejte název filmu nebo seriálu.. (např. Inception, Temný rytíř, Fallout)",
+      clearSearchTitle: "Vymazat",
+      searchBtn: "Vyhledat",
+
+      tmdbPlaceholderTitle: "Vyhledejte film nebo seriál",
+      tmdbPlaceholderSub: "Zadejte váš API klíč a název titulu pro okamžité nalezení a automatické předvyplnění údajů a obálky.",
+
+      // RAWG Sekce
+      rawgKeyTitle: "API klíč RAWG.io",
+      rawgKeySubtitle: "Potřebný pro načítání herní databáze",
+      rawgKeyPlaceholder: "Vložte váš RAWG API klíč (z rawg.io/apidocs)...",
+      rawgKeyHint: "Klíč zdarma získáte registrací na <strong>rawg.io/apidocs</strong> (&rarr; Get an API key).",
+
+      rawgSearchTitle: "Vyhledávání",
+      rawgSearchSubtitle: "Vyhledejte videohru v databázi",
+      rawgQueryPlaceholder: "Zadejte název videohry.. (např. Cyberpunk 2077, Elden Ring, Half-Life)",
+
+      rawgPlaceholderTitle: "Vyhledejte videohru",
+      rawgPlaceholderSub: "Zadejte váš API klíč a název hry pro okamžité nalezení a automatické předvyplnění údajů a obálky.",
+
+      // Výsledky a stavy
+      selectAndPrefillBtn: "Vybrat a předvyplnit",
+      loadingDetails: "Načítám...",
+      downloadingPoster: "Stahuji a optimalizuji obálku...",
+      allDownloaded: "✓ Vše staženo!",
+      searching: "Vyhledávám...",
+      noResultsFound: "Nebyly nalezeny žádné výsledky pro váš dotaz.",
+      searchFailed: "Vyhledávání selhalo. Zkontrolujte připojení k internetu a váš API klíč.",
+      resultsCountMovies: "Nalezeno celkem <strong>{count}</strong> výsledků:",
+      resultsCountGames: "Nalezeno celkem <strong>{count}</strong> her:",
+      untitled: "Bez názvu",
+      noOverview: "Popis není k dispozici.",
+      genresLabel: "Žánry",
+      noGenres: "Žánry neuvedeny.",
+      promptEnterTmdbKey: "Nejprve prosím vložte váš TMDB API klíč.",
+      promptEnterMovieQuery: "Zadejte název díla pro vyhledání.",
+      promptEnterRawgKey: "Nejprve prosím vložte váš RAWG API klíč.",
+      promptEnterGameQuery: "Zadejte název hry pro vyhledání.",
+      noResultsFoundTitle: "Nebyly nalezeny žádné výsledky",
+      noMoviesFoundSub: "Pro dotaz \"{query}\" nebyly nalezeny žádné tituly. Zkuste jiný výraz nebo přepnout filtr typu.",
+      noGamesFoundTitle: "Nebyly nalezeny žádné hry",
+      noGamesFoundSub: "Pro dotaz \"{query}\" nebyly nalezeny žádné tituly. Zkuste upřesnit název hry.",
+      tmdbErrorTitle: "Chyba při komunikaci s TMDB",
+      rawgErrorTitle: "Chyba při komunikaci s RAWG.io",
+      origTitleLabel: "Pův.:",
+      origTitleFull: "Původní název:",
+      metacriticScore: "Metacritic skóre",
+      downloadCancelled: "Stahování z online databáze bylo zrušeno.",
+
+      // Patička
+      footerHint: "Předvyplněné údaje budete moci před uložením libovolně upravit",
+      closeBtn: "Zavřít"
     }
   },
   en: {
@@ -194,6 +379,191 @@ const TRANSLATIONS = {
       optimizedDoneToast: "Done! Converted and optimized {success} of {total} covers to WebP.",
       exportSuccessToast: "Backup \"{fileName}\" has been downloaded to the Downloads folder.",
       exportErrorToast: "Failed to export backup: "
+    },
+    form: {
+      modalTitleAdd: "Add New Item",
+      modalTitleEdit: "Edit Item",
+      modalTitleEditWithTitle: "Edit: {title}",
+      modalTitleAddWithTitle: "Add: {title}",
+      importTmdbBtnTitle: "Prefill from international TMDB database",
+      importTmdbBtnText: "Load from TMDB",
+      importRawgBtnTitle: "Prefill from RAWG.io game database",
+      importRawgBtnText: "Load from RAWG",
+      closeBtnAria: "Close",
+
+      // 1. Category & status
+      sectionCategoryStatus: "Category & Status",
+      itemTypeLabel: "Item Type",
+      typeFilm: "Movie",
+      typeSeries: "Series",
+      typeGame: "Game",
+      statusLabel: "Watch / Play Status",
+      statusBacklogMovie: "Plan to Watch",
+      statusBacklogGame: "Plan to Play",
+      statusProgressMovie: "Watching",
+      statusProgressGame: "Playing",
+      statusCompletedMovie: "Watched",
+      statusCompletedGame: "Completed",
+      statusDropped: "Dropped",
+
+      // 2. Basic information
+      sectionBasicInfo: "Basic Information",
+      titleLabel: "Title",
+      requiredTitle: "Required field",
+      titlePlaceholder: "e.g. Interstellar, The Last of Us, Cyberpunk...",
+      yearLabel: "Release Year",
+      yearPlaceholder: "2024",
+      genreLabel: "Genre",
+      genrePlaceholder: "Sci-Fi, RPG, Drama...",
+      tagsLabel: "Keywords (Tags)",
+      tagsPlaceholder: "Separate with comma, e.g.: space, cyberpunk, co-op, open world",
+      descLabel: "Description",
+      descPlaceholder: "Brief synopsis, story summary or game concept...",
+
+      // 3. Movie / Series details
+      sectionFilmSeries: "Movie / Series Details",
+      directorLabel: "Director",
+      directorPlaceholder: "e.g. Christopher Nolan",
+      writerLabel: "Screenplay / Writer",
+      writerPlaceholder: "e.g. Jonathan Nolan",
+      productionLabel: "Production / Studio",
+      productionPlaceholder: "e.g. Warner Bros., HBO, Netflix",
+      durationLabel: "Duration",
+      durationPlaceholder: "e.g. 169 min or 50 min/ep",
+      seasonEpisodesLabel: "Structure - Season or Episode Number",
+      seasonEpisodesPlaceholder: "e.g. Season 2 (8 episodes) or S02E05",
+      castLabel: "Cast",
+      castPlaceholder: "Actors separated by comma, e.g.: Matthew McConaughey, Anne Hathaway...",
+
+      // 4. Game details
+      sectionGame: "Game Details",
+      developerLabel: "Developer Studio",
+      developerPlaceholder: "e.g. CD Projekt RED, FromSoftware",
+      publisherLabel: "Publisher",
+      publisherPlaceholder: "e.g. Sony, Bandai Namco, Xbox",
+      gameModeLabel: "Game Mode",
+      gameModePlaceholder: "Single-player, Co-op, Multiplayer...",
+      platformsLabel: "Platforms",
+      platformsPlaceholder: "PC, PlayStation 5, Xbox Series X, Switch...",
+      engineLabel: "Game Engine",
+      enginePlaceholder: "Unreal Engine 5, Unity, Custom...",
+
+      // 5. Rating & Notes
+      sectionRatingNotes: "Rating & Notes",
+      myRatingLabel: "My Rating (0 - 10)",
+      noRatingBtnTitle: "Save this item without rating",
+      noRatingBtnText: "Unrated",
+      apiRatingLabel: "Public / API Rating",
+      apiBadgeTitle: "Preparation for movie/game API integration",
+      apiRatingPlaceholder: "e.g. 8.6 or 92",
+      apiRatingHint: "e.g. IMDb / Metacritic / TMDb score",
+      notesLabel: "Personal Notes",
+      notesPlaceholder: "Personal impressions, memorable moments, recommendations...",
+      trailerLabel: "Trailer Link (YouTube or video)",
+      trailerBadgeTitle: "Enter YouTube trailer link",
+      trailerPlaceholder: "e.g. https://www.youtube.com/watch?v=... or video ID",
+      trailerHint: "A direct play button will appear in the item details",
+
+      // 6. Image / Cover Art
+      sectionPoster: "Image / Cover Art",
+      selectImageBtn: "Choose Image from Disk",
+      noImageSelected: "No new file selected",
+      removeImageBtnTitle: "Remove image",
+      savedPoster: "Saved cover",
+      noPoster: "Item has no cover",
+      posterFromDatabase: "Cover loaded from online database",
+      noPosterFound: "No cover was found",
+
+      // 7. Custom metadata
+      sectionCustomMeta: "Custom Metadata",
+      customMetaSubtitle: "Add any additional parameters (e.g. Dubbing, Playtime, Soundtrack...)",
+      addMetaParamBtn: "Add Parameter",
+      metaKeyPlaceholder: "Key (e.g. Dubbing)",
+      metaValPlaceholder: "Value (e.g. English)",
+      removeParamBtnTitle: "Remove parameter",
+
+      // Footer
+      requiredHint: "* Required field",
+      cancelBtn: "Cancel",
+      saveBtn: "Save Item",
+      saveChangesBtn: "Save Changes"
+    },
+    apiModal: {
+      headerTitle: "Add via Online API",
+      headerSubtitle: "Search and automatically prefill all details and cover art.",
+      closeBtnAria: "Close",
+
+      // Provider switch
+      switchTmdb: "Movies & Series",
+      switchRawg: "Video Games",
+
+      // TMDB Section
+      tmdbKeyTitle: "TMDB API Key",
+      tmdbKeySubtitle: "Required for fetching movie and TV show database",
+      tmdbKeyPlaceholder: "Paste your TMDB API key (v3 auth or v4 token)...",
+      keyMissing: "No Key Entered",
+      keySaved: "✓ Key Saved",
+      saveKeyBtn: "Save Key",
+      toggleKeyTitle: "Show / hide key",
+      tmdbKeyHint: "Get a free key by registering at <strong>themoviedb.org</strong> (Profile &rarr; Settings &rarr; API).",
+
+      tmdbSearchTitle: "Search",
+      tmdbSearchSubtitle: "Search for a movie or TV series in the database",
+      typeAll: "All",
+      typeMovies: "Movies",
+      typeSeries: "Series",
+      tmdbQueryPlaceholder: "Enter movie or series title.. (e.g. Inception, The Dark Knight, Fallout)",
+      clearSearchTitle: "Clear",
+      searchBtn: "Search",
+
+      tmdbPlaceholderTitle: "Search for a movie or series",
+      tmdbPlaceholderSub: "Enter your API key and title name to instantly find and auto-fill details and poster.",
+
+      // RAWG Section
+      rawgKeyTitle: "RAWG.io API Key",
+      rawgKeySubtitle: "Required for fetching video game database",
+      rawgKeyPlaceholder: "Paste your RAWG API key (from rawg.io/apidocs)...",
+      rawgKeyHint: "Get a free key by registering at <strong>rawg.io/apidocs</strong> (&rarr; Get an API key).",
+
+      rawgSearchTitle: "Search",
+      rawgSearchSubtitle: "Search for a video game in the database",
+      rawgQueryPlaceholder: "Enter video game title.. (e.g. Cyberpunk 2077, Elden Ring, Half-Life)",
+
+      rawgPlaceholderTitle: "Search for a video game",
+      rawgPlaceholderSub: "Enter your API key and game title to instantly find and auto-fill details and cover.",
+
+      // Results & statuses
+      selectAndPrefillBtn: "Select & Prefill",
+      loadingDetails: "Loading...",
+      downloadingPoster: "Downloading & optimizing cover...",
+      allDownloaded: "✓ All Downloaded!",
+      searching: "Searching...",
+      noResultsFound: "No results found for your query.",
+      searchFailed: "Search failed. Check your internet connection and API key.",
+      resultsCountMovies: "Found <strong>{count}</strong> results:",
+      resultsCountGames: "Found <strong>{count}</strong> games:",
+      untitled: "Untitled",
+      noOverview: "No description available.",
+      genresLabel: "Genres",
+      noGenres: "No genres specified.",
+      promptEnterTmdbKey: "Please enter your TMDB API key first.",
+      promptEnterMovieQuery: "Enter a title to search.",
+      promptEnterRawgKey: "Please enter your RAWG API key first.",
+      promptEnterGameQuery: "Enter a game title to search.",
+      noResultsFoundTitle: "No results found",
+      noMoviesFoundSub: "No titles were found for \"{query}\". Try another search term or switch type filter.",
+      noGamesFoundTitle: "No games found",
+      noGamesFoundSub: "No titles were found for \"{query}\". Try refining the game title.",
+      tmdbErrorTitle: "Error communicating with TMDB",
+      rawgErrorTitle: "Error communicating with RAWG.io",
+      origTitleLabel: "Orig.:",
+      origTitleFull: "Original title:",
+      metacriticScore: "Metacritic score",
+      downloadCancelled: "Download from online database was cancelled.",
+
+      // Footer
+      footerHint: "You can freely edit the prefilled details before saving",
+      closeBtn: "Close"
     }
   }
 };
@@ -241,7 +611,8 @@ function formatItemCount(count) {
 /**
  * Aplikuje překlady na označené DOM elementy
  */
-function applyTranslations(root = document) {
+function applyTranslations(root = (typeof document !== "undefined" ? document : null)) {
+  if (!root) return;
   // 1. Textový obsah
   root.querySelectorAll("[data-i18n]").forEach((el) => {
     const key = el.getAttribute("data-i18n");

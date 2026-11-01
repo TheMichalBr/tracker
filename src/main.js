@@ -510,22 +510,30 @@ document.addEventListener("DOMContentLoaded", () => {
   document.documentElement.removeAttribute("data-accent");
   localStorage.removeItem("tracker_accent_color");
 
-  // Aplikace jazyka na nastavení
+  // Aplikace jazyka na celou aplikaci
   if (window.i18n) {
-    window.i18n.applyTranslations(document.getElementById("settingsModal"));
+    window.i18n.applyTranslations();
   }
 
   // Okamžitá reakce na změnu jazyka
   window.addEventListener("tracker:languageChanged", () => {
-    if (window.i18n && settingsModal && !settingsModal.classList.contains("hidden")) {
-      window.i18n.applyTranslations(settingsModal);
-      const curLang = window.i18n.getLanguage();
-      updateSettingsDropdownUI(
-        settingsDefaultView?.value || "grid",
-        settingsItemsPerPage?.value || "24",
-        curLang
-      );
-      refreshSettingsStorageInfo();
+    if (window.i18n) {
+      window.i18n.applyTranslations();
+      if (settingsModal && !settingsModal.classList.contains("hidden")) {
+        const curLang = window.i18n.getLanguage();
+        updateSettingsDropdownUI(
+          settingsDefaultView?.value || "grid",
+          settingsItemsPerPage?.value || "24",
+          curLang
+        );
+        refreshSettingsStorageInfo();
+      }
+      const currentTypeRadio = document.querySelector('input[name="itemType"]:checked');
+      if (currentTypeRadio) {
+        updateDynamicFormSections(currentTypeRadio.value);
+      }
+      updateTmdbKeyBadge();
+      updateRawgKeyBadge();
     }
   });
 
@@ -675,7 +683,10 @@ function setupEventListeners() {
       tmdbSectionWrapper?.classList.remove("hidden");
       rawgSectionWrapper?.classList.add("hidden");
       const titleEl = document.getElementById("apiModalHeaderTitle");
-      if (titleEl) titleEl.textContent = "Přidat pomocí online API (TMDB)";
+      if (titleEl) {
+        const baseTitle = window.i18n ? window.i18n.t("apiModal.headerTitle") : "Přidat pomocí online API";
+        titleEl.textContent = `${baseTitle} (TMDB)`;
+      }
     });
 
     apiSwitchRawg.addEventListener("click", () => {
@@ -684,7 +695,10 @@ function setupEventListeners() {
       rawgSectionWrapper?.classList.remove("hidden");
       tmdbSectionWrapper?.classList.add("hidden");
       const titleEl = document.getElementById("apiModalHeaderTitle");
-      if (titleEl) titleEl.textContent = "Přidat pomocí online API (RAWG.io)";
+      if (titleEl) {
+        const baseTitle = window.i18n ? window.i18n.t("apiModal.headerTitle") : "Přidat pomocí online API";
+        titleEl.textContent = `${baseTitle} (RAWG.io)`;
+      }
       updateRawgKeyBadge();
     });
   }
@@ -1286,20 +1300,36 @@ function updateDynamicFormSections(selectedType) {
   const statusLabelCompleted = document.getElementById("statusLabelCompleted");
   const statusLabelDropped = document.getElementById("statusLabelDropped");
 
-  if (statusLabelBacklog) statusLabelBacklog.textContent = isGame ? "Chci hrát" : "Chci vidět";
-  if (statusLabelProgress) statusLabelProgress.textContent = isGame ? "Právě hraji" : "Právě sleduji";
-  if (statusLabelCompleted) statusLabelCompleted.textContent = isGame ? "Dohráno" : "Zhlédnuto";
-  if (statusLabelDropped) statusLabelDropped.textContent = "Odloženo";
+  if (statusLabelBacklog) {
+    statusLabelBacklog.textContent = isGame
+      ? (window.i18n ? window.i18n.t("form.statusBacklogGame") : "Chci hrát")
+      : (window.i18n ? window.i18n.t("form.statusBacklogMovie") : "Chci vidět");
+  }
+  if (statusLabelProgress) {
+    statusLabelProgress.textContent = isGame
+      ? (window.i18n ? window.i18n.t("form.statusProgressGame") : "Právě hraji")
+      : (window.i18n ? window.i18n.t("form.statusProgressMovie") : "Právě sleduji");
+  }
+  if (statusLabelCompleted) {
+    statusLabelCompleted.textContent = isGame
+      ? (window.i18n ? window.i18n.t("form.statusCompletedGame") : "Dohráno")
+      : (window.i18n ? window.i18n.t("form.statusCompletedMovie") : "Zhlédnuto");
+  }
+  if (statusLabelDropped) {
+    statusLabelDropped.textContent = window.i18n ? window.i18n.t("form.statusDropped") : "Odloženo";
+  }
 
   const formImportTmdbBtn = document.getElementById("formImportTmdbBtn");
   if (formImportTmdbBtn) {
     const importSpan = formImportTmdbBtn.querySelector("span");
     if (importSpan) {
-      importSpan.textContent = isGame ? "Načíst z RAWG" : "Načíst z TMDB";
+      importSpan.textContent = isGame
+        ? (window.i18n ? window.i18n.t("form.importRawgBtnText") : "Načíst z RAWG")
+        : (window.i18n ? window.i18n.t("form.importTmdbBtnText") : "Načíst z TMDB");
     }
     formImportTmdbBtn.title = isGame
-      ? "Předvyplnit z herní databáze RAWG.io"
-      : "Předvyplnit z mezinárodní databáze TMDB";
+      ? (window.i18n ? window.i18n.t("form.importRawgBtnTitle") : "Předvyplnit z herní databáze RAWG.io")
+      : (window.i18n ? window.i18n.t("form.importTmdbBtnTitle") : "Předvyplnit z mezinárodní databáze TMDB");
   }
 }
 
@@ -1384,10 +1414,13 @@ function handleRemoveImage() {
 function addCustomMetaRow(key = "", value = "") {
   const row = document.createElement("div");
   row.className = "custom-meta-row";
+  const keyPh = window.i18n ? window.i18n.t("form.metaKeyPlaceholder") : "Název (např. Dabing)";
+  const valPh = window.i18n ? window.i18n.t("form.metaValPlaceholder") : "Hodnota (např. CZ dabing)";
+  const removeTitle = window.i18n ? window.i18n.t("form.removeParamBtnTitle") : "Odebrat parametr";
   row.innerHTML = `
-    <input type="text" class="meta-key flex-1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Název údaje (např. Dabing, Herní doba...)" value="${escapeHtml(key)}">
-    <input type="text" class="meta-val flex-2" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Hodnota (např. Český dabing, 75 hodin...)" value="${escapeHtml(value)}">
-    <button type="button" class="btn-remove-meta" title="Odebrat pole">
+    <input type="text" class="meta-key flex-1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-i18n-placeholder="form.metaKeyPlaceholder" placeholder="${escapeHtml(keyPh)}" value="${escapeHtml(key)}">
+    <input type="text" class="meta-val flex-2" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-i18n-placeholder="form.metaValPlaceholder" placeholder="${escapeHtml(valPh)}" value="${escapeHtml(value)}">
+    <button type="button" class="btn-remove-meta" data-i18n-title="form.removeParamBtnTitle" title="${escapeHtml(removeTitle)}">
       <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
     </button>
   `;
@@ -1552,8 +1585,12 @@ function openFormModal(itemToEdit = null, prefillData = null) {
 
   if (itemToEdit) {
     editingItemId = itemToEdit.id;
-    modalTitle.textContent = `Upravit: ${itemToEdit.title}`;
-    document.getElementById("saveFormBtn").textContent = "Uložit změny";
+    modalTitle.textContent = window.i18n
+      ? window.i18n.t("form.modalTitleEditWithTitle", { title: itemToEdit.title })
+      : `Upravit: ${itemToEdit.title}`;
+    document.getElementById("saveFormBtn").textContent = window.i18n
+      ? window.i18n.t("form.saveChangesBtn")
+      : "Uložit změny";
 
     const typeRadio = document.querySelector(`input[name="itemType"][value="${itemToEdit.item_type}"]`);
     if (typeRadio) typeRadio.checked = true;
@@ -1615,10 +1652,10 @@ function openFormModal(itemToEdit = null, prefillData = null) {
       existingImageData = itemToEdit.image_data;
       imagePreviewImg.src = getCoverUrl(itemToEdit.image_data);
       imagePreviewContainer.classList.remove("hidden");
-      selectedImagePathText.textContent = itemToEdit.image_path || "Uložený plakát";
+      selectedImagePathText.textContent = itemToEdit.image_path || (window.i18n ? window.i18n.t("form.savedPoster") : "Uložený plakát");
     } else {
       imagePreviewContainer.classList.add("hidden");
-      selectedImagePathText.textContent = "Položka nemá plakát";
+      selectedImagePathText.textContent = window.i18n ? window.i18n.t("form.noPoster") : "Položka nemá plakát";
     }
 
     if (itemToEdit.custom_metadata) {
@@ -1628,8 +1665,13 @@ function openFormModal(itemToEdit = null, prefillData = null) {
     }
   } else if (prefillData) {
     editingItemId = null;
-    modalTitle.textContent = `Přidat: ${prefillData.title || "z TMDB"}`;
-    document.getElementById("saveFormBtn").textContent = "Uložit položku";
+    const fallbackSource = prefillData.itemType === "Hra" ? "z RAWG" : "z TMDB";
+    modalTitle.textContent = window.i18n
+      ? window.i18n.t("form.modalTitleAddWithTitle", { title: prefillData.title || fallbackSource })
+      : `Přidat: ${prefillData.title || fallbackSource}`;
+    document.getElementById("saveFormBtn").textContent = window.i18n
+      ? window.i18n.t("form.saveBtn")
+      : "Uložit položku";
 
     const targetType = prefillData.itemType || "Film";
     const typeRadio = document.querySelector(`input[name="itemType"][value="${targetType}"]`);
@@ -1682,10 +1724,10 @@ function openFormModal(itemToEdit = null, prefillData = null) {
       existingImageData = prefillData.imageData || "";
       imagePreviewImg.src = getCoverUrl(prefillData.imageData || prefillData.imagePath);
       imagePreviewContainer.classList.remove("hidden");
-      selectedImagePathText.textContent = "Plakát načten z online databáze";
+      selectedImagePathText.textContent = window.i18n ? window.i18n.t("form.posterFromDatabase") : "Plakát načten z online databáze";
     } else {
       imagePreviewContainer.classList.add("hidden");
-      selectedImagePathText.textContent = "Žádný plakát nebyl nalezen";
+      selectedImagePathText.textContent = window.i18n ? window.i18n.t("form.noPosterFound") : "Žádný plakát nebyl nalezen";
     }
 
     if (prefillData.customMetadata) {
@@ -1695,8 +1737,8 @@ function openFormModal(itemToEdit = null, prefillData = null) {
     }
   } else {
     editingItemId = null;
-    modalTitle.textContent = "Přidat novou položku";
-    document.getElementById("saveFormBtn").textContent = "Uložit položku";
+    modalTitle.textContent = window.i18n ? window.i18n.t("form.modalTitleAdd") : "Přidat novou položku";
+    document.getElementById("saveFormBtn").textContent = window.i18n ? window.i18n.t("form.saveBtn") : "Uložit položku";
 
     document.querySelector('input[name="itemType"][value="Film"]').checked = true;
     updateDynamicFormSections("Film");
@@ -1713,7 +1755,7 @@ function openFormModal(itemToEdit = null, prefillData = null) {
     setNoRatingState(false);
     updateRatingInputWidth();
     imagePreviewContainer.classList.add("hidden");
-    selectedImagePathText.textContent = "Žádný nový soubor nevybrán";
+    selectedImagePathText.textContent = window.i18n ? window.i18n.t("form.noImageSelected") : "Žádný nový soubor nevybrán";
   }
 
   formModal.classList.remove("hidden");
@@ -2966,6 +3008,7 @@ let currentImportAbortController = null;
 let isImportInProgress = false;
 
 function resetAllApiResultButtons() {
+  const defaultBtnText = window.i18n ? window.i18n.t("apiModal.selectAndPrefillBtn") : "Vybrat a předvyplnit";
   document.querySelectorAll(".tmdb-select-btn, .rawg-select-btn").forEach((btn) => {
     btn.disabled = false;
     btn.classList.remove("btn-import-success");
@@ -2973,9 +3016,11 @@ function resetAllApiResultButtons() {
       btn.innerHTML.includes("tmdb-spinner") ||
       btn.innerHTML.includes("✓") ||
       btn.innerText.includes("Stahuji") ||
-      btn.innerText.includes("Načítám")
+      btn.innerText.includes("Načítám") ||
+      btn.innerText.includes("Loading") ||
+      btn.innerText.includes("Downloading")
     ) {
-      btn.innerHTML = `<span>Vybrat a předvyplnit</span>`;
+      btn.innerHTML = `<span>${escapeHtml(defaultBtnText)}</span>`;
     }
   });
   isImportInProgress = false;
@@ -3001,7 +3046,10 @@ function openTmdbModal(defaultProvider = null) {
     rawgSectionWrapper.classList.remove("hidden");
     tmdbSectionWrapper?.classList.add("hidden");
     const titleEl = document.getElementById("apiModalHeaderTitle");
-    if (titleEl) titleEl.textContent = "Přidat pomocí online API (RAWG.io)";
+    if (titleEl) {
+      const baseTitle = window.i18n ? window.i18n.t("apiModal.headerTitle") : "Přidat pomocí online API";
+      titleEl.textContent = `${baseTitle} (RAWG.io)`;
+    }
     setTimeout(() => {
       if (savedRawgKey) rawgQueryInput?.focus();
       else rawgApiKeyInput?.focus();
@@ -3012,7 +3060,10 @@ function openTmdbModal(defaultProvider = null) {
     tmdbSectionWrapper?.classList.remove("hidden");
     rawgSectionWrapper?.classList.add("hidden");
     const titleEl = document.getElementById("apiModalHeaderTitle");
-    if (titleEl) titleEl.textContent = "Přidat pomocí online API (TMDB)";
+    if (titleEl) {
+      const baseTitle = window.i18n ? window.i18n.t("apiModal.headerTitle") : "Přidat pomocí online API";
+      titleEl.textContent = `${baseTitle} (TMDB)`;
+    }
     setTimeout(() => {
       if (savedKey) tmdbQueryInput?.focus();
       else tmdbApiKeyInput?.focus();
@@ -3030,7 +3081,7 @@ function closeTmdbModal() {
     } catch (_) {}
     currentImportAbortController = null;
     isImportInProgress = false;
-    showToast("Stahování z online databáze bylo zrušeno.");
+    showToast(window.i18n ? window.i18n.t("apiModal.downloadCancelled") : "Stahování z online databáze bylo zrušeno.");
   }
   resetAllApiResultButtons();
   tmdbModal.classList.add("hidden");
@@ -3041,10 +3092,10 @@ function updateTmdbKeyBadge() {
   if (!tmdbKeyBadge) return;
   const key = getCleanTmdbKey();
   if (key) {
-    tmdbKeyBadge.textContent = "✓ Klíč uložen";
+    tmdbKeyBadge.textContent = window.i18n ? window.i18n.t("apiModal.keySaved") : "✓ Klíč uložen";
     tmdbKeyBadge.className = "tmdb-key-badge badge-saved";
   } else {
-    tmdbKeyBadge.textContent = "Klíč nezadán";
+    tmdbKeyBadge.textContent = window.i18n ? window.i18n.t("apiModal.keyMissing") : "Klíč nezadán";
     tmdbKeyBadge.className = "tmdb-key-badge badge-missing";
   }
 }
@@ -3052,7 +3103,7 @@ function updateTmdbKeyBadge() {
 async function executeTmdbSearch() {
   const key = getCleanTmdbKey();
   if (!key) {
-    showToast("Nejprve prosím vložte váš TMDB API klíč.");
+    showToast(window.i18n ? window.i18n.t("apiModal.promptEnterTmdbKey") : "Nejprve prosím vložte váš TMDB API klíč.");
     tmdbApiKeyInput?.focus();
     return;
   }
@@ -3065,7 +3116,7 @@ async function executeTmdbSearch() {
 
   const query = tmdbQueryInput ? tmdbQueryInput.value.trim() : "";
   if (!query) {
-    showToast("Zadejte název díla pro vyhledání.");
+    showToast(window.i18n ? window.i18n.t("apiModal.promptEnterMovieQuery") : "Zadejte název díla pro vyhledání.");
     tmdbQueryInput?.focus();
     return;
   }
@@ -3125,11 +3176,13 @@ async function executeTmdbSearch() {
     });
 
     if (results.length === 0) {
+      const noResTitle = window.i18n ? window.i18n.t("apiModal.noResultsFoundTitle") : "Nebyly nalezeny žádné výsledky";
+      const noResSub = window.i18n ? window.i18n.t("apiModal.noMoviesFoundSub", { query }) : `Pro dotaz "${escapeHtml(query)}" nebyly nalezeny žádné tituly. Zkuste jiný výraz nebo přepnout filtr typu.`;
       tmdbResultsArea.innerHTML = `
         <div class="tmdb-placeholder-state">
           <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <p class="tmdb-placeholder-title">Nebyly nalezeny žádné výsledky</p>
-          <p class="tmdb-placeholder-sub">Pro dotaz "${escapeHtml(query)}" nebyly nalezeny žádné tituly. Zkuste jiný výraz nebo přepnout filtr typu.</p>
+          <p class="tmdb-placeholder-title">${escapeHtml(noResTitle)}</p>
+          <p class="tmdb-placeholder-sub">${escapeHtml(noResSub)}</p>
         </div>
       `;
       return;
@@ -3138,11 +3191,12 @@ async function executeTmdbSearch() {
     renderTmdbResults(results);
   } catch (err) {
     console.error("Chyba vyhledávání TMDB:", err);
+    const errTitle = window.i18n ? window.i18n.t("apiModal.tmdbErrorTitle") : "Chyba při komunikaci s TMDB";
     tmdbResultsArea.innerHTML = `
       <div class="tmdb-alert-card tmdb-alert-error">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
         <div>
-          <strong>Chyba při komunikaci s TMDB</strong>
+          <strong>${escapeHtml(errTitle)}</strong>
           <p style="margin-top: 4px;">${escapeHtml(err.message || String(err))}</p>
         </div>
       </div>
@@ -3151,25 +3205,35 @@ async function executeTmdbSearch() {
 }
 
 function renderTmdbResults(results) {
-  let html = `<div class="tmdb-results-count">Nalezeno celkem <strong>${results.length}</strong> výsledků:</div>`;
+  const countText = window.i18n
+    ? window.i18n.t("apiModal.resultsCountMovies", { count: results.length })
+    : `Nalezeno celkem <strong>${results.length}</strong> výsledků:`;
+  let html = `<div class="tmdb-results-count">${countText}</div>`;
 
   results.forEach((item) => {
     const isTv = item.media_type === "tv" || (!item.title && !!item.name);
-    const title = item.title || item.name || "Bez názvu";
+    const title = item.title || item.name || (window.i18n ? window.i18n.t("apiModal.untitled") : "Bez názvu");
     const originalTitle = item.original_title || item.original_name || "";
     const releaseDate = item.release_date || item.first_air_date || "";
     const year = releaseDate ? releaseDate.substring(0, 4) : "—";
     const rating = item.vote_average ? Math.round(item.vote_average * 10) / 10 : null;
-    const overview = item.overview ? item.overview : "Popis není v češtině k dispozici.";
+    const overview = item.overview ? item.overview : (window.i18n ? window.i18n.t("apiModal.noOverview") : "Popis není k dispozici.");
 
     const posterUrl = item.poster_path ? `https://image.tmdb.org/t/p/w185${item.poster_path}` : null;
     const posterHtml = posterUrl
       ? `<img class="tmdb-result-poster" src="${posterUrl}" alt="${escapeHtml(title)}" draggable="false">`
       : `<div class="tmdb-result-poster-placeholder">${SVG_ICONS.eyeOff}</div>`;
 
+    const origPrefix = window.i18n ? window.i18n.t("apiModal.origTitleLabel") : "Pův.:";
+    const origFull = window.i18n ? window.i18n.t("apiModal.origTitleFull") : "Původní název:";
     const subTitleHtml = originalTitle && originalTitle !== title
-      ? `<div class="tmdb-result-sub" title="Původní název: ${escapeHtml(originalTitle)}">Pův.: ${escapeHtml(originalTitle)}</div>`
+      ? `<div class="tmdb-result-sub" title="${escapeHtml(origFull)} ${escapeHtml(originalTitle)}">${escapeHtml(origPrefix)} ${escapeHtml(originalTitle)}</div>`
       : "";
+
+    const typeLabel = isTv
+      ? (window.i18n ? window.i18n.t("form.typeSeries") : "Seriál")
+      : (window.i18n ? window.i18n.t("form.typeFilm") : "Film");
+    const selectBtnText = window.i18n ? window.i18n.t("apiModal.selectAndPrefillBtn") : "Vybrat a předvyplnit";
 
     html += `
       <div class="tmdb-result-card" data-tmdb-id="${item.id}" data-media-type="${isTv ? "tv" : "movie"}">
@@ -3177,7 +3241,7 @@ function renderTmdbResults(results) {
         <div class="tmdb-result-info">
           <div class="tmdb-result-top">
             <div class="tmdb-result-badges">
-              <span class="tmdb-pill-badge ${isTv ? "tmdb-pill-tv" : ""}">${isTv ? "Seriál" : "Film"}</span>
+              <span class="tmdb-pill-badge ${isTv ? "tmdb-pill-tv" : ""}">${escapeHtml(typeLabel)}</span>
               <span class="tmdb-result-year">${year}</span>
             </div>
             ${rating !== null ? `<div class="tmdb-result-score">${SVG_ICONS.star} ${rating}</div>` : ""}
@@ -3187,7 +3251,7 @@ function renderTmdbResults(results) {
           <div class="tmdb-result-overview">${escapeHtml(overview)}</div>
           <div class="tmdb-result-actions">
             <button type="button" class="btn btn-primary tmdb-select-btn">
-              <span>Vybrat a předvyplnit</span>
+              <span>${escapeHtml(selectBtnText)}</span>
             </button>
           </div>
         </div>
@@ -3230,7 +3294,8 @@ async function importTmdbItemDetails(item, btn) {
   });
 
   if (btn) {
-    btn.innerHTML = `<span class="tmdb-spinner-small"></span> Načítám...`;
+    const loadingText = window.i18n ? window.i18n.t("apiModal.loadingDetails") : "Načítám...";
+    btn.innerHTML = `<span class="tmdb-spinner-small"></span> ${escapeHtml(loadingText)}`;
   }
 
   const key = getCleanTmdbKey();
@@ -3382,7 +3447,10 @@ async function importTmdbItemDetails(item, btn) {
     const posterPath = data.poster_path || item.poster_path;
 
     if (posterPath && !abortCtrl.signal.aborted) {
-      if (btn) btn.innerHTML = `<span class="tmdb-spinner-small"></span> Stahuji a optimalizuji obálku...`;
+      if (btn) {
+        const dlPosterText = window.i18n ? window.i18n.t("apiModal.downloadingPoster") : "Stahuji a optimalizuji obálku...";
+        btn.innerHTML = `<span class="tmdb-spinner-small"></span> ${escapeHtml(dlPosterText)}`;
+      }
       const fullPosterUrl = `https://image.tmdb.org/t/p/w500${posterPath}`;
       try {
         const res = await tauriInvoke("download_and_save_image", { url: fullPosterUrl });
@@ -3434,7 +3502,7 @@ async function importTmdbItemDetails(item, btn) {
     // UKONČENÍ / ÚSPĚŠNÉ DOKONČENÍ: Zobrazíme uživateli jasné potvrzení, že se vše úspěšně stáhlo
     if (btn) {
       btn.classList.add("btn-import-success");
-      btn.innerHTML = `✓ Vše staženo!`;
+      btn.innerHTML = window.i18n ? window.i18n.t("apiModal.allDownloaded") : "✓ Vše staženo!";
     }
 
     // Krátká prodleva, aby uživatel viděl potvrzení dokončení před otevřením formuláře
@@ -3491,10 +3559,10 @@ function updateRawgKeyBadge() {
   if (!rawgKeyBadge) return;
   const key = getCleanRawgKey();
   if (key) {
-    rawgKeyBadge.textContent = "✓ Klíč uložen";
+    rawgKeyBadge.textContent = window.i18n ? window.i18n.t("apiModal.keySaved") : "✓ Klíč uložen";
     rawgKeyBadge.className = "tmdb-key-badge badge-saved";
   } else {
-    rawgKeyBadge.textContent = "Klíč nezadán";
+    rawgKeyBadge.textContent = window.i18n ? window.i18n.t("apiModal.keyMissing") : "Klíč nezadán";
     rawgKeyBadge.className = "tmdb-key-badge badge-missing";
   }
 }
@@ -3502,7 +3570,7 @@ function updateRawgKeyBadge() {
 async function executeRawgSearch() {
   const key = getCleanRawgKey();
   if (!key) {
-    showToast("Nejprve prosím vložte váš RAWG API klíč.");
+    showToast(window.i18n ? window.i18n.t("apiModal.promptEnterRawgKey") : "Nejprve prosím vložte váš RAWG API klíč.");
     rawgApiKeyInput?.focus();
     return;
   }
@@ -3514,7 +3582,7 @@ async function executeRawgSearch() {
 
   const query = rawgQueryInput ? rawgQueryInput.value.trim() : "";
   if (!query) {
-    showToast("Zadejte název hry pro vyhledání.");
+    showToast(window.i18n ? window.i18n.t("apiModal.promptEnterGameQuery") : "Zadejte název hry pro vyhledání.");
     rawgQueryInput?.focus();
     return;
   }
@@ -3553,11 +3621,13 @@ async function executeRawgSearch() {
     const results = data.results || [];
 
     if (results.length === 0) {
+      const noResTitle = window.i18n ? window.i18n.t("apiModal.noGamesFoundTitle") : "Nebyly nalezeny žádné hry";
+      const noResSub = window.i18n ? window.i18n.t("apiModal.noGamesFoundSub", { query }) : `Pro dotaz "${escapeHtml(query)}" nebyly nalezeny žádné tituly. Zkuste upřesnit název hry.`;
       rawgResultsArea.innerHTML = `
         <div class="tmdb-placeholder-state">
           <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <p class="tmdb-placeholder-title">Nebyly nalezeny žádné hry</p>
-          <p class="tmdb-placeholder-sub">Pro dotaz "${escapeHtml(query)}" nebyly nalezeny žádné tituly. Zkuste upřesnit název hry.</p>
+          <p class="tmdb-placeholder-title">${escapeHtml(noResTitle)}</p>
+          <p class="tmdb-placeholder-sub">${escapeHtml(noResSub)}</p>
         </div>
       `;
       return;
@@ -3566,11 +3636,12 @@ async function executeRawgSearch() {
     renderRawgResults(results);
   } catch (err) {
     console.error("Chyba vyhledávání RAWG:", err);
+    const errTitle = window.i18n ? window.i18n.t("apiModal.rawgErrorTitle") : "Chyba při komunikaci s RAWG.io";
     rawgResultsArea.innerHTML = `
       <div class="tmdb-alert-card tmdb-alert-error">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
         <div>
-          <strong>Chyba při komunikaci s RAWG.io</strong>
+          <strong>${escapeHtml(errTitle)}</strong>
           <p style="margin-top: 4px;">${escapeHtml(err.message || String(err))}</p>
         </div>
       </div>
@@ -3579,10 +3650,13 @@ async function executeRawgSearch() {
 }
 
 function renderRawgResults(results) {
-  let html = `<div class="tmdb-results-count">Nalezeno celkem <strong>${results.length}</strong> her:</div>`;
+  const countText = window.i18n
+    ? window.i18n.t("apiModal.resultsCountGames", { count: results.length })
+    : `Nalezeno celkem <strong>${results.length}</strong> her:`;
+  let html = `<div class="tmdb-results-count">${countText}</div>`;
 
   results.forEach((game) => {
-    const title = game.name || "Bez názvu";
+    const title = game.name || (window.i18n ? window.i18n.t("apiModal.untitled") : "Bez názvu");
     const year = game.released ? game.released.substring(0, 4) : "—";
     const rating10 = game.rating ? Math.round(game.rating * 2 * 10) / 10 : null;
     const metaScore = game.metacritic || null;
@@ -3602,6 +3676,12 @@ function renderRawgResults(results) {
       .join(" ");
 
     const genres = (game.genres || []).map((g) => g.name).slice(0, 3).join(", ");
+    const gameLabel = window.i18n ? window.i18n.t("form.typeGame") : "Hra";
+    const metaScoreTitle = window.i18n ? window.i18n.t("apiModal.metacriticScore") : "Metacritic skóre";
+    const genresLabel = window.i18n ? window.i18n.t("apiModal.genresLabel") : "Žánry";
+    const noGenresText = window.i18n ? window.i18n.t("apiModal.noGenres") : "Žánry neuvedeny.";
+    const genresOverview = genres ? `${escapeHtml(genresLabel)}: ${escapeHtml(genres)}` : escapeHtml(noGenresText);
+    const selectBtnText = window.i18n ? window.i18n.t("apiModal.selectAndPrefillBtn") : "Vybrat a předvyplnit";
 
     html += `
       <div class="tmdb-result-card" data-rawg-id="${game.id}">
@@ -3609,9 +3689,9 @@ function renderRawgResults(results) {
         <div class="tmdb-result-info">
           <div class="tmdb-result-top">
             <div class="tmdb-result-badges">
-              <span class="tmdb-pill-badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">Hra</span>
+              <span class="tmdb-pill-badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">${escapeHtml(gameLabel)}</span>
               <span class="tmdb-result-year">${year}</span>
-              ${metaScore ? `<span class="platform-pill" style="background: rgba(59, 130, 246, 0.18); color: #60a5fa;" title="Metacritic skóre">MC: ${metaScore}</span>` : ""}
+              ${metaScore ? `<span class="platform-pill" style="background: rgba(59, 130, 246, 0.18); color: #60a5fa;" title="${escapeHtml(metaScoreTitle)}">MC: ${metaScore}</span>` : ""}
             </div>
             ${rating10 !== null ? `<div class="tmdb-result-score">${SVG_ICONS.star} ${rating10}</div>` : ""}
           </div>
@@ -3619,10 +3699,10 @@ function renderRawgResults(results) {
           <div class="rawg-platforms-list" style="margin-bottom: 6px;">
             ${platformPills}
           </div>
-          <div class="tmdb-result-overview">${genres ? `Žánry: ${escapeHtml(genres)}` : "Žánry neuvedeny."}</div>
+          <div class="tmdb-result-overview">${genresOverview}</div>
           <div class="tmdb-result-actions">
             <button type="button" class="btn btn-primary rawg-select-btn">
-              <span>Vybrat a předvyplnit</span>
+              <span>${escapeHtml(selectBtnText)}</span>
             </button>
           </div>
         </div>
@@ -3664,7 +3744,8 @@ async function importRawgGameDetails(gameSummary, btn) {
   });
 
   if (btn) {
-    btn.innerHTML = `<span class="tmdb-spinner-small"></span> Načítám...`;
+    const loadingText = window.i18n ? window.i18n.t("apiModal.loadingDetails") : "Načítám...";
+    btn.innerHTML = `<span class="tmdb-spinner-small"></span> ${escapeHtml(loadingText)}`;
   }
 
   const key = getCleanRawgKey();
@@ -3747,7 +3828,10 @@ async function importRawgGameDetails(gameSummary, btn) {
     const imageUrl = data.background_image || gameSummary.background_image;
 
     if (imageUrl && !abortCtrl.signal.aborted) {
-      if (btn) btn.innerHTML = `<span class="tmdb-spinner-small"></span> Stahuji a optimalizuji obal...`;
+      if (btn) {
+        const dlCoverText = window.i18n ? window.i18n.t("apiModal.downloadingPoster") : "Stahuji a optimalizuji obálku...";
+        btn.innerHTML = `<span class="tmdb-spinner-small"></span> ${escapeHtml(dlCoverText)}`;
+      }
       try {
         // 1. Primární spolehlivá metoda přes Rust backend (obejde CORS, Cloudflare i 307 přesměrování)
         const res = await tauriInvoke("download_and_save_image", { url: imageUrl });
@@ -3801,7 +3885,7 @@ async function importRawgGameDetails(gameSummary, btn) {
     // UKONČENÍ / ÚSPĚŠNÉ DOKONČENÍ: Zobrazíme uživateli jasné potvrzení, že se vše úspěšně stáhlo
     if (btn) {
       btn.classList.add("btn-import-success");
-      btn.innerHTML = `✓ Vše staženo!`;
+      btn.innerHTML = window.i18n ? window.i18n.t("apiModal.allDownloaded") : "✓ Vše staženo!";
     }
 
     // Krátká prodleva, aby uživatel viděl potvrzení dokončení před otevřením formuláře

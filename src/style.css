@@ -1674,7 +1674,8 @@ img {
   display: none;
 }
 
-.segment span {
+.segment > span,
+.segment-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1693,6 +1694,21 @@ img {
   user-select: none;
 }
 
+.segment > span > span,
+.segment-btn > span {
+  display: inline !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit !important;
+  font: inherit !important;
+  line-height: inherit !important;
+}
+
 .segment-icon {
   width: 16px;
   height: 16px;
@@ -1700,7 +1716,8 @@ img {
   transition: transform 0.2s ease;
 }
 
-.segment:hover span {
+.segment:hover > span,
+.segment:hover .segment-btn {
   color: var(--text-main);
   background-color: rgba(255, 255, 255, 0.04);
 }
@@ -1709,21 +1726,24 @@ img {
   transform: scale(1.08);
 }
 
-.segment input[value="Film"]:checked + span {
+.segment input[value="Film"]:checked + span,
+.segment input[value="Film"]:checked + .segment-btn {
   background: rgba(99, 102, 241, 0.18);
   color: #818cf8;
   border-color: rgba(99, 102, 241, 0.5);
   box-shadow: 0 0 12px rgba(99, 102, 241, 0.25);
 }
 
-.segment input[value="Seriál"]:checked + span {
+.segment input[value="Seriál"]:checked + span,
+.segment input[value="Seriál"]:checked + .segment-btn {
   background: rgba(14, 165, 233, 0.18);
   color: #38bdf8;
   border-color: rgba(14, 165, 233, 0.5);
   box-shadow: 0 0 12px rgba(14, 165, 233, 0.25);
 }
 
-.segment input[value="Hra"]:checked + span {
+.segment input[value="Hra"]:checked + span,
+.segment input[value="Hra"]:checked + .segment-btn {
   background: rgba(16, 185, 129, 0.18);
   color: #34d399;
   border-color: rgba(16, 185, 129, 0.5);
@@ -3873,7 +3893,7 @@ img {
 
 .tmdb-type-segments {
   display: grid;
-  grid-template-columns: repeat(3, 60px);
+  grid-template-columns: repeat(3, 64px);
   width: max-content;
   align-items: center;
   background-color: var(--bg-main);
