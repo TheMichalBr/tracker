@@ -339,6 +339,9 @@ function setNoRatingState(active) {
   }
   if (itemRating) {
     itemRating.disabled = active;
+    const val = parseFloat(itemRating.value || 1);
+    const progress = active ? 0 : Math.min(100, Math.max(0, (val / 10) * 100));
+    itemRating.style.setProperty("--rating-progress", `${progress}%`);
   }
   if (itemRatingInput) {
     itemRatingInput.disabled = active;
@@ -348,22 +351,25 @@ function setNoRatingState(active) {
       }
       itemRatingInput.value = "—";
     } else {
-      const restored = itemRatingInput.dataset.savedVal || itemRating.value || "8";
-      itemRatingInput.value = restored;
-      const num = parseFloat(restored);
-      if (!isNaN(num)) itemRating.value = num;
+      if (itemRatingInput.value === "—") {
+        const restored = itemRatingInput.dataset.savedVal || itemRating?.value || "1";
+        itemRatingInput.value = restored;
+        const num = parseFloat(restored);
+        if (!isNaN(num) && itemRating) itemRating.value = num;
+      }
+      itemRatingInput.dataset.savedVal = itemRatingInput.value;
       updateRatingInputWidth();
     }
   }
 }
 
-// Pomocná funkce pro automatické škálování šířky číselného vstupu hodnocení
+// Pomocná funkce pro aktualizaci grafické dráhy posuvníku hodnocení
 function updateRatingInputWidth() {
-  if (!itemRatingInput) return;
-  const str = String(itemRatingInput.value || "8");
-  // Dynamická šířka podle počtu znaků (např. 6.25, 10.00), aby žádné číslo nebylo oříznuté
-  const charCount = Math.max(3, str.length);
-  itemRatingInput.style.width = `${Math.max(54, charCount * 11)}px`;
+  if (itemRating) {
+    const val = parseFloat(itemRating.value);
+    const progress = !isNaN(val) && !isNoRatingActive ? Math.min(100, Math.max(0, (val / 10) * 100)) : 0;
+    itemRating.style.setProperty("--rating-progress", `${progress}%`);
+  }
 }
 
 // Filmy/Seriály pole
@@ -394,6 +400,8 @@ const addMetaFieldBtn = document.getElementById("addMetaFieldBtn");
 
 // Detail Modál
 const detailModal = document.getElementById("detailModal");
+const detailBody = detailModal ? detailModal.querySelector(".detail-body") : null;
+const itemDetailScrollPositions = new Map();
 const closeDetailModalBtn = document.getElementById("closeDetailModalBtn");
 const detailCloseBtn = document.getElementById("detailCloseBtn");
 const detailEditBtn = document.getElementById("detailEditBtn");
@@ -434,6 +442,7 @@ const openSettingsBtn = document.getElementById("openSettingsBtn");
 const closeSettingsModalBtn = document.getElementById("closeSettingsModalBtn");
 const cancelSettingsBtn = document.getElementById("cancelSettingsBtn");
 const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+const settingsAppLang = document.getElementById("settingsAppLang");
 const settingsDefaultView = document.getElementById("settingsDefaultView");
 const settingsItemsPerPage = document.getElementById("settingsItemsPerPage");
 const settingsItemCount = document.getElementById("settingsItemCount");
@@ -500,6 +509,26 @@ const toast = document.getElementById("toast");
 document.addEventListener("DOMContentLoaded", () => {
   document.documentElement.removeAttribute("data-accent");
   localStorage.removeItem("tracker_accent_color");
+
+  // Aplikace jazyka na nastavení
+  if (window.i18n) {
+    window.i18n.applyTranslations(document.getElementById("settingsModal"));
+  }
+
+  // Okamžitá reakce na změnu jazyka
+  window.addEventListener("tracker:languageChanged", () => {
+    if (window.i18n && settingsModal && !settingsModal.classList.contains("hidden")) {
+      window.i18n.applyTranslations(settingsModal);
+      const curLang = window.i18n.getLanguage();
+      updateSettingsDropdownUI(
+        settingsDefaultView?.value || "grid",
+        settingsItemsPerPage?.value || "24",
+        curLang
+      );
+      refreshSettingsStorageInfo();
+    }
+  });
+
   setupViewMode(currentView);
   setupEventListeners();
   updateTmdbKeyBadge();
@@ -785,6 +814,9 @@ function setupEventListeners() {
   // Uložení reference před zavřením modálu
   detailEditBtn.addEventListener("click", () => {
     if (currentItemDetail) {
+      if (detailBody) {
+        itemDetailScrollPositions.set(currentItemDetail.id, detailBody.scrollTop);
+      }
       detailModalItemBeforeEdit = currentItemDetail;
       const itemToEdit = currentItemDetail;
       detailModal.classList.add("hidden");
@@ -792,6 +824,14 @@ function setupEventListeners() {
       openFormModal(itemToEdit);
     }
   });
+
+  if (detailBody) {
+    detailBody.addEventListener("scroll", () => {
+      if (currentItemDetail && currentItemDetail.id) {
+        itemDetailScrollPositions.set(currentItemDetail.id, detailBody.scrollTop);
+      }
+    }, { passive: true });
+  }
 
   detailDeleteBtn.addEventListener("click", () => {
     if (currentItemDetail) {
@@ -941,6 +981,7 @@ function setupEventListeners() {
     itemRating.addEventListener("input", (e) => {
       if (isNoRatingActive) setNoRatingState(false);
       itemRatingInput.value = e.target.value;
+      itemRatingInput.dataset.savedVal = e.target.value;
       updateRatingInputWidth();
     });
 
@@ -951,21 +992,39 @@ function setupEventListeners() {
       if (!isNaN(num) && num >= 0 && num <= 10) {
         if (isNoRatingActive) setNoRatingState(false);
         itemRating.value = num;
+        itemRatingInput.dataset.savedVal = String(num);
       }
     });
+
+    itemRatingInput.addEventListener("focus", () => {
+      if (!isNoRatingActive) {
+        itemRatingInput.select();
+      }
+    });
+
+    const ratingBadgeEl = document.querySelector(".rating-input-badge");
+    if (ratingBadgeEl) {
+      ratingBadgeEl.addEventListener("click", (e) => {
+        if (e.target !== itemRatingInput && !isNoRatingActive) {
+          itemRatingInput.focus();
+          itemRatingInput.select();
+        }
+      });
+    }
 
     itemRatingInput.addEventListener("blur", (e) => {
       if (isNoRatingActive) return;
       const cleanVal = e.target.value.replace(",", ".");
       let num = parseFloat(cleanVal);
       if (isNaN(num)) {
-        num = parseFloat(itemRating.value) || 8;
+        num = parseFloat(itemRating.value) || 1;
       } else {
         num = Math.min(10, Math.max(0, num));
       }
       num = Math.round(num * 100) / 100;
       itemRatingInput.value = num;
       itemRating.value = num;
+      itemRatingInput.dataset.savedVal = String(num);
       updateRatingInputWidth();
     });
   }
@@ -1231,6 +1290,17 @@ function updateDynamicFormSections(selectedType) {
   if (statusLabelProgress) statusLabelProgress.textContent = isGame ? "Právě hraji" : "Právě sleduji";
   if (statusLabelCompleted) statusLabelCompleted.textContent = isGame ? "Dohráno" : "Zhlédnuto";
   if (statusLabelDropped) statusLabelDropped.textContent = "Odloženo";
+
+  const formImportTmdbBtn = document.getElementById("formImportTmdbBtn");
+  if (formImportTmdbBtn) {
+    const importSpan = formImportTmdbBtn.querySelector("span");
+    if (importSpan) {
+      importSpan.textContent = isGame ? "Načíst z RAWG" : "Načíst z TMDB";
+    }
+    formImportTmdbBtn.title = isGame
+      ? "Předvyplnit z herní databáze RAWG.io"
+      : "Předvyplnit z mezinárodní databáze TMDB";
+  }
 }
 
 // ==========================================================================
@@ -1448,6 +1518,7 @@ async function handleDeleteItem(id, title, fromDetail = false) {
 
   try {
     await tauriInvoke("delete_item", { id });
+    itemDetailScrollPositions.delete(id);
     allItems = allItems.filter((item) => item.id !== id);
     updateCounts();
     renderGrid();
@@ -1471,6 +1542,9 @@ function openFormModal(itemToEdit = null, prefillData = null) {
   selectedImagePath = null;
   removeImageFlag = false;
   existingImageData = null;
+  if (itemRatingInput) {
+    delete itemRatingInput.dataset.savedVal;
+  }
 
   if (!itemToEdit) {
     detailModalItemBeforeEdit = null;
@@ -1497,21 +1571,25 @@ function openFormModal(itemToEdit = null, prefillData = null) {
     itemTags.value = itemToEdit.tags || "";
     itemDescription.value = itemToEdit.description || "";
     
-    const hasRating = itemToEdit.rating !== undefined && itemToEdit.rating !== null;
+    const hasRating = itemToEdit.rating !== undefined && itemToEdit.rating !== null && itemToEdit.rating !== "";
     if (hasRating) {
-      itemRating.value = itemToEdit.rating;
+      const rNum = parseFloat(itemToEdit.rating);
+      const safeRating = isNaN(rNum) ? 1 : rNum;
+      itemRating.value = safeRating;
       if (itemRatingInput) {
-        itemRatingInput.value = itemToEdit.rating;
-        updateRatingInputWidth();
+        itemRatingInput.value = safeRating;
+        itemRatingInput.dataset.savedVal = String(safeRating);
       }
       setNoRatingState(false);
+      updateRatingInputWidth();
     } else {
-      itemRating.value = 8;
+      itemRating.value = 1;
       if (itemRatingInput) {
-        itemRatingInput.value = 8;
-        updateRatingInputWidth();
+        itemRatingInput.value = 1;
+        itemRatingInput.dataset.savedVal = "1";
       }
       setNoRatingState(true);
+      updateRatingInputWidth();
     }
 
     itemApiRating.value = itemToEdit.api_rating !== null && itemToEdit.api_rating !== undefined ? itemToEdit.api_rating : "";
@@ -1570,13 +1648,16 @@ function openFormModal(itemToEdit = null, prefillData = null) {
     itemTags.value = prefillData.tags || "";
     itemDescription.value = prefillData.description || "";
 
-    const prefRating = prefillData.rating !== undefined && prefillData.rating !== null ? prefillData.rating : 8;
-    itemRating.value = prefRating;
+    const hasPrefRating = prefillData.rating !== undefined && prefillData.rating !== null && prefillData.rating !== "";
+    const prefRating = hasPrefRating ? parseFloat(prefillData.rating) : 1;
+    const safePrefRating = isNaN(prefRating) ? 1 : prefRating;
+    itemRating.value = safePrefRating;
     if (itemRatingInput) {
-      itemRatingInput.value = prefRating;
+      itemRatingInput.value = safePrefRating;
+      itemRatingInput.dataset.savedVal = String(safePrefRating);
       updateRatingInputWidth();
     }
-    setNoRatingState(prefillData.rating === null);
+    setNoRatingState(!hasPrefRating);
     itemApiRating.value = prefillData.apiRating !== undefined && prefillData.apiRating !== null ? prefillData.apiRating : "";
     itemNote.value = prefillData.note || "";
 
@@ -1624,12 +1705,13 @@ function openFormModal(itemToEdit = null, prefillData = null) {
     if (defStRadio) defStRadio.checked = true;
     if (itemTrailerUrl) itemTrailerUrl.value = "";
 
-    itemRating.value = 8;
+    itemRating.value = 1;
     if (itemRatingInput) {
-      itemRatingInput.value = 8;
-      updateRatingInputWidth();
+      itemRatingInput.value = 1;
+      itemRatingInput.dataset.savedVal = "1";
     }
     setNoRatingState(false);
+    updateRatingInputWidth();
     imagePreviewContainer.classList.add("hidden");
     selectedImagePathText.textContent = "Žádný nový soubor nevybrán";
   }
@@ -1640,6 +1722,7 @@ function openFormModal(itemToEdit = null, prefillData = null) {
 }
 
 function closeFormModal(wasSaved = false, updatedItem = null) {
+  resetAllApiResultButtons();
   formModal.classList.add("hidden");
   updateModalBodyLock();
 
@@ -2088,6 +2171,19 @@ function openDetailModal(item) {
 
   detailModal.classList.remove("hidden");
   updateModalBodyLock();
+
+  if (detailBody) {
+    const savedScroll = itemDetailScrollPositions.get(item.id) || 0;
+    requestAnimationFrame(() => {
+      detailBody.scrollTop = savedScroll;
+      // Druhé znovunastavení po vykreslení obrázků / posteru
+      setTimeout(() => {
+        if (currentItemDetail && currentItemDetail.id === item.id) {
+          detailBody.scrollTop = savedScroll;
+        }
+      }, 60);
+    });
+  }
 }
 
 function addDetailMetaCell(container, label, value) {
@@ -2117,6 +2213,9 @@ function addDetailMetaCell(container, label, value) {
 }
 
 function closeDetailModal() {
+  if (detailBody && currentItemDetail && currentItemDetail.id) {
+    itemDetailScrollPositions.set(currentItemDetail.id, detailBody.scrollTop);
+  }
   detailModal.classList.add("hidden");
   currentItemDetail = null;
   detailModalItemBeforeEdit = null;
@@ -2133,13 +2232,13 @@ function formatFileSize(bytes) {
 async function refreshSettingsStorageInfo() {
   if (settingsItemCount) {
     const count = allItems.length;
-    const itemWord = count === 1 ? "položka" : (count >= 2 && count <= 4 ? "položky" : "položek");
+    const countStr = window.i18n ? window.i18n.formatItemCount(count) : `${count} položek`;
     try {
       const coversInfo = await tauriInvoke("get_covers_files_info");
       const sizeStr = formatFileSize(coversInfo?.total_size_bytes || 0);
-      settingsItemCount.textContent = `${count} ${itemWord} (${sizeStr})`;
+      settingsItemCount.textContent = `${countStr} (${sizeStr})`;
     } catch (err) {
-      settingsItemCount.textContent = `${count} ${itemWord}`;
+      settingsItemCount.textContent = countStr;
     }
   }
 
@@ -2147,17 +2246,15 @@ async function refreshSettingsStorageInfo() {
     try {
       const info = await tauriInvoke("get_temp_files_info");
       if (info && typeof info.count === "number") {
-        if (info.count === 0) {
-          settingsTempCount.textContent = "0 položek (0 B)";
-        } else {
-          const itemWord = info.count === 1 ? "položka" : (info.count >= 2 && info.count <= 4 ? "položky" : "položek");
-          settingsTempCount.textContent = `${info.count} ${itemWord} (${formatFileSize(info.total_size_bytes || 0)})`;
-        }
+        const countStr = window.i18n ? window.i18n.formatItemCount(info.count) : `${info.count} položek`;
+        settingsTempCount.textContent = `${countStr} (${formatFileSize(info.total_size_bytes || 0)})`;
       } else {
-        settingsTempCount.textContent = "0 položek (0 B)";
+        const zeroStr = window.i18n ? window.i18n.formatItemCount(0) : "0 položek";
+        settingsTempCount.textContent = `${zeroStr} (0 B)`;
       }
     } catch (err) {
-      settingsTempCount.textContent = "0 položek";
+      const zeroStr = window.i18n ? window.i18n.formatItemCount(0) : "0 položek";
+      settingsTempCount.textContent = zeroStr;
     }
   }
 }
@@ -2165,25 +2262,43 @@ async function refreshSettingsStorageInfo() {
 // ==========================================================================
 // Nastavení: Vlastní zaoblené rozbalovací nabídky
 // ==========================================================================
-function updateSettingsDropdownUI(viewVal, perPageVal) {
+function updateSettingsDropdownUI(viewVal, perPageVal, langVal) {
+  const currentLang = langVal || (window.i18n ? window.i18n.getLanguage() : "cs");
+
+  const langMap = {
+    cs: "Čeština",
+    en: "English"
+  };
+
   const viewMap = {
-    grid: "Dlaždice",
-    compact: "Kompaktní mřížka",
-    list: "Detailní seznam"
+    grid: window.i18n ? window.i18n.t("settings.viewGrid", {}, "Dlaždice") : "Dlaždice",
+    compact: window.i18n ? window.i18n.t("settings.viewCompact", {}, "Kompaktní mřížka") : "Kompaktní mřížka",
+    list: window.i18n ? window.i18n.t("settings.viewList", {}, "Detailní seznam") : "Detailní seznam"
   };
+
   const perPageMap = {
-    "12": "12 položek",
-    "24": "24 položek",
-    "48": "48 položek",
-    "96": "96 položek",
-    "all": "Vše (Nekonečné rolování)"
+    "12": window.i18n ? window.i18n.t("settings.perPage12", {}, "12 položek") : "12 položek",
+    "24": window.i18n ? window.i18n.t("settings.perPage24", {}, "24 položek") : "24 položek",
+    "48": window.i18n ? window.i18n.t("settings.perPage48", {}, "48 položek") : "48 položek",
+    "96": window.i18n ? window.i18n.t("settings.perPage96", {}, "96 položek") : "96 položek",
+    "all": window.i18n ? window.i18n.t("settings.perPageAll", {}, "Vše (Nekonečné rolování)") : "Vše (Nekonečné rolování)"
   };
+
+  const langLabel = document.getElementById("settingsLangCurrentLabel");
+  if (langLabel) langLabel.textContent = langMap[currentLang] || "Čeština";
 
   const viewLabel = document.getElementById("settingsViewCurrentLabel");
-  if (viewLabel) viewLabel.textContent = viewMap[viewVal] || "Dlaždice";
+  if (viewLabel) viewLabel.textContent = viewMap[viewVal] || viewMap["grid"] || "Dlaždice";
 
   const perPageLabel = document.getElementById("settingsPerPageCurrentLabel");
-  if (perPageLabel) perPageLabel.textContent = perPageMap[perPageVal] || "24 položek";
+  if (perPageLabel) perPageLabel.textContent = perPageMap[perPageVal] || perPageMap["24"] || "24 položek";
+
+  const langMenu = document.getElementById("settingsLangDropdownMenu");
+  if (langMenu) {
+    langMenu.querySelectorAll(".sort-option").forEach((opt) => {
+      opt.classList.toggle("active", opt.dataset.value === currentLang);
+    });
+  }
 
   const viewMenu = document.getElementById("settingsViewDropdownMenu");
   if (viewMenu) {
@@ -2201,6 +2316,10 @@ function updateSettingsDropdownUI(viewVal, perPageVal) {
 }
 
 function setupSettingsDropdowns() {
+  const langBtn = document.getElementById("settingsLangDropdownBtn");
+  const langMenu = document.getElementById("settingsLangDropdownMenu");
+  const langWrap = document.getElementById("settingsLangDropdownWrapper");
+
   const viewBtn = document.getElementById("settingsViewDropdownBtn");
   const viewMenu = document.getElementById("settingsViewDropdownMenu");
   const viewWrap = document.getElementById("settingsViewDropdownWrapper");
@@ -2210,6 +2329,10 @@ function setupSettingsDropdowns() {
   const perPageWrap = document.getElementById("settingsPerPageDropdownWrapper");
 
   function closeSettingsMenus() {
+    langMenu?.classList.add("hidden");
+    langWrap?.classList.remove("open");
+    langBtn?.setAttribute("aria-expanded", "false");
+
     viewMenu?.classList.add("hidden");
     viewWrap?.classList.remove("open");
     viewBtn?.setAttribute("aria-expanded", "false");
@@ -2217,6 +2340,33 @@ function setupSettingsDropdowns() {
     perPageMenu?.classList.add("hidden");
     perPageWrap?.classList.remove("open");
     perPageBtn?.setAttribute("aria-expanded", "false");
+  }
+
+  if (langBtn && langMenu) {
+    langBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isHidden = langMenu.classList.contains("hidden");
+      closeSettingsMenus();
+      if (isHidden) {
+        langMenu.classList.remove("hidden");
+        langWrap?.classList.add("open");
+        langBtn.setAttribute("aria-expanded", "true");
+      }
+    });
+
+    langMenu.querySelectorAll(".sort-option").forEach((opt) => {
+      opt.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const val = opt.dataset.value;
+        if (settingsAppLang) settingsAppLang.value = val;
+        updateSettingsDropdownUI(
+          settingsDefaultView?.value || "grid",
+          settingsItemsPerPage?.value || "24",
+          val
+        );
+        closeSettingsMenus();
+      });
+    });
   }
 
   if (viewBtn && viewMenu) {
@@ -2236,7 +2386,11 @@ function setupSettingsDropdowns() {
         e.stopPropagation();
         const val = opt.dataset.value;
         if (settingsDefaultView) settingsDefaultView.value = val;
-        updateSettingsDropdownUI(val, settingsItemsPerPage?.value || "24");
+        updateSettingsDropdownUI(
+          val,
+          settingsItemsPerPage?.value || "24",
+          settingsAppLang?.value || "cs"
+        );
         closeSettingsMenus();
       });
     });
@@ -2259,14 +2413,22 @@ function setupSettingsDropdowns() {
         e.stopPropagation();
         const val = opt.dataset.value;
         if (settingsItemsPerPage) settingsItemsPerPage.value = val;
-        updateSettingsDropdownUI(settingsDefaultView?.value || "grid", val);
+        updateSettingsDropdownUI(
+          settingsDefaultView?.value || "grid",
+          val,
+          settingsAppLang?.value || "cs"
+        );
         closeSettingsMenus();
       });
     });
   }
 
   document.addEventListener("click", (e) => {
-    if (viewWrap && !viewWrap.contains(e.target) && perPageWrap && !perPageWrap.contains(e.target)) {
+    if (
+      langWrap && !langWrap.contains(e.target) &&
+      viewWrap && !viewWrap.contains(e.target) &&
+      perPageWrap && !perPageWrap.contains(e.target)
+    ) {
       closeSettingsMenus();
     }
   });
@@ -2285,11 +2447,19 @@ function updateWebpQualityProgress(val) {
 // Modál: Nastavení aplikace
 // ==========================================================================
 function openSettingsModal() {
+  const savedLang = (window.i18n && window.i18n.getLanguage()) || "cs";
   const savedView = localStorage.getItem("tracker_default_view_mode") || "grid";
   const savedPerPage = localStorage.getItem("tracker_items_per_page") || "24";
+
+  if (settingsAppLang) settingsAppLang.value = savedLang;
   settingsDefaultView.value = savedView;
   settingsItemsPerPage.value = savedPerPage;
-  updateSettingsDropdownUI(savedView, savedPerPage);
+
+  if (window.i18n) {
+    window.i18n.applyTranslations(settingsModal);
+  }
+
+  updateSettingsDropdownUI(savedView, savedPerPage, savedLang);
   refreshSettingsStorageInfo();
   if (settingsTmdbApiKey) {
     settingsTmdbApiKey.value = localStorage.getItem("tracker_tmdb_api_key") || "";
@@ -2316,8 +2486,13 @@ function closeSettingsModal() {
 }
 
 function handleSaveSettings() {
+  const newLang = settingsAppLang ? settingsAppLang.value : (window.i18n ? window.i18n.getLanguage() : "cs");
   const newView = settingsDefaultView.value;
   const newItemsPerPage = settingsItemsPerPage.value;
+
+  if (window.i18n) {
+    window.i18n.setLanguage(newLang);
+  }
 
   localStorage.setItem("tracker_default_view_mode", newView);
   localStorage.setItem("tracker_items_per_page", newItemsPerPage);
@@ -2351,16 +2526,18 @@ function handleSaveSettings() {
   renderGrid();
 
   closeSettingsModal();
-  showToast("Nastavení bylo úspěšně uloženo.");
+  showToast(window.i18n ? window.i18n.t("settings.savedToast") : "Nastavení bylo úspěšně uloženo.");
 }
 
 async function handleOpenDataFolder() {
   try {
     await tauriInvoke("open_data_folder");
-    showToast("Otevírám složku s daty aplikace v Průzkumníku...");
+    const msg = window.i18n ? window.i18n.t("settings.openDataFolderToast") : "Otevírám složku s daty aplikace v Průzkumníku...";
+    showToast(msg);
   } catch (err) {
     console.error("Chyba při otevírání složky:", err);
-    showToast("Nepodařilo se otevřít složku: " + err);
+    const prefix = window.i18n ? window.i18n.t("settings.openDataFolderErrorToast") : "Nepodařilo se otevřít složku: ";
+    showToast(prefix + err);
   }
 }
 
@@ -2368,14 +2545,23 @@ async function handleClearTempFiles() {
   try {
     const deletedCount = await tauriInvoke("clear_temp_files");
     if (deletedCount > 0) {
-      showToast(`Dočasné soubory byly vyčištěny (smazáno: ${deletedCount}).`);
+      const msg = window.i18n
+        ? window.i18n.t("settings.tempClearedToast", { count: deletedCount })
+        : `Dočasné soubory byly vyčištěny (smazáno: ${deletedCount}).`;
+      showToast(msg);
     } else {
-      showToast("Složka dočasných souborů je již prázdná.");
+      const msg = window.i18n
+        ? window.i18n.t("settings.tempAlreadyEmptyToast")
+        : "Složka dočasných souborů je již prázdná.";
+      showToast(msg);
     }
     await refreshSettingsStorageInfo();
   } catch (err) {
     console.error("Chyba při čištění dočasných souborů:", err);
-    showToast("Nepodařilo se vyčistit dočasné soubory: " + err);
+    const prefix = window.i18n
+      ? window.i18n.t("settings.tempClearErrorToast")
+      : "Nepodařilo se vyčistit dočasné soubory: ";
+    showToast(prefix + err);
   }
 }
 
@@ -2386,21 +2572,28 @@ async function handleOptimizeExistingCovers() {
   );
 
   if (itemsToOptimize.length === 0) {
-    showToast("Všechny vaše obálky již jsou v moderním formátu WebP (500×750 px).");
+    showToast(window.i18n ? window.i18n.t("settings.allCoversWebpToast") : "Všechny vaše obálky již jsou v moderním formátu WebP (500×750 px).");
     return;
   }
 
+  const title = window.i18n ? window.i18n.t("settings.optimizeConfirmTitle") : "Optimalizovat stávající obálky";
+  const message = window.i18n
+    ? window.i18n.t("settings.optimizeConfirmMsg", { count: itemsToOptimize.length })
+    : `Nalezeno ${itemsToOptimize.length} obálek ke konverzi. Obrázky budou oříznuty na poměr 2:3, zmenšeny na zlatý střed 500×750 px a převedeny na WebP. Ušetří se místo na disku a zrychlí načítání. Chcete pokračovat?`;
+  const confirmText = window.i18n ? window.i18n.t("settings.optimizeConfirmOk") : "Ano, optimalizovat";
+  const cancelText = window.i18n ? window.i18n.t("settings.optimizeConfirmCancel") : "Zrušit";
+
   const confirmed = await showConfirmDialog({
-    title: "Optimalizovat stávající obálky",
-    message: `Nalezeno ${itemsToOptimize.length} obálek ke konverzi. Obrázky budou oříznuty na poměr 2:3, zmenšeny na zlatý střed 500×750 px a převedeny na WebP. Ušetří se místo na disku a zrychlí načítání. Chcete pokračovat?`,
-    confirmText: "Ano, optimalizovat",
-    cancelText: "Zrušit",
+    title,
+    message,
+    confirmText,
+    cancelText,
   });
 
   if (!confirmed) return;
 
   if (optimizeCoversBtn) optimizeCoversBtn.disabled = true;
-  showToast(`Zahajuji optimalizaci ${itemsToOptimize.length} obálek...`);
+  showToast(window.i18n ? window.i18n.t("settings.optimizingToast", { count: itemsToOptimize.length }) : `Zahajuji optimalizaci ${itemsToOptimize.length} obálek...`);
 
   let successCount = 0;
   for (let i = 0; i < itemsToOptimize.length; i++) {
@@ -2452,20 +2645,33 @@ async function handleOptimizeExistingCovers() {
   if (optimizeCoversBtn) optimizeCoversBtn.disabled = false;
   renderGrid();
   await refreshSettingsStorageInfo();
-  showToast(`Hotovo! Převedeno a zmenšeno ${successCount} z ${itemsToOptimize.length} obálek do WebP.`);
+  showToast(window.i18n ? window.i18n.t("settings.optimizedDoneToast", { success: successCount, total: itemsToOptimize.length }) : `Hotovo! Převedeno a zmenšeno ${successCount} z ${itemsToOptimize.length} obálek do WebP.`);
 }
 
 function handleExportData() {
-  const jsonStr = JSON.stringify(allItems, null, 2);
-  const blob = new Blob([jsonStr], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  const fileName = `tracker-zaloha-${new Date().toISOString().slice(0, 10)}.json`;
-  a.download = fileName;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast(`Záloha "${fileName}" byla stažena do složky Downloads.`);
+  try {
+    const jsonStr = JSON.stringify(allItems, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const isEn = window.i18n && window.i18n.getLanguage() === "en";
+    const prefix = isEn ? "tracker-backup-" : "tracker-zaloha-";
+    const fileName = `${prefix}${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+    const toastMsg = window.i18n
+      ? window.i18n.t("settings.exportSuccessToast", { fileName })
+      : `Záloha "${fileName}" byla stažena do složky Downloads.`;
+    showToast(toastMsg);
+  } catch (err) {
+    console.error("Chyba při exportu dat:", err);
+    const prefix = window.i18n
+      ? window.i18n.t("settings.exportErrorToast")
+      : "Nepodařilo se exportovat zálohu: ";
+    showToast(prefix + err);
+  }
 }
 
 // ==========================================================================
@@ -2756,7 +2962,27 @@ function getCleanRawgKey() {
   return key.replace(/^["']|["']$/g, "").trim();
 }
 
+let currentImportAbortController = null;
+let isImportInProgress = false;
+
+function resetAllApiResultButtons() {
+  document.querySelectorAll(".tmdb-select-btn, .rawg-select-btn").forEach((btn) => {
+    btn.disabled = false;
+    btn.classList.remove("btn-import-success");
+    if (
+      btn.innerHTML.includes("tmdb-spinner") ||
+      btn.innerHTML.includes("✓") ||
+      btn.innerText.includes("Stahuji") ||
+      btn.innerText.includes("Načítám")
+    ) {
+      btn.innerHTML = `<span>Vybrat a předvyplnit</span>`;
+    }
+  });
+  isImportInProgress = false;
+}
+
 function openTmdbModal(defaultProvider = null) {
+  resetAllApiResultButtons();
   const savedKey = localStorage.getItem("tracker_tmdb_api_key") || "";
   if (tmdbApiKeyInput) tmdbApiKeyInput.value = savedKey;
   updateTmdbKeyBadge();
@@ -2798,6 +3024,15 @@ function openTmdbModal(defaultProvider = null) {
 }
 
 function closeTmdbModal() {
+  if (isImportInProgress && currentImportAbortController) {
+    try {
+      currentImportAbortController.abort();
+    } catch (_) {}
+    currentImportAbortController = null;
+    isImportInProgress = false;
+    showToast("Stahování z online databáze bylo zrušeno.");
+  }
+  resetAllApiResultButtons();
   tmdbModal.classList.add("hidden");
   updateModalBodyLock();
 }
@@ -2981,9 +3216,20 @@ function renderTmdbResults(results) {
 }
 
 async function importTmdbItemDetails(item, btn) {
-  const originalBtnText = btn ? btn.innerHTML : "";
+  if (currentImportAbortController) {
+    try {
+      currentImportAbortController.abort();
+    } catch (_) {}
+  }
+  const abortCtrl = new AbortController();
+  currentImportAbortController = abortCtrl;
+  isImportInProgress = true;
+
+  document.querySelectorAll(".tmdb-select-btn, .rawg-select-btn").forEach((b) => {
+    b.disabled = true;
+  });
+
   if (btn) {
-    btn.disabled = true;
     btn.innerHTML = `<span class="tmdb-spinner-small"></span> Načítám...`;
   }
 
@@ -3002,37 +3248,40 @@ async function importTmdbItemDetails(item, btn) {
       detailsUrl += `&api_key=${encodeURIComponent(key)}`;
     }
 
-    const res = await fetch(detailsUrl, { headers });
+    const res = await fetch(detailsUrl, { headers, signal: abortCtrl.signal });
     if (!res.ok) throw new Error(`HTTP ${res.status} při načítání podrobností`);
 
     const data = await res.json();
+    if (abortCtrl.signal.aborted) return;
 
     // Fallback popisu v angličtině, pokud je český prázdný
     let overview = (data.overview || item.overview || "").trim();
-    if (!overview) {
+    if (!overview && !abortCtrl.signal.aborted) {
       try {
         let enUrl = `https://api.themoviedb.org/3/${mediaType}/${item.id}?language=en-US`;
         if (!isJwt) enUrl += `&api_key=${encodeURIComponent(key)}`;
-        const enRes = await fetch(enUrl, { headers });
+        const enRes = await fetch(enUrl, { headers, signal: abortCtrl.signal });
         if (enRes.ok) {
           const enData = await enRes.json();
           if (enData.overview) overview = enData.overview.trim();
         }
       } catch (e) {
+        if (abortCtrl.signal.aborted) return;
         console.warn("Anglický fallback popisu selhal:", e);
       }
     }
+    if (abortCtrl.signal.aborted) return;
 
     // Vyhledání YouTube traileru (v CZ nebo v EN)
     let trailerUrl = "";
     const czVideos = data.videos?.results || [];
     let trailer = czVideos.find((v) => v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser"));
 
-    if (!trailer) {
+    if (!trailer && !abortCtrl.signal.aborted) {
       try {
         let enVidUrl = `https://api.themoviedb.org/3/${mediaType}/${item.id}/videos?language=en-US`;
         if (!isJwt) enVidUrl += `&api_key=${encodeURIComponent(key)}`;
-        const enVidRes = await fetch(enVidUrl, { headers });
+        const enVidRes = await fetch(enVidUrl, { headers, signal: abortCtrl.signal });
         if (enVidRes.ok) {
           const enVidData = await enVidRes.json();
           const enVideos = enVidData.results || [];
@@ -3041,9 +3290,11 @@ async function importTmdbItemDetails(item, btn) {
                     enVideos.find((v) => v.site === "YouTube");
         }
       } catch (vidErr) {
+        if (abortCtrl.signal.aborted) return;
         console.warn("Chyba při načítání traileru z TMDB:", vidErr);
       }
     }
+    if (abortCtrl.signal.aborted) return;
 
     if (trailer && trailer.key) {
       trailerUrl = `https://www.youtube.com/watch?v=${trailer.key}`;
@@ -3062,7 +3313,7 @@ async function importTmdbItemDetails(item, btn) {
     const releaseDate = data.release_date || data.first_air_date || item.release_date || item.first_air_date || "";
     const releaseYear = releaseDate ? parseInt(releaseDate.substring(0, 4), 10) : null;
     const genres = (data.genres || []).map((g) => g.name).join(", ");
-    const ratingVal = data.vote_average ? Math.round(data.vote_average * 10) / 10 : 8;
+    const ratingVal = data.vote_average ? Math.round(data.vote_average * 10) / 10 : 1;
 
     let director = "";
     let writer = "";
@@ -3130,14 +3381,16 @@ async function importTmdbItemDetails(item, btn) {
     let base64ImageData = null;
     const posterPath = data.poster_path || item.poster_path;
 
-    if (posterPath) {
+    if (posterPath && !abortCtrl.signal.aborted) {
       if (btn) btn.innerHTML = `<span class="tmdb-spinner-small"></span> Stahuji a optimalizuji obálku...`;
       const fullPosterUrl = `https://image.tmdb.org/t/p/w500${posterPath}`;
       try {
         const res = await tauriInvoke("download_and_save_image", { url: fullPosterUrl });
+        if (abortCtrl.signal.aborted) return;
         if (res && res.image_path) {
           try {
             const optimized = await processAndOptimizeImageToWebP(getCoverUrl(res.image_path));
+            if (abortCtrl.signal.aborted) return;
             savedImagePath = optimized.filePath;
             base64ImageData = optimized.dataUrl;
           } catch (optErr) {
@@ -3147,14 +3400,17 @@ async function importTmdbItemDetails(item, btn) {
           }
         }
       } catch (rustErr) {
+        if (abortCtrl.signal.aborted) return;
         console.warn("Stažení plakátu přes Rust selhalo, zkouším přímý fetch:", rustErr);
         try {
-          const imgRes = await fetch(fullPosterUrl);
+          const imgRes = await fetch(fullPosterUrl, { signal: abortCtrl.signal });
           if (imgRes.ok) {
             const blob = await imgRes.blob();
+            if (abortCtrl.signal.aborted) return;
             const blobUrl = URL.createObjectURL(blob);
             try {
               const optimized = await processAndOptimizeImageToWebP(blobUrl);
+              if (abortCtrl.signal.aborted) return;
               savedImagePath = optimized.filePath;
               base64ImageData = optimized.dataUrl;
             } finally {
@@ -3162,6 +3418,7 @@ async function importTmdbItemDetails(item, btn) {
             }
           }
         } catch (fetchErr) {
+          if (abortCtrl.signal.aborted) return;
           console.warn("Stažení plakátu přes fetch selhalo:", fetchErr);
         }
       }
@@ -3171,6 +3428,22 @@ async function importTmdbItemDetails(item, btn) {
         savedImagePath = fullPosterUrl;
       }
     }
+
+    if (abortCtrl.signal.aborted) return;
+
+    // UKONČENÍ / ÚSPĚŠNÉ DOKONČENÍ: Zobrazíme uživateli jasné potvrzení, že se vše úspěšně stáhlo
+    if (btn) {
+      btn.classList.add("btn-import-success");
+      btn.innerHTML = `✓ Vše staženo!`;
+    }
+
+    // Krátká prodleva, aby uživatel viděl potvrzení dokončení před otevřením formuláře
+    await new Promise((r) => setTimeout(r, 450));
+    if (abortCtrl.signal.aborted) return;
+
+    isImportInProgress = false;
+    currentImportAbortController = null;
+    resetAllApiResultButtons();
 
     closeTmdbModal();
 
@@ -3198,11 +3471,14 @@ async function importTmdbItemDetails(item, btn) {
 
     showToast(`Údaje pro "${title}" byly úspěšně předvyplněny z TMDB!`);
   } catch (err) {
+    if (abortCtrl.signal.aborted) return;
     console.error("Chyba při importu detailů z TMDB:", err);
     showToast("Nepodařilo se načíst podrobnosti: " + (err.message || String(err)));
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = originalBtnText;
+    resetAllApiResultButtons();
+  } finally {
+    if (currentImportAbortController === abortCtrl) {
+      currentImportAbortController = null;
+      isImportInProgress = false;
     }
   }
 }
@@ -3374,9 +3650,20 @@ function renderRawgResults(results) {
 }
 
 async function importRawgGameDetails(gameSummary, btn) {
-  const originalBtnText = btn ? btn.innerHTML : "";
+  if (currentImportAbortController) {
+    try {
+      currentImportAbortController.abort();
+    } catch (_) {}
+  }
+  const abortCtrl = new AbortController();
+  currentImportAbortController = abortCtrl;
+  isImportInProgress = true;
+
+  document.querySelectorAll(".tmdb-select-btn, .rawg-select-btn").forEach((b) => {
+    b.disabled = true;
+  });
+
   if (btn) {
-    btn.disabled = true;
     btn.innerHTML = `<span class="tmdb-spinner-small"></span> Načítám...`;
   }
 
@@ -3386,11 +3673,13 @@ async function importRawgGameDetails(gameSummary, btn) {
     const detailsUrl = `https://api.rawg.io/api/games/${gameSummary.id}?key=${encodeURIComponent(key)}`;
     const res = await fetch(detailsUrl, {
       headers: { Accept: "application/json" },
+      signal: abortCtrl.signal,
     });
 
     if (!res.ok) throw new Error(`HTTP ${res.status} při načítání podrobností hry`);
 
     const data = await res.json();
+    if (abortCtrl.signal.aborted) return;
 
     const title = data.name || gameSummary.name || "";
     const releaseDate = data.released || gameSummary.released || "";
@@ -3404,14 +3693,14 @@ async function importRawgGameDetails(gameSummary, btn) {
     const platforms = (data.platforms || []).map((p) => p.platform?.name).filter(Boolean).join(", ");
     
     // Škála RAWG hodnocení je 0-5 -> převedeme na 0-10
-    const ratingVal = data.rating ? Math.round(data.rating * 2 * 10) / 10 : 8;
+    const ratingVal = data.rating ? Math.round(data.rating * 2 * 10) / 10 : 1;
     const apiRatingVal = data.metacritic ? Math.round(data.metacritic / 10 * 10) / 10 : ratingVal;
 
     // Hledání traileru / gameplay ukázky v RAWG movies
     let trailerUrl = "";
     try {
       const moviesUrl = `https://api.rawg.io/api/games/${gameSummary.id}/movies?key=${encodeURIComponent(key)}`;
-      const mRes = await fetch(moviesUrl, { headers: { Accept: "application/json" } });
+      const mRes = await fetch(moviesUrl, { headers: { Accept: "application/json" }, signal: abortCtrl.signal });
       if (mRes.ok) {
         const mData = await mRes.json();
         const movies = mData.results || [];
@@ -3420,8 +3709,10 @@ async function importRawgGameDetails(gameSummary, btn) {
         }
       }
     } catch (mErr) {
+      if (abortCtrl.signal.aborted) return;
       console.warn("Chyba při načítání traileru hry z RAWG:", mErr);
     }
+    if (abortCtrl.signal.aborted) return;
 
     if (!trailerUrl && data.clip?.clip) {
       trailerUrl = data.clip.clip;
@@ -3455,14 +3746,16 @@ async function importRawgGameDetails(gameSummary, btn) {
     let base64ImageData = null;
     const imageUrl = data.background_image || gameSummary.background_image;
 
-    if (imageUrl) {
+    if (imageUrl && !abortCtrl.signal.aborted) {
       if (btn) btn.innerHTML = `<span class="tmdb-spinner-small"></span> Stahuji a optimalizuji obal...`;
       try {
         // 1. Primární spolehlivá metoda přes Rust backend (obejde CORS, Cloudflare i 307 přesměrování)
         const res = await tauriInvoke("download_and_save_image", { url: imageUrl });
+        if (abortCtrl.signal.aborted) return;
         if (res && res.image_path) {
           try {
             const optimized = await processAndOptimizeImageToWebP(getCoverUrl(res.image_path));
+            if (abortCtrl.signal.aborted) return;
             savedImagePath = optimized.filePath;
             base64ImageData = optimized.dataUrl;
           } catch (optErr) {
@@ -3472,15 +3765,18 @@ async function importRawgGameDetails(gameSummary, btn) {
           }
         }
       } catch (rustErr) {
+        if (abortCtrl.signal.aborted) return;
         console.warn("Stažení obalu přes Rust selhalo, zkouším přímý fetch:", rustErr);
         // 2. Sekundární fallback přes fetch
         try {
-          const imgRes = await fetch(imageUrl);
+          const imgRes = await fetch(imageUrl, { signal: abortCtrl.signal });
           if (imgRes.ok) {
             const blob = await imgRes.blob();
+            if (abortCtrl.signal.aborted) return;
             const blobUrl = URL.createObjectURL(blob);
             try {
               const optimized = await processAndOptimizeImageToWebP(blobUrl);
+              if (abortCtrl.signal.aborted) return;
               savedImagePath = optimized.filePath;
               base64ImageData = optimized.dataUrl;
             } finally {
@@ -3488,6 +3784,7 @@ async function importRawgGameDetails(gameSummary, btn) {
             }
           }
         } catch (fetchErr) {
+          if (abortCtrl.signal.aborted) return;
           console.warn("Stažení obalu přes fetch selhalo:", fetchErr);
         }
       }
@@ -3498,6 +3795,22 @@ async function importRawgGameDetails(gameSummary, btn) {
         savedImagePath = imageUrl;
       }
     }
+
+    if (abortCtrl.signal.aborted) return;
+
+    // UKONČENÍ / ÚSPĚŠNÉ DOKONČENÍ: Zobrazíme uživateli jasné potvrzení, že se vše úspěšně stáhlo
+    if (btn) {
+      btn.classList.add("btn-import-success");
+      btn.innerHTML = `✓ Vše staženo!`;
+    }
+
+    // Krátká prodleva, aby uživatel viděl potvrzení dokončení před otevřením formuláře
+    await new Promise((r) => setTimeout(r, 450));
+    if (abortCtrl.signal.aborted) return;
+
+    isImportInProgress = false;
+    currentImportAbortController = null;
+    resetAllApiResultButtons();
 
     closeTmdbModal();
 
@@ -3522,11 +3835,14 @@ async function importRawgGameDetails(gameSummary, btn) {
 
     showToast(`Údaje pro hru "${title}" byly úspěšně předvyplněny z RAWG!`);
   } catch (err) {
+    if (abortCtrl.signal.aborted) return;
     console.error("Chyba při importu detailů z RAWG:", err);
     showToast("Nepodařilo se načíst podrobnosti hry: " + (err.message || String(err)));
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = originalBtnText;
+    resetAllApiResultButtons();
+  } finally {
+    if (currentImportAbortController === abortCtrl) {
+      currentImportAbortController = null;
+      isImportInProgress = false;
     }
   }
 }
