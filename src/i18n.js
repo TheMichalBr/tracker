@@ -283,6 +283,85 @@ const TRANSLATIONS = {
       // Patička
       footerHint: "Předvyplněné údaje budete moci před uložením libovolně upravit",
       closeBtn: "Zavřít"
+    },
+    main: {
+      // Záhlaví a navigace
+      subtitle: "Evidence filmů, seriálů a her.",
+      splashStatus: "Spouštění a načítání sbírky...",
+      searchPlaceholder: "Hledat podle názvu, žánru, studia, herců...",
+      clearSearchTitle: "Vymazat hledání",
+      reloadAppTitle: "Znovu načíst (F5)",
+      openSettingsTitle: "Nastavení aplikace",
+
+      // Tlačítko Přidat a dropdown
+      addBtn: "Přidat",
+      addBtnTitle: "Přidat položku",
+      addManualTitle: "Přidat ručně",
+      addManualSub: "Vytvořit položku od začátku (film, seriál, hra)",
+      addTmdbTitle: "Přidat pomocí API",
+      addTmdbPill: "ONLINE",
+      addTmdbSub: "Automaticky stáhne obálku i informace",
+
+      // Filtrovací taby
+      filterAll: "Vše",
+      filterFilms: "Filmy",
+      filterSeries: "Seriály",
+      filterGames: "Hry",
+
+      // Přepínač zobrazení
+      viewSwitcherTitle: "Způsob zobrazení",
+      viewGridTitle: "Dlaždice (Plakáty)",
+      viewGridLabel: "Dlaždice",
+      viewCompactTitle: "Kompaktní mřížka",
+      viewCompactLabel: "Mřížka",
+      viewListTitle: "Detailní seznam",
+      viewListLabel: "Seznam",
+
+      // Karty a odznaky
+      typeFilmBadge: "Film",
+      typeSeriesBadge: "Seriál",
+      typeGameBadge: "Hra",
+      viewDetailHint: "Zobrazit detail",
+
+      // Seznam (tabulka)
+      colPoster: "Plakát",
+      colTitle: "Název a rok",
+      colType: "Druh",
+      colGenre: "Žánr",
+      colCreator: "Tvůrce / Studio",
+      colRatings: "Hodnocení",
+      colAction: "Akce",
+      btnDetail: "Detail",
+      directorPrefix: "Režie:",
+      developerPrefix: "Studio:",
+
+      // Filtr stavu
+      statusFilterLabel: "Stav:",
+      statusFilterTitle: "Filtrovat podle stavu",
+      statusAll: "Všechny stavy",
+      statusBacklog: "Chci vidět / hrát",
+      statusProgress: "Právě sleduji / hraji",
+      statusCompleted: "Dokončeno",
+      statusDropped: "Odloženo / Zrušeno",
+
+      // Řazení
+      sortLabel: "Řadit:",
+      sortTitle: "Vyberte způsob řazení",
+      sortNewest: "Nejnovější přidané",
+      sortRatingDesc: "Hodnocení (nejvyšší)",
+      sortRatingAsc: "Hodnocení (nejnižší)",
+      sortYearDesc: "Rok vydání (nejnovější)",
+      sortTitleAsc: "Název (A - Z)",
+
+      // Spodní lišta a prázdný stav
+      paginationInfo: "Zobrazeno {start}–{end} z {total} záznamů",
+      paginationEmpty: "Zobrazeno 0–0 z 0",
+      prevPageTitle: "Předchozí strana",
+      nextPageTitle: "Další strana",
+      emptyNoRecords: "Žádné záznamy k zobrazení",
+      emptyNoSearchMatch: "Hledanému výrazu \"{query}\" neodpovídá žádný záznam.",
+      emptyInitialText: "Zatím jste nepřidali žádný film, seriál ani hru. Začněte tvořit svou sbírku kliknutím na tlačítko níže.",
+      emptyAddFirstBtn: "Přidat první záznam"
     }
   },
   en: {
@@ -564,6 +643,85 @@ const TRANSLATIONS = {
       // Footer
       footerHint: "You can freely edit the prefilled details before saving",
       closeBtn: "Close"
+    },
+    main: {
+      // Header and navigation
+      subtitle: "Track movies, series and games.",
+      splashStatus: "Starting and loading collection...",
+      searchPlaceholder: "Search by title, genre, studio, cast...",
+      clearSearchTitle: "Clear search",
+      reloadAppTitle: "Reload (F5)",
+      openSettingsTitle: "Application settings",
+
+      // Add button and dropdown
+      addBtn: "Add",
+      addBtnTitle: "Add item",
+      addManualTitle: "Add Manually",
+      addManualSub: "Create an item from scratch (movie, series, game)",
+      addTmdbTitle: "Add via API",
+      addTmdbPill: "ONLINE",
+      addTmdbSub: "Automatically downloads cover art and details",
+
+      // Filter tabs
+      filterAll: "All",
+      filterFilms: "Movies",
+      filterSeries: "Series",
+      filterGames: "Games",
+
+      // View switcher
+      viewSwitcherTitle: "View mode",
+      viewGridTitle: "Tiles (Posters)",
+      viewGridLabel: "Tiles",
+      viewCompactTitle: "Compact grid",
+      viewCompactLabel: "Grid",
+      viewListTitle: "Detailed list",
+      viewListLabel: "List",
+
+      // Cards and badges
+      typeFilmBadge: "Movie",
+      typeSeriesBadge: "Series",
+      typeGameBadge: "Game",
+      viewDetailHint: "View detail",
+
+      // List (table)
+      colPoster: "Poster",
+      colTitle: "Title & year",
+      colType: "Type",
+      colGenre: "Genre",
+      colCreator: "Creator / Studio",
+      colRatings: "Rating",
+      colAction: "Action",
+      btnDetail: "Detail",
+      directorPrefix: "Director:",
+      developerPrefix: "Studio:",
+
+      // Status filter
+      statusFilterLabel: "Status:",
+      statusFilterTitle: "Filter by status",
+      statusAll: "All statuses",
+      statusBacklog: "Plan to watch / play",
+      statusProgress: "Watching / playing",
+      statusCompleted: "Completed",
+      statusDropped: "Dropped / Cancelled",
+
+      // Sorting
+      sortLabel: "Sort:",
+      sortTitle: "Select sort order",
+      sortNewest: "Recently added",
+      sortRatingDesc: "Rating (highest)",
+      sortRatingAsc: "Rating (lowest)",
+      sortYearDesc: "Release year (newest)",
+      sortTitleAsc: "Title (A - Z)",
+
+      // Bottom bar and empty state
+      paginationInfo: "Showing {start}–{end} of {total} items",
+      paginationEmpty: "Showing 0–0 of 0",
+      prevPageTitle: "Previous page",
+      nextPageTitle: "Next page",
+      emptyNoRecords: "No records to display",
+      emptyNoSearchMatch: "No records match search query \"{query}\".",
+      emptyInitialText: "You haven't added any movies, series or games yet. Start building your collection by clicking the button below.",
+      emptyAddFirstBtn: "Add first record"
     }
   }
 };

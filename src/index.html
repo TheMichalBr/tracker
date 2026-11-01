@@ -282,11 +282,11 @@
         <h1 class="splash-title">Tracker</h1>
         <span class="splash-badge">v1.0</span>
       </div>
-      <p class="splash-subtitle">Evidence filmů, seriálů a her.</p>
+      <p class="splash-subtitle" data-i18n="main.subtitle">Evidence filmů, seriálů a her.</p>
       <div class="splash-loader-bar">
         <div class="splash-loader-progress"></div>
       </div>
-      <span class="splash-status-text">Spouštění a načítání sbírky...</span>
+      <span class="splash-status-text" data-i18n="main.splashStatus">Spouštění a načítání sbírky...</span>
     </div>
   </div>
 
@@ -410,7 +410,7 @@
             <h1>Tracker</h1>
             <span class="version-tag">v1.0</span>
           </div>
-          <p class="subtitle">Evidence filmů, seriálů a her.</p>
+          <p class="subtitle" data-i18n="main.subtitle">Evidence filmů, seriálů a her.</p>
         </div>
       </div>
 
@@ -421,14 +421,14 @@
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-          <input type="text" id="searchInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Hledat podle názvu, žánru, studia, herců...">
-          <button id="clearSearchBtn" class="clear-search-btn hidden" title="Vymazat hledání">
+          <input type="text" id="searchInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Hledat podle názvu, žánru, studia, herců..." data-i18n-placeholder="main.searchPlaceholder">
+          <button id="clearSearchBtn" class="clear-search-btn hidden" title="Vymazat hledání" data-i18n-title="main.clearSearchTitle">
             <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
 
         <!-- Tlačítko Znovu načíst aplikaci (F5) -->
-        <button id="reloadAppBtn" class="btn btn-icon-only" title="Znovu načíst (F5)">
+        <button id="reloadAppBtn" class="btn btn-icon-only" title="Znovu načíst (F5)" data-i18n-title="main.reloadAppTitle">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="23 4 23 10 17 10"></polyline>
             <polyline points="1 20 1 14 7 14"></polyline>
@@ -437,7 +437,7 @@
         </button>
 
         <!-- Tlačítko Nastavení -->
-        <button id="openSettingsBtn" class="btn btn-icon-only" title="Nastavení aplikace">
+        <button id="openSettingsBtn" class="btn btn-icon-only" title="Nastavení aplikace" data-i18n-title="main.openSettingsTitle">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -446,12 +446,12 @@
 
         <!-- Tlačítko pro přidání záznamu s rozbalovací nabídkou -->
         <div class="add-btn-dropdown-wrapper">
-          <button id="openAddMenuBtn" class="btn btn-primary add-menu-btn" title="Přidat položku">
+          <button id="openAddMenuBtn" class="btn btn-primary add-menu-btn" title="Přidat položku" data-i18n-title="main.addBtnTitle">
             <svg class="btn-svg-icon add-plus-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
-            <span>Přidat</span>
+            <span data-i18n="main.addBtn">Přidat</span>
             <svg class="dropdown-chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
@@ -466,8 +466,8 @@
                 </svg>
               </div>
               <div class="dropdown-item-text">
-                <span class="dropdown-item-title">Přidat ručně</span>
-                <span class="dropdown-item-sub">Vytvořit položku od začátku (film, seriál, hra)</span>
+                <span class="dropdown-item-title" data-i18n="main.addManualTitle">Přidat ručně</span>
+                <span class="dropdown-item-sub" data-i18n="main.addManualSub">Vytvořit položku od začátku (film, seriál, hra)</span>
               </div>
             </button>
 
@@ -482,10 +482,10 @@
               </div>
               <div class="dropdown-item-text">
                 <div class="dropdown-item-title-row">
-                  <span class="dropdown-item-title">Přidat pomocí API</span>
-                  <span class="tmdb-pill">ONLINE</span>
+                  <span class="dropdown-item-title" data-i18n="main.addTmdbTitle">Přidat pomocí API</span>
+                  <span class="tmdb-pill" data-i18n="main.addTmdbPill">ONLINE</span>
                 </div>
-                <span class="dropdown-item-sub">Automaticky stáhne obálku i informace</span>
+                <span class="dropdown-item-sub" data-i18n="main.addTmdbSub">Automaticky stáhne obálku i informace</span>
               </div>
             </button>
           </div>
@@ -504,7 +504,7 @@
             <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
             <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
           </svg>
-          <span>Vše</span>
+          <span data-i18n="main.filterAll">Vše</span>
           <span class="badge" id="countAll">0</span>
         </button>
         <button class="filter-btn" data-filter="Film">
@@ -516,7 +516,7 @@
             <path d="m11 4.5 2.5 5"></path>
             <path d="m16 4.5 2.5 5"></path>
           </svg>
-          <span>Filmy</span>
+          <span data-i18n="main.filterFilms">Filmy</span>
           <span class="badge" id="countFilms">0</span>
         </button>
         <button class="filter-btn" data-filter="Seriál">
@@ -526,7 +526,7 @@
             <line x1="12" y1="17.5" x2="12" y2="20"></line>
             <line x1="8" y1="20" x2="16" y2="20"></line>
           </svg>
-          <span>Seriály</span>
+          <span data-i18n="main.filterSeries">Seriály</span>
           <span class="badge" id="countSeries">0</span>
         </button>
         <button class="filter-btn" data-filter="Hra">
@@ -538,24 +538,24 @@
             <circle cx="15" cy="12" r="0.75" fill="currentColor"></circle>
             <circle cx="18" cy="10" r="0.75" fill="currentColor"></circle>
           </svg>
-          <span>Hry</span>
+          <span data-i18n="main.filterGames">Hry</span>
           <span class="badge" id="countGames">0</span>
         </button>
       </div>
 
       <div class="toolbar-right">
         <!-- Přepínač rozvržení: Dlaždice / Mřížka / Seznam -->
-        <div class="view-switcher" title="Způsob zobrazení">
-          <button class="view-btn active" data-view="grid" title="Dlaždice (Plakáty)">
+        <div class="view-switcher" title="Způsob zobrazení" data-i18n-title="main.viewSwitcherTitle">
+          <button class="view-btn active" data-view="grid" title="Dlaždice (Plakáty)" data-i18n-title="main.viewGridTitle">
             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
               <rect x="3" y="3" width="7" height="7"></rect>
               <rect x="14" y="3" width="7" height="7"></rect>
               <rect x="14" y="14" width="7" height="7"></rect>
               <rect x="3" y="14" width="7" height="7"></rect>
             </svg>
-            <span class="view-btn-label">Dlaždice</span>
+            <span class="view-btn-label" data-i18n="main.viewGridLabel">Dlaždice</span>
           </button>
-          <button class="view-btn" data-view="compact" title="Kompaktní mřížka">
+          <button class="view-btn" data-view="compact" title="Kompaktní mřížka" data-i18n-title="main.viewCompactTitle">
             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
               <rect x="3" y="3" width="4" height="4"></rect>
               <rect x="10" y="3" width="4" height="4"></rect>
@@ -567,9 +567,9 @@
               <rect x="10" y="17" width="4" height="4"></rect>
               <rect x="17" y="17" width="4" height="4"></rect>
             </svg>
-            <span class="view-btn-label">Mřížka</span>
+            <span class="view-btn-label" data-i18n="main.viewCompactLabel">Mřížka</span>
           </button>
-          <button class="view-btn" data-view="list" title="Detailní seznam">
+          <button class="view-btn" data-view="list" title="Detailní seznam" data-i18n-title="main.viewListTitle">
             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
               <line x1="8" y1="6" x2="21" y2="6"></line>
               <line x1="8" y1="12" x2="21" y2="12"></line>
@@ -578,20 +578,20 @@
               <line x1="3" y1="12" x2="3.01" y2="12"></line>
               <line x1="3" y1="18" x2="3.01" y2="18"></line>
             </svg>
-            <span class="view-btn-label">Seznam</span>
+            <span class="view-btn-label" data-i18n="main.viewListLabel">Seznam</span>
           </button>
         </div>
 
         <!-- Filtr podle stavu sledování / hraní -->
         <div class="status-controls">
-          <span class="sort-label">Stav:</span>
+          <span class="sort-label" data-i18n="main.statusFilterLabel">Stav:</span>
           <div class="sort-dropdown-wrapper" id="statusDropdownWrapper">
-            <button type="button" class="sort-dropdown-btn" id="statusDropdownBtn" aria-haspopup="listbox" aria-expanded="false" title="Filtrovat podle stavu">
+            <button type="button" class="sort-dropdown-btn" id="statusDropdownBtn" aria-haspopup="listbox" aria-expanded="false" title="Filtrovat podle stavu" data-i18n-title="main.statusFilterTitle">
               <svg class="sort-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 16 14"></polyline>
               </svg>
-              <span id="statusCurrentLabel">Všechny stavy</span>
+              <span id="statusCurrentLabel" data-i18n="main.statusAll">Všechny stavy</span>
               <svg class="sort-chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
@@ -599,27 +599,27 @@
             <div class="sort-dropdown-menu hidden" id="statusDropdownMenu" role="listbox">
               <button type="button" class="sort-option status-option active" data-status-val="all" role="option">
                 <span class="status-bullet bullet-all"></span>
-                <span>Všechny stavy</span>
+                <span data-i18n="main.statusAll">Všechny stavy</span>
                 <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
               </button>
               <button type="button" class="sort-option status-option" data-status-val="backlog" role="option">
                 <span class="status-bullet bullet-backlog"></span>
-                <span>Chci vidět / hrát</span>
+                <span data-i18n="main.statusBacklog">Chci vidět / hrát</span>
                 <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
               </button>
               <button type="button" class="sort-option status-option" data-status-val="in_progress" role="option">
                 <span class="status-bullet bullet-progress"></span>
-                <span>Právě sleduji / hraji</span>
+                <span data-i18n="main.statusProgress">Právě sleduji / hraji</span>
                 <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
               </button>
               <button type="button" class="sort-option status-option" data-status-val="completed" role="option">
                 <span class="status-bullet bullet-completed"></span>
-                <span>Dokončeno</span>
+                <span data-i18n="main.statusCompleted">Dokončeno</span>
                 <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
               </button>
               <button type="button" class="sort-option status-option" data-status-val="dropped" role="option">
                 <span class="status-bullet bullet-dropped"></span>
-                <span>Odloženo / Zrušeno</span>
+                <span data-i18n="main.statusDropped">Odloženo / Zrušeno</span>
                 <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
               </button>
             </div>
@@ -628,48 +628,48 @@
 
         <!-- Možnosti řazení -->
         <div class="sort-controls">
-          <span class="sort-label">Řadit:</span>
+          <span class="sort-label" data-i18n="main.sortLabel">Řadit:</span>
           <div class="sort-dropdown-wrapper" id="sortDropdownWrapper">
-            <button type="button" class="sort-dropdown-btn" id="sortDropdownBtn" aria-haspopup="listbox" aria-expanded="false" title="Vyberte způsob řazení">
+            <button type="button" class="sort-dropdown-btn" id="sortDropdownBtn" aria-haspopup="listbox" aria-expanded="false" title="Vyberte způsob řazení" data-i18n-title="main.sortTitle">
               <svg class="sort-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="4" y1="6" x2="20" y2="6"></line>
                 <line x1="4" y1="12" x2="14" y2="12"></line>
                 <line x1="4" y1="18" x2="8" y2="18"></line>
               </svg>
-              <span id="sortCurrentLabel">Nejnovější přidané</span>
+              <span id="sortCurrentLabel" data-i18n="main.sortNewest">Nejnovější přidané</span>
               <svg class="sort-chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
             <div class="sort-dropdown-menu hidden" id="sortDropdownMenu" role="listbox">
               <button type="button" class="sort-option active" data-value="newest" role="option">
-                <span>Nejnovější přidané</span>
+                <span data-i18n="main.sortNewest">Nejnovější přidané</span>
                 <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
               </button>
               <button type="button" class="sort-option" data-value="ratingDesc" role="option">
-                <span>Hodnocení (nejvyšší)</span>
+                <span data-i18n="main.sortRatingDesc">Hodnocení (nejvyšší)</span>
                 <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
               </button>
               <button type="button" class="sort-option" data-value="ratingAsc" role="option">
-                <span>Hodnocení (nejnižší)</span>
+                <span data-i18n="main.sortRatingAsc">Hodnocení (nejnižší)</span>
                 <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
               </button>
               <button type="button" class="sort-option" data-value="yearDesc" role="option">
-                <span>Rok vydání (nejnovější)</span>
+                <span data-i18n="main.sortYearDesc">Rok vydání (nejnovější)</span>
                 <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
               </button>
               <button type="button" class="sort-option" data-value="titleAsc" role="option">
-                <span>Název (A - Z)</span>
+                <span data-i18n="main.sortTitleAsc">Název (A - Z)</span>
                 <svg class="sort-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
               </button>
             </div>
             <!-- Skrytý původní select pro 100% zpětnou kompatibilitu -->
             <select id="sortSelect" class="hidden">
-              <option value="newest">Nejnovější přidané</option>
-              <option value="ratingDesc">Hodnocení (nejvyšší)</option>
-              <option value="ratingAsc">Hodnocení (nejnižší)</option>
-              <option value="yearDesc">Rok vydání (nejnovější)</option>
-              <option value="titleAsc">Název (A - Z)</option>
+              <option value="newest" data-i18n="main.sortNewest">Nejnovější přidané</option>
+              <option value="ratingDesc" data-i18n="main.sortRatingDesc">Hodnocení (nejvyšší)</option>
+              <option value="ratingAsc" data-i18n="main.sortRatingAsc">Hodnocení (nejnižší)</option>
+              <option value="yearDesc" data-i18n="main.sortYearDesc">Rok vydání (nejnovější)</option>
+              <option value="titleAsc" data-i18n="main.sortTitleAsc">Název (A - Z)</option>
             </select>
           </div>
         </div>
@@ -680,14 +680,14 @@
     <main class="content-area">
       <!-- Hlavička pro zobrazení seznamu (zobrazí se pouze v režimu view-list) -->
       <div id="listHeader" class="list-table-header hidden">
-        <span class="col-hdr-poster">Plakát</span>
+        <span class="col-hdr-poster" data-i18n="main.colPoster">Plakát</span>
         <div class="list-table-header-cols">
-          <span class="col-hdr-title">Název a rok</span>
-          <span class="col-hdr-type">Druh</span>
-          <span class="col-hdr-genre">Žánr</span>
-          <span class="col-hdr-creator">Tvůrce / Studio</span>
-          <span class="col-hdr-ratings">Hodnocení</span>
-          <span class="col-hdr-action">Akce</span>
+          <span class="col-hdr-title" data-i18n="main.colTitle">Název a rok</span>
+          <span class="col-hdr-type" data-i18n="main.colType">Druh</span>
+          <span class="col-hdr-genre" data-i18n="main.colGenre">Žánr</span>
+          <span class="col-hdr-creator" data-i18n="main.colCreator">Tvůrce / Studio</span>
+          <span class="col-hdr-ratings" data-i18n="main.colRatings">Hodnocení</span>
+          <span class="col-hdr-action" data-i18n="main.colAction">Akce</span>
         </div>
       </div>
 
@@ -703,26 +703,26 @@
             <path d="M26 48 L22 56 M38 48 L42 56"></path>
           </svg>
         </div>
-        <h2>Žádné záznamy k zobrazení</h2>
-        <p id="emptyStateText">Zatím jste nepřidali žádný film, seriál ani hru. Začněte tvořit svou sbírku kliknutím na tlačítko níže.</p>
+        <h2 data-i18n="main.emptyNoRecords">Žádné záznamy k zobrazení</h2>
+        <p id="emptyStateText" data-i18n="main.emptyInitialText">Zatím jste nepřidali žádný film, seriál ani hru. Začněte tvořit svou sbírku kliknutím na tlačítko níže.</p>
         <button id="emptyAddBtn" class="btn btn-primary">
           <svg class="btn-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
-          <span>Přidat první záznam</span>
+          <span data-i18n="main.emptyAddFirstBtn">Přidat první záznam</span>
         </button>
       </div>
 
       <!-- Stránkování (Pagination) -->
       <div id="paginationBar" class="pagination-bar hidden">
-        <span id="paginationInfo" class="pagination-info">Zobrazeno 0–0 z 0</span>
+        <span id="paginationInfo" class="pagination-info" data-i18n="main.paginationEmpty">Zobrazeno 0–0 z 0</span>
         <div class="pagination-controls">
-          <button id="prevPageBtn" class="pagination-btn" title="Předchozí strana">
+          <button id="prevPageBtn" class="pagination-btn" title="Předchozí strana" data-i18n-title="main.prevPageTitle">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </button>
           <div id="pageNumbers" class="page-numbers"></div>
-          <button id="nextPageBtn" class="pagination-btn" title="Další strana">
+          <button id="nextPageBtn" class="pagination-btn" title="Další strana" data-i18n-title="main.nextPageTitle">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </button>
         </div>

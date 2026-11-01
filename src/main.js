@@ -519,6 +519,8 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("tracker:languageChanged", () => {
     if (window.i18n) {
       window.i18n.applyTranslations();
+      updateDropdownLabels();
+      renderGrid();
       if (settingsModal && !settingsModal.classList.contains("hidden")) {
         const curLang = window.i18n.getLanguage();
         updateSettingsDropdownUI(
@@ -539,6 +541,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setupViewMode(currentView);
   setupEventListeners();
+  updateDropdownLabels();
   updateTmdbKeyBadge();
   updateRawgKeyBadge();
   loadItems();
@@ -632,7 +635,12 @@ function setupEventListeners() {
         if (statusCurrentLabel) {
           const spans = opt.querySelectorAll("span");
           const textSpan = spans[spans.length - 1];
-          if (textSpan) statusCurrentLabel.textContent = textSpan.textContent;
+          if (textSpan) {
+            statusCurrentLabel.textContent = textSpan.textContent;
+            if (textSpan.dataset.i18n) {
+              statusCurrentLabel.setAttribute("data-i18n", textSpan.dataset.i18n);
+            }
+          }
         }
 
         closeStatusDropdown();
@@ -1140,7 +1148,12 @@ function setupEventListeners() {
         sortOptions.forEach((o) => o.classList.toggle("active", o.dataset.value === val));
         if (sortCurrentLabel) {
           const textSpan = opt.querySelector("span");
-          if (textSpan) sortCurrentLabel.textContent = textSpan.textContent;
+          if (textSpan) {
+            sortCurrentLabel.textContent = textSpan.textContent;
+            if (textSpan.dataset.i18n) {
+              sortCurrentLabel.setAttribute("data-i18n", textSpan.dataset.i18n);
+            }
+          }
         }
 
         closeSortDropdown();
@@ -1157,7 +1170,12 @@ function setupEventListeners() {
       const activeOpt = Array.from(sortOptions).find((o) => o.dataset.value === currentSort);
       if (activeOpt && sortCurrentLabel) {
         const textSpan = activeOpt.querySelector("span");
-        if (textSpan) sortCurrentLabel.textContent = textSpan.textContent;
+        if (textSpan) {
+          sortCurrentLabel.textContent = textSpan.textContent;
+          if (textSpan.dataset.i18n) {
+            sortCurrentLabel.setAttribute("data-i18n", textSpan.dataset.i18n);
+          }
+        }
       }
       currentPage = 1;
       renderGrid();
@@ -1779,6 +1797,49 @@ function closeFormModal(wasSaved = false, updatedItem = null) {
 }
 
 // ==========================================================================
+// Pomocné lokalizační funkce
+// ==========================================================================
+function getItemTypeLabel(type) {
+  if (!window.i18n) return type;
+  if (type === "Film") return window.i18n.t("main.typeFilmBadge", {}, "Film");
+  if (type === "Seriál") return window.i18n.t("main.typeSeriesBadge", {}, "Seriál");
+  if (type === "Hra") return window.i18n.t("main.typeGameBadge", {}, "Hra");
+  return type;
+}
+
+function updateDropdownLabels() {
+  const sMenu = document.getElementById("statusDropdownMenu");
+  const sLabel = document.getElementById("statusCurrentLabel");
+  if (sMenu && sLabel) {
+    const activeOpt = sMenu.querySelector(".status-option.active");
+    if (activeOpt) {
+      const spans = activeOpt.querySelectorAll("span");
+      const textSpan = spans[spans.length - 1];
+      if (textSpan) {
+        sLabel.textContent = textSpan.textContent;
+        if (textSpan.dataset.i18n) {
+          sLabel.setAttribute("data-i18n", textSpan.dataset.i18n);
+        }
+      }
+    }
+  }
+  const sortMenu = document.getElementById("sortDropdownMenu");
+  const sortLabel = document.getElementById("sortCurrentLabel");
+  if (sortMenu && sortLabel) {
+    const activeOpt = sortMenu.querySelector(".sort-option.active");
+    if (activeOpt) {
+      const textSpan = activeOpt.querySelector("span");
+      if (textSpan) {
+        sortLabel.textContent = textSpan.textContent;
+        if (textSpan.dataset.i18n) {
+          sortLabel.setAttribute("data-i18n", textSpan.dataset.i18n);
+        }
+      }
+    }
+  }
+}
+
+// ==========================================================================
 // Informace o stavu položky (Watchlist / Backlog)
 // ==========================================================================
 function getStatusInfo(statusKey, itemType = "Film") {
@@ -1789,31 +1850,39 @@ function getStatusInfo(statusKey, itemType = "Film") {
     case "backlog":
       return {
         key: "backlog",
-        label: isGame ? "Chci hrát" : "Chci vidět",
+        label: window.i18n
+          ? (isGame ? window.i18n.t("form.statusBacklogGame") : window.i18n.t("form.statusBacklogMovie"))
+          : (isGame ? "Chci hrát" : "Chci vidět"),
         bulletClass: "bullet-backlog",
       };
     case "in_progress":
       return {
         key: "progress",
-        label: isGame ? "Právě hraji" : "Právě sleduji",
+        label: window.i18n
+          ? (isGame ? window.i18n.t("form.statusProgressGame") : window.i18n.t("form.statusProgressMovie"))
+          : (isGame ? "Právě hraji" : "Právě sleduji"),
         bulletClass: "bullet-progress",
       };
     case "completed":
       return {
         key: "completed",
-        label: isGame ? "Dohráno" : "Zhlédnuto",
+        label: window.i18n
+          ? (isGame ? window.i18n.t("form.statusCompletedGame") : window.i18n.t("form.statusCompletedMovie"))
+          : (isGame ? "Dohráno" : "Zhlédnuto"),
         bulletClass: "bullet-completed",
       };
     case "dropped":
       return {
         key: "dropped",
-        label: "Odloženo",
+        label: window.i18n ? window.i18n.t("form.statusDropped") : "Odloženo",
         bulletClass: "bullet-dropped",
       };
     default:
       return {
         key: "completed",
-        label: isGame ? "Dohráno" : "Zhlédnuto",
+        label: window.i18n
+          ? (isGame ? window.i18n.t("form.statusCompletedGame") : window.i18n.t("form.statusCompletedMovie"))
+          : (isGame ? "Dohráno" : "Zhlédnuto"),
         bulletClass: "bullet-completed",
       };
   }
@@ -2056,7 +2125,7 @@ function openDetailModal(item) {
   // Typ a Rok s SVG ikonou
   const typeIcon = item.item_type === "Film" ? SVG_ICONS.film : item.item_type === "Seriál" ? SVG_ICONS.series : SVG_ICONS.game;
   detailTypeBadge.className = `card-type-badge type-${escapeHtml(item.item_type)}`;
-  detailTypeBadge.innerHTML = `${typeIcon} <span>${item.item_type}</span>`;
+  detailTypeBadge.innerHTML = `${typeIcon} <span>${escapeHtml(getItemTypeLabel(item.item_type))}</span>`;
 
   if (item.release_year) {
     detailYearBadge.innerHTML = `${SVG_ICONS.calendar} <span>${item.release_year}</span>`;
@@ -2795,9 +2864,13 @@ function renderGrid() {
     paginationBar.classList.add("hidden");
     const emptyText = document.getElementById("emptyStateText");
     if (searchQuery) {
-      emptyText.textContent = `Hledanému výrazu "${searchQuery}" neodpovídá žádný záznam.`;
+      emptyText.textContent = window.i18n
+        ? window.i18n.t("main.emptyNoSearchMatch", { query: searchQuery })
+        : `Hledanému výrazu "${searchQuery}" neodpovídá žádný záznam.`;
     } else {
-      emptyText.textContent = "Zatím zde nemáte žádné záznamy. Klikněte na tlačítko níže a přidejte svůj první film, seriál nebo hru.";
+      emptyText.textContent = window.i18n
+        ? window.i18n.t("main.emptyInitialText")
+        : "Zatím jste nepřidali žádný film, seriál ani hru. Začněte tvořit svou sbírku kliknutím na tlačítko níže.";
     }
     return;
   }
@@ -2856,7 +2929,11 @@ function renderGrid() {
 
     if (currentView === "list") {
       // Rozvržení: Detailní seznam / Tabulka (Kompaktní a zarovnaná)
-      const creatorInfo = item.director ? `Režie: ${escapeHtml(item.director)}` : item.developer ? `Studio: ${escapeHtml(item.developer)}` : "—";
+      const directorPrefix = window.i18n ? window.i18n.t("main.directorPrefix", {}, "Režie:") : "Režie:";
+      const developerPrefix = window.i18n ? window.i18n.t("main.developerPrefix", {}, "Studio:") : "Studio:";
+      const creatorInfo = item.director ? `${directorPrefix} ${escapeHtml(item.director)}` : item.developer ? `${developerPrefix} ${escapeHtml(item.developer)}` : "—";
+      const typeLabel = getItemTypeLabel(item.item_type);
+      const detailBtnText = window.i18n ? window.i18n.t("main.btnDetail", {}, "Detail") : "Detail";
       
       card.innerHTML = `
         <div class="card-poster">${posterHtml}</div>
@@ -2867,7 +2944,7 @@ function renderGrid() {
           </div>
 
           <div class="list-col-type">
-            <span class="card-type-badge type-${escapeHtml(item.item_type)}">${typeIcon} ${escapeHtml(item.item_type)}</span>
+            <span class="card-type-badge type-${escapeHtml(item.item_type)}">${typeIcon} ${escapeHtml(typeLabel)}</span>
           </div>
 
           <div class="list-col-genre">
@@ -2884,17 +2961,20 @@ function renderGrid() {
           </div>
 
           <div class="list-col-action">
-            <button type="button" class="btn-list-view">Detail</button>
+            <button type="button" class="btn-list-view">${detailBtnText}</button>
           </div>
         </div>
       `;
     } else {
       // Rozvržení: Dlaždice (Grid) nebo Kompaktní (Compact)
+      const typeLabel = getItemTypeLabel(item.item_type);
+      const detailHintText = window.i18n ? window.i18n.t("main.viewDetailHint", {}, "Zobrazit detail") : "Zobrazit detail";
+
       card.innerHTML = `
         <div class="card-poster">
           ${posterHtml}
           <div class="card-top-badges">
-            <span class="card-type-badge type-${escapeHtml(item.item_type)}" title="${escapeHtml(item.item_type)}">${typeIcon}<span class="card-type-label">${escapeHtml(item.item_type)}</span></span>
+            <span class="card-type-badge type-${escapeHtml(item.item_type)}" title="${escapeHtml(typeLabel)}">${typeIcon}<span class="card-type-label">${escapeHtml(typeLabel)}</span></span>
             ${(item.rating !== null && item.rating !== undefined && item.rating >= 0) || (item.api_rating !== null && item.api_rating !== undefined) ? `
               <div class="card-rating-badges-wrap">
                 ${item.rating !== null && item.rating !== undefined && item.rating >= 0 ? `<span class="card-rating-badge">${SVG_ICONS.star} ${item.rating}</span>` : ""}
@@ -2906,7 +2986,7 @@ function renderGrid() {
           <!-- Nápověda po najetí: Pouze přechod do detailu (žádné mazání z hlavní mřížky) -->
           <div class="card-detail-hint">
             ${SVG_ICONS.eye}
-            <span>Zobrazit detail</span>
+            <span>${detailHintText}</span>
           </div>
         </div>
 
@@ -2953,7 +3033,9 @@ function renderGrid() {
 // Vykreslení ovládací lišty stránkování
 function renderPagination(totalCount, startIdx, endIdx, totalPages) {
   paginationBar.classList.remove("hidden");
-  paginationInfo.textContent = `Zobrazeno ${startIdx + 1}–${endIdx} z ${totalCount} záznamů`;
+  paginationInfo.textContent = window.i18n
+    ? window.i18n.t("main.paginationInfo", { start: startIdx + 1, end: endIdx, total: totalCount })
+    : `Zobrazeno ${startIdx + 1}–${endIdx} z ${totalCount} záznamů`;
 
   prevPageBtn.disabled = currentPage <= 1;
   nextPageBtn.disabled = currentPage >= totalPages;
