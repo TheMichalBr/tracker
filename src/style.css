@@ -1369,32 +1369,49 @@ img {
   padding: 80px 20px;
   text-align: center;
   flex: 1;
+  animation: fadeIn 0.25s ease-out;
 }
 
 .empty-icon-box {
-  width: 72px;
-  height: 72px;
-  margin-bottom: 16px;
-  color: var(--accent-primary-hover);
-  filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4));
+  width: 80px;
+  height: 80px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22px;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  color: #818cf8;
+  filter: drop-shadow(0 0 24px rgba(99, 102, 241, 0.3));
+  transition: all 0.25s ease;
+}
+
+.empty-icon-box:hover {
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.35);
+  filter: drop-shadow(0 0 28px rgba(99, 102, 241, 0.45));
 }
 
 .empty-svg {
-  width: 100%;
-  height: 100%;
+  width: 42px;
+  height: 42px;
 }
 
 .empty-state h2 {
-  font-size: 22px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-heading);
   margin-bottom: 8px;
+  letter-spacing: -0.2px;
 }
 
 .empty-state p {
   color: var(--text-muted);
-  max-width: 440px;
+  max-width: 480px;
   font-size: 14px;
   margin-bottom: 24px;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 /* ==========================================================================
@@ -3009,6 +3026,49 @@ img {
   color: var(--text-main);
   letter-spacing: 0.15px;
   margin: 0;
+}
+
+.settings-section-header.settings-section-header-between {
+  justify-content: space-between;
+}
+
+.settings-section-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-portable-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  line-height: 1;
+  background: rgba(239, 68, 68, 0.13);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  cursor: help;
+  transition: var(--transition);
+  user-select: none;
+}
+
+.settings-portable-badge:hover {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: rgba(239, 68, 68, 0.55);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
+}
+
+.settings-portable-icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  color: #f87171;
 }
 
 .settings-item {

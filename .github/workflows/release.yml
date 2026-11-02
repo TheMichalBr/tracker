@@ -15,6 +15,7 @@ jobs:
           - platform: 'windows-latest'
     runs-on: ${{ matrix.platform }}
     steps:
+
       - name: Download code
         uses: actions/checkout@v4
       - name: Installing rust

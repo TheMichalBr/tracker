@@ -102,6 +102,7 @@
     .splash-title {
       font-size: 30px;
       font-weight: 800;
+      line-height: 1;
       letter-spacing: -0.8px;
       background: linear-gradient(135deg, #ffffff, #c7d2fe);
       -webkit-background-clip: text;
@@ -110,6 +111,10 @@
     }
 
     .splash-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
       font-size: 11px;
       font-weight: 800;
       padding: 3px 9px;
@@ -280,7 +285,7 @@
       </div>
       <div class="splash-brand">
         <h1 class="splash-title">Tracker</h1>
-        <span class="splash-badge">v1.0.11</span>
+        <span class="splash-badge">v1.1.2</span>
       </div>
       <p class="splash-subtitle" data-i18n="main.subtitle">Evidence filmů, seriálů a her.</p>
       <div class="splash-loader-bar">
@@ -408,7 +413,7 @@
         <div>
           <div class="brand-title-row">
             <h1>Tracker</h1>
-            <span class="version-tag">v1.0.11</span>
+            <span class="version-tag">v1.1.2</span>
           </div>
           <p class="subtitle" data-i18n="main.subtitle">Evidence filmů, seriálů a her.</p>
         </div>
@@ -421,7 +426,7 @@
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-          <input type="text" id="searchInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Hledat podle názvu, žánru, studia, herců..." data-i18n-placeholder="main.searchPlaceholder">
+          <input type="text" id="searchInput" maxlength="50" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Hledat podle názvu, žánru, studia, herců..." data-i18n-placeholder="main.searchPlaceholder">
           <button id="clearSearchBtn" class="clear-search-btn hidden" title="Vymazat hledání" data-i18n-title="main.clearSearchTitle">
             <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
@@ -695,22 +700,24 @@
 
       <!-- Prázdný stav -->
       <div id="emptyState" class="empty-state hidden">
-        <div class="empty-icon-box">
-          <svg class="empty-svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="32" cy="32" r="28" stroke-dasharray="4 4" opacity="0.3"></circle>
-            <circle cx="32" cy="28" r="14" opacity="0.6"></circle>
-            <line x1="22" y1="48" x2="42" y2="48" stroke-width="3" stroke-linecap="round"></line>
-            <path d="M26 48 L22 56 M38 48 L42 56"></path>
+        <div class="empty-icon-box" id="emptyIconBox">
+          <svg class="empty-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="6" width="20" height="15" rx="3"></rect>
+            <path d="M2 10.5h20"></path>
+            <path d="m6 6 2.5 4.5"></path>
+            <path d="m11 6 2.5 4.5"></path>
+            <path d="m16 6 2.5 4.5"></path>
+            <circle cx="12" cy="15.5" r="2.5" fill="currentColor" fill-opacity="0.3"></circle>
           </svg>
         </div>
-        <h2 data-i18n="main.emptyNoRecords">Žádné záznamy k zobrazení</h2>
+        <h2 id="emptyStateTitle" data-i18n="main.emptyInitialTitle">Vaše sbírka je zatím prázdná</h2>
         <p id="emptyStateText" data-i18n="main.emptyInitialText">Zatím jste nepřidali žádný film, seriál ani hru. Začněte tvořit svou sbírku kliknutím na tlačítko níže.</p>
         <button id="emptyAddBtn" class="btn btn-primary">
-          <svg class="btn-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="btn-svg-icon" id="emptyBtnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
-          <span data-i18n="main.emptyAddFirstBtn">Přidat první záznam</span>
+          <span id="emptyBtnText" data-i18n="main.emptyAddFirstBtn">Přidat první záznam</span>
         </button>
       </div>
 
@@ -1457,7 +1464,7 @@
               <div class="settings-item-desc" data-i18n="settings.tmdbKeyDesc">Umožňuje vyhledávat a automaticky stahovat informace i obálky filmů a seriálů</div>
             </div>
             <div class="settings-key-wrap">
-              <input type="password" id="settingsTmdbApiKey" class="settings-key-input" placeholder="Zadejte váš TMDB API klíč..." data-i18n-placeholder="settings.tmdbKeyPlaceholder">
+              <input type="password" id="settingsTmdbApiKey" class="settings-key-input" placeholder="Zadejte váš TMDB API klíč..." data-i18n-placeholder="settings.tmdbKeyPlaceholder" maxlength="60" autocomplete="off" spellcheck="false">
               <button type="button" id="toggleSettingsTmdbKeyBtn" class="settings-eye-btn" title="Zobrazit / skrýt klíč" data-i18n-title="settings.showHideKeyTitle">
                 <svg id="settingsTmdbEyeIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -1483,7 +1490,7 @@
               <div class="settings-item-desc" data-i18n="settings.rawgKeyDesc">Umožňuje vyhledávat a automaticky stahovat informace i obálky her</div>
             </div>
             <div class="settings-key-wrap">
-              <input type="password" id="settingsRawgApiKey" class="settings-key-input" placeholder="Zadejte váš RAWG API klíč..." data-i18n-placeholder="settings.rawgKeyPlaceholder">
+              <input type="password" id="settingsRawgApiKey" class="settings-key-input" placeholder="Zadejte váš RAWG API klíč..." data-i18n-placeholder="settings.rawgKeyPlaceholder" maxlength="60" autocomplete="off" spellcheck="false">
               <button type="button" id="toggleSettingsRawgKeyBtn" class="settings-eye-btn" title="Zobrazit / skrýt klíč" data-i18n-title="settings.showHideKeyTitle">
                 <svg id="settingsRawgEyeIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -1594,18 +1601,28 @@
 
         <!-- 5. Aktualizace aplikace -->
         <div class="settings-section">
-          <div class="settings-section-header">
-            <svg class="settings-section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
-            </svg>
-            <h3 class="settings-section-title" data-i18n="settings.sectionUpdates">Aktualizace aplikace</h3>
+          <div class="settings-section-header settings-section-header-between">
+            <div class="settings-section-header-left">
+              <svg class="settings-section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
+              <h3 class="settings-section-title" data-i18n="settings.sectionUpdates">Aktualizace aplikace</h3>
+            </div>
+            <div class="settings-portable-badge" data-i18n-title="settings.portableUpdateNoticeTitle" title="Portable verze aplikace je nutné aktualizovat pouze ručně!">
+              <svg class="settings-portable-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <span data-i18n="settings.portableBadge">Portable</span>
+            </div>
           </div>
           
           <div class="settings-card-row settings-update-row" id="settingsUpdateRow">
             <div class="settings-card-text">
               <div class="settings-version-header">
                 <span class="settings-item-label" data-i18n="settings.currentVersionLabel">Nainstalovaná verze</span>
-                <span class="settings-version-pill" id="settingsCurrentVersion">v1.0.11</span>
+                <span class="settings-version-pill" id="settingsCurrentVersion">v1.1.2</span>
                 <span id="updateBadgeStatus" class="update-status-pill hidden"></span>
               </div>
               <div class="settings-item-desc" id="updateStatusText" data-i18n-html="settings.updateCheckDesc">Ověřte, zda je na GitHubu k dispozici novější verze aplikace Tracker.</div>
@@ -1742,7 +1759,7 @@
             </div>
             <div class="tmdb-key-input-row">
               <div class="tmdb-key-input-wrap">
-                <input type="password" id="tmdbApiKeyInput" autocomplete="off" spellcheck="false" data-i18n-placeholder="apiModal.tmdbKeyPlaceholder" placeholder="Vložte váš TMDB API klíč (v3 auth nebo v4 token)...">
+                <input type="password" id="tmdbApiKeyInput" autocomplete="off" spellcheck="false" data-i18n-placeholder="apiModal.tmdbKeyPlaceholder" placeholder="Vložte váš TMDB API klíč (v3 auth nebo v4 token)..." maxlength="60">
                 <button type="button" id="toggleTmdbKeyVisibilityBtn" class="tmdb-icon-btn" data-i18n-title="apiModal.toggleKeyTitle" title="Zobrazit / skrýt klíč">
                   <svg id="tmdbEyeIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
@@ -1783,7 +1800,7 @@
             <div class="tmdb-search-input-row">
               <div class="tmdb-search-input-wrap">
                 <svg class="search-svg-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <input type="text" id="tmdbQueryInput" autocomplete="off" spellcheck="false" data-i18n-placeholder="apiModal.tmdbQueryPlaceholder" placeholder="Zadejte název filmu nebo seriálu.. (např. Inception, Temný rytíř, Fallout)">
+                <input type="text" id="tmdbQueryInput" autocomplete="off" spellcheck="false" data-i18n-placeholder="apiModal.tmdbQueryPlaceholder" placeholder="Zadejte název filmu nebo seriálu.. (např. Inception, Temný rytíř, Fallout)" maxlength="50">
                 <button type="button" id="clearTmdbQueryBtn" class="clear-search-btn hidden" data-i18n-title="apiModal.clearSearchTitle" title="Vymazat">
                   <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
@@ -1821,7 +1838,7 @@
             </div>
             <div class="tmdb-key-input-row">
               <div class="tmdb-key-input-wrap">
-                <input type="password" id="rawgApiKeyInput" autocomplete="off" spellcheck="false" data-i18n-placeholder="apiModal.rawgKeyPlaceholder" placeholder="Vložte váš RAWG API klíč (z rawg.io/apidocs)...">
+                <input type="password" id="rawgApiKeyInput" autocomplete="off" spellcheck="false" data-i18n-placeholder="apiModal.rawgKeyPlaceholder" placeholder="Vložte váš RAWG API klíč (z rawg.io/apidocs)..." maxlength="60">
                 <button type="button" id="toggleRawgKeyVisibilityBtn" class="tmdb-icon-btn" data-i18n-title="apiModal.toggleKeyTitle" title="Zobrazit / skrýt klíč">
                   <svg id="rawgEyeIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
@@ -1846,7 +1863,7 @@
             <div class="tmdb-search-input-row">
               <div class="tmdb-search-input-wrap">
                 <svg class="search-svg-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <input type="text" id="rawgQueryInput" autocomplete="off" spellcheck="false" data-i18n-placeholder="apiModal.rawgQueryPlaceholder" placeholder="Zadejte název videohry.. (např. Cyberpunk 2077, Elden Ring, Half-Life)">
+                <input type="text" id="rawgQueryInput" autocomplete="off" spellcheck="false" data-i18n-placeholder="apiModal.rawgQueryPlaceholder" placeholder="Zadejte název videohry.. (např. Cyberpunk 2077, Elden Ring, Half-Life)" maxlength="50">
                 <button type="button" id="clearRawgQueryBtn" class="clear-search-btn hidden" data-i18n-title="apiModal.clearSearchTitle" title="Vymazat">
                   <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>

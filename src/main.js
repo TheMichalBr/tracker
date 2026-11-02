@@ -248,7 +248,7 @@ function setupGridImageObserver() {
 }
 
 // Verze aplikace a repozitář pro aktualizace
-let APP_VERSION = "1.0.11";
+let APP_VERSION = "1.1.2";
 const GITHUB_REPO_API = "https://api.github.com/repos/TheMichalBr/tracker/releases/latest";
 let latestReleaseData = null;
 let isCheckingUpdate = false;
@@ -257,7 +257,33 @@ let isCheckingUpdate = false;
 let allItems = [];
 let activeFilter = "all";
 let searchQuery = "";
+let searchDebounceTimer = null;
 let currentSort = "newest";
+
+// Bezpečná filtrace a omezení vyhledávacího pole (max. 50 znaků, odstranění potenciálně zneužitelných speciálních znaků)
+function sanitizeSearchQuery(inputStr) {
+  if (!inputStr || typeof inputStr !== "string") return "";
+  let str = inputStr.slice(0, 50);
+  return str.replace(/[<>\\`{}[\]^~$|;="\x00-\x1F\x7F]/g, "");
+}
+
+// Bezpečná filtrace pro API klíče (max. 60 znaků, povoleno pouze bezpečné alfanumerické znaky a token separátory, bez mezer a injekcí)
+function sanitizeApiKey(inputStr) {
+  if (!inputStr || typeof inputStr !== "string") return "";
+  let str = inputStr.trim().replace(/^["']|["']$/g, "").trim();
+  if (str.toLowerCase().startsWith("bearer ")) {
+    str = str.substring(7).trim();
+  }
+  str = str.slice(0, 60);
+  return str.replace(/[^a-zA-Z0-9_\-\.]/g, "");
+}
+
+// Bezpečná filtrace pro vyhledávací pole v API formulářích (max. 50 znaků, ochrana proti injektáži a zneužití speciálních znaků)
+function sanitizeApiQuery(inputStr) {
+  if (!inputStr || typeof inputStr !== "string") return "";
+  let str = inputStr.slice(0, 50);
+  return str.replace(/[<>\\`{}[\]^~$|;="\x00-\x1F\x7F]/g, "");
+}
 let currentStatusFilter = "all"; // 'all', 'backlog', 'in_progress', 'completed', 'dropped'
 let currentTrailerUrl = "";
 
@@ -702,7 +728,22 @@ function setupEventListeners() {
     openAddModalBtn.addEventListener("click", () => openFormModal(null));
   }
   if (emptyAddBtn) {
-    emptyAddBtn.addEventListener("click", () => openFormModal(null));
+    emptyAddBtn.addEventListener("click", () => {
+      if (searchQuery) {
+        // Pokud jsme ve stavu hledání, tlačítko slouží pro vymazání hledání
+        if (searchDebounceTimer) {
+          clearTimeout(searchDebounceTimer);
+        }
+        searchInput.value = "";
+        searchQuery = "";
+        clearSearchBtn.classList.add("hidden");
+        currentPage = 1;
+        renderGrid();
+        searchInput.focus();
+      } else {
+        openFormModal(null);
+      }
+    });
   }
 
   // Otevření a zavření formuláře
@@ -743,16 +784,23 @@ function setupEventListeners() {
 
   if (saveTmdbKeyBtn) {
     saveTmdbKeyBtn.addEventListener("click", () => {
-      let key = tmdbApiKeyInput ? tmdbApiKeyInput.value.trim() : "";
-      key = key.replace(/^["']|["']$/g, "").trim();
-      if (key.toLowerCase().startsWith("bearer ")) {
-        key = key.substring(7).trim();
-      }
+      let key = sanitizeApiKey(tmdbApiKeyInput ? tmdbApiKeyInput.value : "");
       if (tmdbApiKeyInput) tmdbApiKeyInput.value = key;
       localStorage.setItem("tracker_tmdb_api_key", key);
       if (settingsTmdbApiKey) settingsTmdbApiKey.value = key;
       updateTmdbKeyBadge();
       showToast(key ? "TMDB API klíč byl úspěšně uložen." : "TMDB API klíč byl vymazán.");
+    });
+  }
+
+  if (tmdbApiKeyInput) {
+    tmdbApiKeyInput.addEventListener("input", (e) => {
+      let val = e.target.value;
+      if (val.toLowerCase().startsWith("bearer ")) val = val.substring(7);
+      const sanitized = sanitizeApiKey(val);
+      if (e.target.value !== sanitized) {
+        e.target.value = sanitized;
+      }
     });
   }
 
@@ -779,8 +827,12 @@ function setupEventListeners() {
     });
 
     tmdbQueryInput.addEventListener("input", (e) => {
+      const sanitized = sanitizeApiQuery(e.target.value);
+      if (e.target.value !== sanitized) {
+        e.target.value = sanitized;
+      }
       if (clearTmdbQueryBtn) {
-        clearTmdbQueryBtn.classList.toggle("hidden", e.target.value.trim() === "");
+        clearTmdbQueryBtn.classList.toggle("hidden", sanitized.trim() === "");
       }
     });
   }
@@ -796,13 +848,21 @@ function setupEventListeners() {
   // RAWG.io Herní API ovládání
   if (saveRawgKeyBtn) {
     saveRawgKeyBtn.addEventListener("click", () => {
-      let key = rawgApiKeyInput ? rawgApiKeyInput.value.trim() : "";
-      key = key.replace(/^["']|["']$/g, "").trim();
+      let key = sanitizeApiKey(rawgApiKeyInput ? rawgApiKeyInput.value : "");
       if (rawgApiKeyInput) rawgApiKeyInput.value = key;
       localStorage.setItem("tracker_rawg_api_key", key);
       if (settingsRawgApiKey) settingsRawgApiKey.value = key;
       updateRawgKeyBadge();
       showToast(key ? "RAWG API klíč byl úspěšně uložen." : "RAWG API klíč byl vymazán.");
+    });
+  }
+
+  if (rawgApiKeyInput) {
+    rawgApiKeyInput.addEventListener("input", (e) => {
+      const sanitized = sanitizeApiKey(e.target.value);
+      if (e.target.value !== sanitized) {
+        e.target.value = sanitized;
+      }
     });
   }
 
@@ -829,8 +889,12 @@ function setupEventListeners() {
     });
 
     rawgQueryInput.addEventListener("input", (e) => {
+      const sanitized = sanitizeApiQuery(e.target.value);
+      if (e.target.value !== sanitized) {
+        e.target.value = sanitized;
+      }
       if (clearRawgQueryBtn) {
-        clearRawgQueryBtn.classList.toggle("hidden", e.target.value.trim() === "");
+        clearRawgQueryBtn.classList.toggle("hidden", sanitized.trim() === "");
       }
     });
   }
@@ -918,6 +982,17 @@ function setupEventListeners() {
     });
   }
 
+  if (settingsTmdbApiKey) {
+    settingsTmdbApiKey.addEventListener("input", (e) => {
+      let val = e.target.value;
+      if (val.toLowerCase().startsWith("bearer ")) val = val.substring(7);
+      const sanitized = sanitizeApiKey(val);
+      if (e.target.value !== sanitized) {
+        e.target.value = sanitized;
+      }
+    });
+  }
+
   const toggleSettingsRawgKeyBtn = document.getElementById("toggleSettingsRawgKeyBtn");
   const settingsRawgEyeIcon = document.getElementById("settingsRawgEyeIcon");
   if (toggleSettingsRawgKeyBtn && settingsRawgApiKey) {
@@ -926,6 +1001,15 @@ function setupEventListeners() {
       settingsRawgApiKey.type = isPass ? "text" : "password";
       if (settingsRawgEyeIcon) {
         settingsRawgEyeIcon.innerHTML = isPass ? SVG_ICONS.eyeOff : SVG_ICONS.eye;
+      }
+    });
+  }
+
+  if (settingsRawgApiKey) {
+    settingsRawgApiKey.addEventListener("input", (e) => {
+      const sanitized = sanitizeApiKey(e.target.value);
+      if (e.target.value !== sanitized) {
+        e.target.value = sanitized;
       }
     });
   }
@@ -1111,9 +1195,14 @@ function setupEventListeners() {
   mediaForm.addEventListener("submit", handleFormSubmit);
 
   // Vyhledávání v reálném čase s debounce (140 ms) pro plynulý chod bez problikávání
-  let searchDebounceTimer = null;
   searchInput.addEventListener("input", (e) => {
-    const val = e.target.value.trim().toLowerCase();
+    const raw = e.target.value;
+    const sanitized = sanitizeSearchQuery(raw);
+    if (raw !== sanitized) {
+      e.target.value = sanitized;
+    }
+
+    const val = sanitized.trim().toLowerCase();
     clearSearchBtn.classList.toggle("hidden", val === "");
 
     if (searchDebounceTimer) {
@@ -1133,7 +1222,9 @@ function setupEventListeners() {
       if (searchDebounceTimer) {
         clearTimeout(searchDebounceTimer);
       }
-      searchQuery = searchInput.value.trim().toLowerCase();
+      const sanitized = sanitizeSearchQuery(searchInput.value);
+      searchInput.value = sanitized;
+      searchQuery = sanitized.trim().toLowerCase();
       currentPage = 1;
       renderGrid();
     }
@@ -2615,10 +2706,10 @@ function openSettingsModal() {
   updateSettingsDropdownUI(savedView, savedPerPage, savedLang);
   refreshSettingsStorageInfo();
   if (settingsTmdbApiKey) {
-    settingsTmdbApiKey.value = localStorage.getItem("tracker_tmdb_api_key") || "";
+    settingsTmdbApiKey.value = sanitizeApiKey(localStorage.getItem("tracker_tmdb_api_key") || "");
   }
   if (settingsRawgApiKey) {
-    settingsRawgApiKey.value = localStorage.getItem("tracker_rawg_api_key") || "";
+    settingsRawgApiKey.value = sanitizeApiKey(localStorage.getItem("tracker_rawg_api_key") || "");
   }
   const savedQuality = localStorage.getItem("tracker_webp_quality") || "88";
   if (settingsWebpQuality) {
@@ -2655,10 +2746,7 @@ function handleSaveSettings() {
   }
 
   if (settingsTmdbApiKey) {
-    let key = settingsTmdbApiKey.value.trim().replace(/^["']|["']$/g, "").trim();
-    if (key.toLowerCase().startsWith("bearer ")) {
-      key = key.substring(7).trim();
-    }
+    let key = sanitizeApiKey(settingsTmdbApiKey.value);
     settingsTmdbApiKey.value = key;
     localStorage.setItem("tracker_tmdb_api_key", key);
     if (tmdbApiKeyInput) tmdbApiKeyInput.value = key;
@@ -2666,7 +2754,7 @@ function handleSaveSettings() {
   }
 
   if (settingsRawgApiKey) {
-    let rawgKey = settingsRawgApiKey.value.trim().replace(/^["']|["']$/g, "").trim();
+    let rawgKey = sanitizeApiKey(settingsRawgApiKey.value);
     settingsRawgApiKey.value = rawgKey;
     localStorage.setItem("tracker_rawg_api_key", rawgKey);
     if (rawgApiKeyInput) rawgApiKeyInput.value = rawgKey;
@@ -3166,14 +3254,18 @@ async function syncAppVersion() {
         APP_VERSION = cleanVer;
 
         const splashBadge = document.querySelector(".splash-badge");
-        if (splashBadge) splashBadge.textContent = `v${APP_VERSION}`;
+        if (splashBadge && splashBadge.textContent !== `v${APP_VERSION}`) {
+          splashBadge.textContent = `v${APP_VERSION}`;
+        }
 
         document.querySelectorAll(".version-tag").forEach((el) => {
-          el.textContent = `v${APP_VERSION}`;
+          if (el.textContent !== `v${APP_VERSION}`) el.textContent = `v${APP_VERSION}`;
         });
 
         const settingsVer = document.getElementById("settingsCurrentVersion");
-        if (settingsVer) settingsVer.textContent = `v${APP_VERSION}`;
+        if (settingsVer && settingsVer.textContent !== `v${APP_VERSION}`) {
+          settingsVer.textContent = `v${APP_VERSION}`;
+        }
       }
     }
   } catch (err) {
@@ -3258,15 +3350,108 @@ function renderGrid() {
     if (listHeader) listHeader.classList.add("hidden");
     emptyState.classList.remove("hidden");
     paginationBar.classList.add("hidden");
+
+    const emptyIconBox = document.getElementById("emptyIconBox");
+    const emptyTitle = document.getElementById("emptyStateTitle");
     const emptyText = document.getElementById("emptyStateText");
+    const emptyBtnText = document.getElementById("emptyBtnText");
+    const emptyBtnIcon = document.getElementById("emptyBtnIcon");
+    const isEn = window.i18n && window.i18n.getLanguage() === "en";
+
     if (searchQuery) {
-      emptyText.textContent = window.i18n
-        ? window.i18n.t("main.emptyNoSearchMatch", { query: searchQuery })
-        : `Hledanému výrazu "${searchQuery}" neodpovídá žádný záznam.`;
+      // Stav 1: Hledání nenašlo žádné výsledky
+      if (emptyIconBox) {
+        emptyIconBox.innerHTML = `
+          <svg class="empty-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <line x1="8" y1="11" x2="14" y2="11" stroke-dasharray="2 2"></line>
+          </svg>
+        `;
+      }
+      if (emptyTitle) {
+        emptyTitle.textContent = window.i18n
+          ? window.i18n.t("main.emptyNoSearchMatchTitle")
+          : (isEn ? "No matching results found" : "Nebyly nalezeny žádné výsledky");
+      }
+      if (emptyText) {
+        emptyText.textContent = window.i18n
+          ? window.i18n.t("main.emptyNoSearchMatch", { query: searchQuery })
+          : (isEn
+              ? `No records match search query "${searchQuery}". Check for typos or try a different term.`
+              : `Hledanému výrazu „${searchQuery}“ neodpovídá žádný záznam. Zkontrolujte překlepy nebo zkuste obecnější výraz.`);
+      }
+      if (emptyBtnText) {
+        emptyBtnText.textContent = window.i18n
+          ? window.i18n.t("main.emptyClearSearchBtn")
+          : (isEn ? "Clear search" : "Zrušit hledání");
+      }
+      if (emptyBtnIcon) {
+        emptyBtnIcon.innerHTML = `<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>`;
+      }
+    } else if (allItems.length > 0) {
+      // Stav 2: Filtr (např. kategorie nebo stav) nemá v databázi žádnou položku
+      if (emptyIconBox) {
+        emptyIconBox.innerHTML = `
+          <svg class="empty-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+        `;
+      }
+      if (emptyTitle) {
+        emptyTitle.textContent = window.i18n
+          ? window.i18n.t("main.emptyFilterTitle")
+          : (isEn ? "No items in this category" : "Žádné položky v této kategorii");
+      }
+      if (emptyText) {
+        emptyText.textContent = window.i18n
+          ? window.i18n.t("main.emptyFilterText")
+          : (isEn
+              ? "There are currently no items matching your selected filter."
+              : "Ve vybraném filtru se momentálně nenachází žádný záznam.");
+      }
+      if (emptyBtnText) {
+        emptyBtnText.textContent = window.i18n
+          ? window.i18n.t("main.emptyAddNewBtn")
+          : (isEn ? "Add new item" : "Přidat nový záznam");
+      }
+      if (emptyBtnIcon) {
+        emptyBtnIcon.innerHTML = `<line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>`;
+      }
     } else {
-      emptyText.textContent = window.i18n
-        ? window.i18n.t("main.emptyInitialText")
-        : "Zatím jste nepřidali žádný film, seriál ani hru. Začněte tvořit svou sbírku kliknutím na tlačítko níže.";
+      // Stav 3: Databáze je zcela prázdná
+      if (emptyIconBox) {
+        emptyIconBox.innerHTML = `
+          <svg class="empty-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="6" width="20" height="15" rx="3"></rect>
+            <path d="M2 10.5h20"></path>
+            <path d="m6 6 2.5 4.5"></path>
+            <path d="m11 6 2.5 4.5"></path>
+            <path d="m16 6 2.5 4.5"></path>
+            <circle cx="12" cy="15.5" r="2.5" fill="currentColor" fill-opacity="0.25"></circle>
+          </svg>
+        `;
+      }
+      if (emptyTitle) {
+        emptyTitle.textContent = window.i18n
+          ? window.i18n.t("main.emptyInitialTitle")
+          : (isEn ? "Your collection is currently empty" : "Vaše sbírka je zatím prázdná");
+      }
+      if (emptyText) {
+        emptyText.textContent = window.i18n
+          ? window.i18n.t("main.emptyInitialText")
+          : (isEn
+              ? "You haven't added any movies, series, or games yet. Start building your collection by clicking the button below."
+              : "Zatím jste nepřidali žádný film, seriál ani hru. Začněte tvořit svou sbírku kliknutím na tlačítko níže.");
+      }
+      if (emptyBtnText) {
+        emptyBtnText.textContent = window.i18n
+          ? window.i18n.t("main.emptyAddFirstBtn")
+          : (isEn ? "Add first item" : "Přidat první záznam");
+      }
+      if (emptyBtnIcon) {
+        emptyBtnIcon.innerHTML = `<line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>`;
+      }
     }
     return;
   }
@@ -3469,17 +3654,13 @@ function renderPagination(totalCount, startIdx, endIdx, totalPages) {
 // ==========================================================================
 
 function getCleanTmdbKey() {
-  let key = (tmdbApiKeyInput?.value || localStorage.getItem("tracker_tmdb_api_key") || "").trim();
-  key = key.replace(/^["']|["']$/g, "").trim();
-  if (key.toLowerCase().startsWith("bearer ")) {
-    key = key.substring(7).trim();
-  }
-  return key;
+  let key = tmdbApiKeyInput?.value || localStorage.getItem("tracker_tmdb_api_key") || "";
+  return sanitizeApiKey(key);
 }
 
 function getCleanRawgKey() {
-  let key = (rawgApiKeyInput?.value || localStorage.getItem("tracker_rawg_api_key") || "").trim();
-  return key.replace(/^["']|["']$/g, "").trim();
+  let key = rawgApiKeyInput?.value || localStorage.getItem("tracker_rawg_api_key") || "";
+  return sanitizeApiKey(key);
 }
 
 let currentImportAbortController = null;
@@ -3506,11 +3687,11 @@ function resetAllApiResultButtons() {
 
 function openTmdbModal(defaultProvider = null) {
   resetAllApiResultButtons();
-  const savedKey = localStorage.getItem("tracker_tmdb_api_key") || "";
+  const savedKey = sanitizeApiKey(localStorage.getItem("tracker_tmdb_api_key") || "");
   if (tmdbApiKeyInput) tmdbApiKeyInput.value = savedKey;
   updateTmdbKeyBadge();
 
-  const savedRawgKey = localStorage.getItem("tracker_rawg_api_key") || "";
+  const savedRawgKey = sanitizeApiKey(localStorage.getItem("tracker_rawg_api_key") || "");
   if (rawgApiKeyInput) rawgApiKeyInput.value = savedRawgKey;
   updateRawgKeyBadge();
 
@@ -3592,7 +3773,8 @@ async function executeTmdbSearch() {
   if (settingsTmdbApiKey) settingsTmdbApiKey.value = key;
   updateTmdbKeyBadge();
 
-  const query = tmdbQueryInput ? tmdbQueryInput.value.trim() : "";
+  const query = sanitizeApiQuery(tmdbQueryInput ? tmdbQueryInput.value.trim() : "");
+  if (tmdbQueryInput) tmdbQueryInput.value = query;
   if (!query) {
     showToast(window.i18n ? window.i18n.t("apiModal.promptEnterMovieQuery") : "Zadejte název díla pro vyhledání.");
     tmdbQueryInput?.focus();
@@ -4058,7 +4240,8 @@ async function executeRawgSearch() {
   if (settingsRawgApiKey) settingsRawgApiKey.value = key;
   updateRawgKeyBadge();
 
-  const query = rawgQueryInput ? rawgQueryInput.value.trim() : "";
+  const query = sanitizeApiQuery(rawgQueryInput ? rawgQueryInput.value.trim() : "");
+  if (rawgQueryInput) rawgQueryInput.value = query;
   if (!query) {
     showToast(window.i18n ? window.i18n.t("apiModal.promptEnterGameQuery") : "Zadejte název hry pro vyhledání.");
     rawgQueryInput?.focus();

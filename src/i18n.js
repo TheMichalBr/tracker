@@ -74,6 +74,8 @@ const TRANSLATIONS = {
 
       // 5. Aktualizace aplikace
       sectionUpdates: "Aktualizace aplikace",
+      portableBadge: "Portable",
+      portableUpdateNoticeTitle: "Portable verze aplikace je nutné aktualizovat pouze ručně!",
       currentVersionLabel: "Nainstalovaná verze",
       updateCheckDesc: "Ověřte, zda je na GitHubu k dispozici novější verze aplikace Tracker.",
       checkUpdateBtn: "Zkontrolovat aktualizace",
@@ -379,9 +381,15 @@ const TRANSLATIONS = {
       prevPageTitle: "Předchozí strana",
       nextPageTitle: "Další strana",
       emptyNoRecords: "Žádné záznamy k zobrazení",
-      emptyNoSearchMatch: "Hledanému výrazu \"{query}\" neodpovídá žádný záznam.",
+      emptyNoSearchMatchTitle: "Nebyly nalezeny žádné výsledky",
+      emptyNoSearchMatch: "Hledanému výrazu „{query}“ neodpovídá žádný záznam. Zkontrolujte překlepy nebo zkuste obecnější výraz.",
+      emptyClearSearchBtn: "Zrušit hledání",
+      emptyInitialTitle: "Vaše sbírka je zatím prázdná",
       emptyInitialText: "Zatím jste nepřidali žádný film, seriál ani hru. Začněte tvořit svou sbírku kliknutím na tlačítko níže.",
-      emptyAddFirstBtn: "Přidat první záznam"
+      emptyAddFirstBtn: "Přidat první záznam",
+      emptyFilterTitle: "Žádné položky v této kategorii",
+      emptyFilterText: "Ve vybraném filtru se momentálně nenachází žádný záznam.",
+      emptyAddNewBtn: "Přidat nový záznam"
     }
   },
   en: {
@@ -454,6 +462,8 @@ const TRANSLATIONS = {
 
       // 5. Application Updates
       sectionUpdates: "Application Updates",
+      portableBadge: "Portable",
+      portableUpdateNoticeTitle: "Portable version of the application can only be updated manually!",
       currentVersionLabel: "Installed version",
       updateCheckDesc: "Check if a newer version of Tracker is available on GitHub.",
       checkUpdateBtn: "Check for Updates",
@@ -759,9 +769,15 @@ const TRANSLATIONS = {
       prevPageTitle: "Previous page",
       nextPageTitle: "Next page",
       emptyNoRecords: "No records to display",
-      emptyNoSearchMatch: "No records match search query \"{query}\".",
-      emptyInitialText: "You haven't added any movies, series or games yet. Start building your collection by clicking the button below.",
-      emptyAddFirstBtn: "Add first record"
+      emptyNoSearchMatchTitle: "No matching results found",
+      emptyNoSearchMatch: "No records match search query \"{query}\". Check for typos or try a different term.",
+      emptyClearSearchBtn: "Clear search",
+      emptyInitialTitle: "Your collection is currently empty",
+      emptyInitialText: "You haven't added any movies, series, or games yet. Start building your collection by clicking the button below.",
+      emptyAddFirstBtn: "Add first item",
+      emptyFilterTitle: "No items in this category",
+      emptyFilterText: "There are currently no items matching your selected filter.",
+      emptyAddNewBtn: "Add new item"
     }
   }
 };
