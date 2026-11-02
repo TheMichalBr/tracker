@@ -551,6 +551,10 @@ document.addEventListener("DOMContentLoaded", () => {
             badgeStatus.textContent = isEn ? "Offline" : "Chyba";
           }
         }
+        const changelogEmpty = document.querySelector("#updateChangelogList .settings-changelog-empty");
+        if (changelogEmpty) {
+          changelogEmpty.textContent = window.i18n.t("settings.changelogEmpty");
+        }
       }
       const currentTypeRadio = document.querySelector('input[name="itemType"]:checked');
       if (currentTypeRadio) {
@@ -2899,6 +2903,9 @@ async function handleCheckForUpdates(manual = true) {
       if (notesBtn) {
         notesBtn.classList.remove("hidden");
       }
+      // Načtení a zobrazení seznamu změn z commitů pro novou verzi
+      fetchAndDisplayChangelog(latestTag);
+
       if (manual) {
         const toastMsg = window.i18n
           ? window.i18n.t("settings.newVersionToast", { version: latestTag })
@@ -2907,6 +2914,9 @@ async function handleCheckForUpdates(manual = true) {
       }
     } else {
       // Aktuální verze
+      const changelogBox = document.getElementById("updateChangelogBox");
+      if (changelogBox) changelogBox.classList.add("hidden");
+
       if (badgeStatus) {
         badgeStatus.className = "update-status-pill up-to-date";
         const isEn = window.i18n && window.i18n.getLanguage() === "en";
@@ -2932,6 +2942,9 @@ async function handleCheckForUpdates(manual = true) {
     }
   } catch (err) {
     console.warn("Chyba při kontrole aktualizací:", err);
+    const changelogBox = document.getElementById("updateChangelogBox");
+    if (changelogBox) changelogBox.classList.add("hidden");
+
     if (badgeStatus) {
       badgeStatus.className = "update-status-pill error";
       const isEn = window.i18n && window.i18n.getLanguage() === "en";
@@ -2979,6 +2992,82 @@ function handleDownloadUpdate() {
   // Fallback: otevření stránky vydání na GitHubu
   if (latestReleaseData.html_url) {
     openExternalUrl(latestReleaseData.html_url);
+  }
+}
+
+/**
+ * Načte a zobrazí seznam změn (commit zprávy / release notes) pro novou verzi
+ */
+async function fetchAndDisplayChangelog(latestTag) {
+  const changelogBox = document.getElementById("updateChangelogBox");
+  const changelogList = document.getElementById("updateChangelogList");
+  if (!changelogBox || !changelogList) return;
+
+  changelogBox.classList.remove("hidden");
+  const loadingText = window.i18n ? window.i18n.t("settings.changelogLoading") : "Načítám přehled změn...";
+  changelogList.innerHTML = `<li class="settings-changelog-empty">${escapeHtml(loadingText)}</li>`;
+
+  const cleanCurrent = APP_VERSION.replace(/^v/i, "").trim();
+  const cleanLatest = (latestTag || "").replace(/^v/i, "").trim();
+
+  const commitMessages = [];
+
+  // 1. Zkusíme GitHub Compare API mezi aktuální a novou verzí
+  try {
+    const compareUrl = `https://api.github.com/repos/TheMichalBr/tracker/compare/v${cleanCurrent}...v${cleanLatest}`;
+    const compRes = await fetch(compareUrl, {
+      headers: { Accept: "application/vnd.github.v3+json" },
+      cache: "no-cache",
+    });
+
+    if (compRes.ok) {
+      const compData = await compRes.json();
+      if (Array.isArray(compData.commits) && compData.commits.length > 0) {
+        for (const c of compData.commits) {
+          const rawMsg = c.commit?.message || "";
+          if (!rawMsg) continue;
+          const lines = rawMsg.split("\n").map((l) => l.trim()).filter(Boolean);
+          for (const line of lines) {
+            if (/^merge (branch|pull request)/i.test(line)) continue;
+            const cleanLine = line.replace(/^[-*•]\s*/, "").trim();
+            if (cleanLine && !commitMessages.includes(cleanLine)) {
+              commitMessages.push(cleanLine);
+            }
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Chyba při stahování commitů z Compare API:", err);
+  }
+
+  // 2. Fallback: pokud Compare API nic nevrátilo, zkusíme Release body z GitHub Release
+  if (commitMessages.length === 0 && latestReleaseData?.body) {
+    const rawBody = latestReleaseData.body.trim();
+    if (rawBody && !rawBody.includes("Automatically generated release of the Tracker app")) {
+      const lines = rawBody.split("\n").map((l) => l.trim()).filter(Boolean);
+      for (const line of lines) {
+        const cleanLine = line.replace(/^[-*•#]\s*/, "").trim();
+        if (cleanLine && !commitMessages.includes(cleanLine)) {
+          commitMessages.push(cleanLine);
+        }
+      }
+    }
+  }
+
+  // 3. Vykreslení nalezených změn
+  changelogList.innerHTML = "";
+  if (commitMessages.length > 0) {
+    const maxItems = commitMessages.slice(0, 10);
+    maxItems.forEach((msg) => {
+      const li = document.createElement("li");
+      li.className = "settings-changelog-item";
+      li.innerHTML = `<span class="settings-changelog-bullet">•</span><span>${escapeHtml(msg)}</span>`;
+      changelogList.appendChild(li);
+    });
+  } else {
+    const emptyText = window.i18n ? window.i18n.t("settings.changelogEmpty") : "Podrobnosti o změnách nebyly nalezeny.";
+    changelogList.innerHTML = `<li class="settings-changelog-empty">${escapeHtml(emptyText)}</li>`;
   }
 }
 

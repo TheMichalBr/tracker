@@ -1,6 +1,6 @@
 [package]
 name = "tracker"
-version = "1.0.11"
+version = "1.0.12"
 description = "Tracker - A personal database for keeping track of movies, TV shows, and video games."
 authors = ["MichalBr"]
 edition = "2021"

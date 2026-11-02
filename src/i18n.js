@@ -86,6 +86,9 @@ const TRANSLATIONS = {
       updateCheckError: "Nepodařilo se ověřit aktualizace. Zkontrolujte připojení k internetu.",
       newVersionToast: "Byla nalezena nová verze aplikace Tracker ({version})!",
       upToDateToast: "Používáte nejnovější verzi ({version}).",
+      changelogTitle: "Co je nového v této verzi:",
+      changelogLoading: "Načítám přehled změn...",
+      changelogEmpty: "Podrobnosti o změnách nebyly nalezeny.",
 
       // 6. Podpora a hlášení chyb
       sectionSupport: "Podpora a hlášení chyb",
@@ -217,7 +220,7 @@ const TRANSLATIONS = {
       removeParamBtnTitle: "Odebrat parametr",
 
       // Patička
-      requiredHint: "* Povinné pole",
+      requiredHint: "Povinné pole",
       cancelBtn: "Zrušit",
       saveBtn: "Uložit položku",
       saveChangesBtn: "Uložit změny"
@@ -461,6 +464,9 @@ const TRANSLATIONS = {
       updateCheckError: "Failed to check for updates. Please check your internet connection.",
       newVersionToast: "A new version of Tracker was found ({version})!",
       upToDateToast: "You are using the latest version ({version}).",
+      changelogTitle: "What's new in this version:",
+      changelogLoading: "Loading changelog...",
+      changelogEmpty: "No commit details available.",
 
       // 6. Support & Bug Reports
       sectionSupport: "Support & Bug Reports",
@@ -592,7 +598,7 @@ const TRANSLATIONS = {
       removeParamBtnTitle: "Remove parameter",
 
       // Footer
-      requiredHint: "* Required field",
+      requiredHint: "Required field",
       cancelBtn: "Cancel",
       saveBtn: "Save Item",
       saveChangesBtn: "Save Changes"
