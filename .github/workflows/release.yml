@@ -20,6 +20,7 @@ jobs:
       - name: Installing rust
         uses: dtolnay/rust-toolchain@stable
       - name: Compiling and creating an installer
+        id: tauri_build
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -29,3 +30,22 @@ jobs:
           releaseBody: 'Automatically generated release of the Tracker app for Windows 11/10.'
           releaseDraft: false
           prerelease: false
+
+      - name: Upload portable executable
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = "${{ steps.tauri_build.outputs.releaseTagName }}"
+          if (-not $tag) {
+            $tag = "${{ github.ref_name }}"
+          }
+          if (-not $tag -or $tag -eq "main") {
+            $conf = Get-Content -Raw "src-tauri/tauri.conf.json" | ConvertFrom-Json
+            $tag = "v" + $conf.version
+          }
+          $cleanVer = $tag.TrimStart("v")
+          $portableName = "Tracker_${cleanVer}_x64_Portable.exe"
+          $targetPath = "src-tauri/target/release/$portableName"
+          Copy-Item "src-tauri/target/release/tracker.exe" -Destination $targetPath
+          gh release upload $tag $targetPath --clobber

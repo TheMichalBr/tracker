@@ -1210,8 +1210,44 @@ fn show_main_window(window: tauri::WebviewWindow) {
 
 /// Inicializace a spuštění Tauri v2 aplikace
 pub fn run() {
+    // 1. Zjištění Portable režimu hned při startu procesu
+    let exe_path = std::env::current_exe().ok();
+    let exe_name = exe_path
+        .as_ref()
+        .and_then(|p| p.file_name())
+        .and_then(|n| n.to_str())
+        .unwrap_or("")
+        .to_lowercase();
+
+    let exe_dir = exe_path
+        .as_ref()
+        .and_then(|p| p.parent().map(|d| d.to_path_buf()));
+
+    // Detekce portable: název souboru obsahuje "portable" (např. Tracker-Portable.exe),
+    // nebo vedle existuje portable.txt, .portable, podsložka data, případně je celá složka pojmenovaná portable.
+    let is_portable = exe_name.contains("portable")
+        || exe_dir.as_ref().map_or(false, |d| {
+            d.join("portable.txt").exists()
+                || d.join("data").exists()
+                || d.join(".portable").exists()
+                || d.file_name()
+                    .and_then(|n| n.to_str())
+                    .map_or(false, |n| n.to_lowercase().contains("portable"))
+        });
+
+    // V Portable režimu přesměrujeme mezipaměť WebView2 (cookies, cache, profily)
+    // přímo do lokální podsložky data/webview, takže se do AppData/LocalAppData nezapíše ani bajt!
+    #[cfg(target_os = "windows")]
+    if is_portable {
+        if let Some(ref d) = exe_dir {
+            let webview_dir = d.join("data").join("webview");
+            let _ = fs::create_dir_all(&webview_dir);
+            std::env::set_var("WEBVIEW2_USER_DATA_FOLDER", &webview_dir);
+        }
+    }
+
     tauri::Builder::default()
-        .setup(|app| {
+        .setup(move |app| {
             let main_win = app.get_webview_window("main");
             if let Some(w) = &main_win {
                 if let Some(icon) = app.default_window_icon() {
@@ -1226,19 +1262,14 @@ pub fn run() {
                 });
             }
 
-            // Zjištění složky aplikace: Podpora pro plnohodnotný Portable režim
-            // Pokud vedle souboru .exe existuje soubor 'portable.txt' nebo podsložka 'data',
-            // veškerá data (SQLite databáze i stažené obálky) se ukládají lokálně na stejné místo (např. USB flash disk).
-            let exe_dir = std::env::current_exe()
-                .ok()
-                .and_then(|p| p.parent().map(|d| d.to_path_buf()));
-
-            let is_portable = exe_dir.as_ref().map_or(false, |d| {
-                d.join("portable.txt").exists() || d.join("data").exists() || d.join(".portable").exists()
-            });
-
+            // Nastavení složky aplikace: Pokud jsme v Portable režimu,
+            // veškerá data (SQLite databáze, stažené obálky i dočasné importy) se ukládají
+            // lokálně přímo vedle .exe (např. na USB flash disku nebo přenosné složce).
             let app_data_dir = if is_portable {
-                let p_dir = exe_dir.unwrap().join("data");
+                let p_dir = exe_dir
+                    .as_ref()
+                    .expect("Nepodařilo se zjistit složku spustitelného souboru")
+                    .join("data");
                 let _ = fs::create_dir_all(&p_dir);
                 p_dir
             } else {
@@ -1253,6 +1284,10 @@ pub fn run() {
             let covers_dir = app_data_dir.join("covers");
             fs::create_dir_all(&covers_dir)
                 .expect("Nepodařilo se vytvořit podsložku 'covers'");
+
+            let temp_imports_dir = app_data_dir.join("temp_imports");
+            fs::create_dir_all(&temp_imports_dir)
+                .expect("Nepodařilo se vytvořit podsložku 'temp_imports'");
 
             let _ = app.asset_protocol_scope().allow_directory(&app_data_dir, true);
 
