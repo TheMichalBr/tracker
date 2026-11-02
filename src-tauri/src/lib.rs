@@ -997,6 +997,161 @@ fn get_app_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
 
+/// 10. Příkaz: Zjištění nejnovějšího vydání na GitHubu přes curl s User-Agent a záložním webovým přesměrováním
+#[tauri::command]
+fn check_github_update_ipc() -> Result<String, String> {
+    #[cfg(target_os = "windows")]
+    let curl_cmd = "curl.exe";
+    #[cfg(not(target_os = "windows"))]
+    let curl_cmd = "curl";
+
+    // Pomocná funkce pro vytvoření procesu curl bez otevírání konzolového okna na Windows
+    let create_curl_cmd = || {
+        let mut cmd = std::process::Command::new(curl_cmd);
+        #[cfg(target_os = "windows")]
+        {
+            use std::os::windows::process::CommandExt;
+            cmd.creation_flags(0x08000000); // CREATE_NO_WINDOW
+        }
+        cmd
+    };
+
+    // 1. Primární pokus přes GitHub REST API s povinným User-Agent headerem
+    let api_output = create_curl_cmd()
+        .args([
+            "-s",
+            "-L",
+            "--max-time", "6",
+            "-A", "Tracker-Desktop-App/1.0",
+            "-H", "Accept: application/vnd.github.v3+json",
+            "https://api.github.com/repos/TheMichalBr/tracker/releases/latest",
+        ])
+        .output();
+
+    if let Ok(out) = api_output {
+        if out.status.success() {
+            let body = String::from_utf8_lossy(&out.stdout).to_string();
+            if body.contains("\"tag_name\"") && !body.contains("rate limit exceeded") {
+                return Ok(body);
+            }
+        }
+    }
+
+    // 2. Sekundární záchranný pokus (při vyčerpání hodinového limitu 60 požadavků GitHub API):
+    // Zjistíme cílovou URL z hlavičky přesměrování https://github.com/TheMichalBr/tracker/releases/latest
+    // DŮLEŽITÉ: Pouze -I bez -L! S parametrem -I dostaneme okamžitě (cca 150-200 ms) HTTP 302 a hlavičku Location.
+    let redirect_output = create_curl_cmd()
+        .args([
+            "-s",
+            "-I",
+            "--max-time", "6",
+            "-A", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+            "https://github.com/TheMichalBr/tracker/releases/latest",
+        ])
+        .output();
+
+    let mut detected_tag = String::new();
+
+    if let Ok(rout) = redirect_output {
+        let headers = String::from_utf8_lossy(&rout.stdout);
+        for line in headers.lines() {
+            let lower = line.to_lowercase();
+            if lower.starts_with("location:") {
+                let parts: Vec<&str> = line.split_whitespace().collect();
+                if let Some(target_url) = parts.get(1) {
+                    if let Some(tag) = target_url.split("/releases/tag/").nth(1) {
+                        let clean = tag.trim_matches(|c: char| c == '/' || c == '\r' || c == '\n');
+                        if !clean.is_empty() {
+                            detected_tag = clean.to_string();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 3. Terciální pokus přes raw.githubusercontent.com (pokud by redirect selhal)
+    if detected_tag.is_empty() {
+        let raw_output = create_curl_cmd()
+            .args([
+                "-s",
+                "--max-time", "6",
+                "https://raw.githubusercontent.com/TheMichalBr/tracker/main/src-tauri/tauri.conf.json",
+            ])
+            .output();
+
+        if let Ok(raw_out) = raw_output {
+            if raw_out.status.success() {
+                let body = String::from_utf8_lossy(&raw_out.stdout);
+                if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&body) {
+                    if let Some(version_str) = parsed.get("version").and_then(|v| v.as_str()) {
+                        let clean_ver = version_str.trim().trim_start_matches('v');
+                        if !clean_ver.is_empty() {
+                            detected_tag = format!("v{}", clean_ver);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if !detected_tag.is_empty() {
+        let clean_ver = detected_tag.trim_start_matches('v');
+        // Zkusíme načíst recent commit zprávy z veřejného atom feedu pro changelog bez jakýchkoliv API limitů
+        let mut changelog_body = String::new();
+        let atom_output = create_curl_cmd()
+            .args([
+                "-s",
+                "--max-time", "5",
+                "https://github.com/TheMichalBr/tracker/commits/main.atom",
+            ])
+            .output();
+
+        if let Ok(atom_out) = atom_output {
+            if atom_out.status.success() {
+                let atom_xml = String::from_utf8_lossy(&atom_out.stdout);
+                if let Some(pre_start) = atom_xml.find("&lt;pre") {
+                    if let Some(content_start) = atom_xml[pre_start..].find("&gt;") {
+                        let start_idx = pre_start + content_start + 4;
+                        if let Some(end_idx) = atom_xml[start_idx..].find("&lt;/pre&gt;") {
+                            let raw_text = &atom_xml[start_idx..start_idx + end_idx];
+                            changelog_body = raw_text
+                                .replace("&amp;", "&")
+                                .replace("&lt;", "<")
+                                .replace("&gt;", ">")
+                                .replace("&#39;", "'")
+                                .replace("&quot;", "\"")
+                                .trim()
+                                .to_string();
+                        }
+                    }
+                }
+            }
+        }
+
+        let fallback_json = serde_json::json!({
+            "tag_name": detected_tag,
+            "name": format!("Tracker {}", detected_tag),
+            "html_url": format!("https://github.com/TheMichalBr/tracker/releases/tag/{}", detected_tag),
+            "body": changelog_body,
+            "assets": [
+                {
+                    "name": format!("Tracker_{}_x64_en-US.msi", clean_ver),
+                    "browser_download_url": format!("https://github.com/TheMichalBr/tracker/releases/download/{}/Tracker_{}_x64_en-US.msi", detected_tag, clean_ver)
+                },
+                {
+                    "name": format!("Tracker_{}_x64-setup.exe", clean_ver),
+                    "browser_download_url": format!("https://github.com/TheMichalBr/tracker/releases/download/{}/Tracker_{}_x64-setup.exe", detected_tag, clean_ver)
+                }
+            ]
+        });
+        return Ok(fallback_json.to_string());
+    }
+
+    Err("Nepodařilo se načíst informace o aktualizaci z GitHubu.".to_string())
+}
+
 /// Zobrazí hlavní okno aplikace po dokončení vykreslení HTML/CSS,
 /// čímž se stoprocentně zamezí jakémukoliv probliknutí šedé barvy WebView2.
 #[tauri::command]
@@ -1205,7 +1360,8 @@ pub fn run() {
             download_and_save_image,
             update_item_status,
             open_url,
-            get_app_version
+            get_app_version,
+            check_github_update_ipc
         ])
         .run(tauri::generate_context!())
         .expect("Chyba při běhu aplikace Tracker");

@@ -1601,7 +1601,7 @@
             <h3 class="settings-section-title" data-i18n="settings.sectionUpdates">Aktualizace aplikace</h3>
           </div>
           
-          <div class="settings-card-row">
+          <div class="settings-card-row settings-update-row" id="settingsUpdateRow">
             <div class="settings-card-text">
               <div class="settings-version-header">
                 <span class="settings-item-label" data-i18n="settings.currentVersionLabel">Nainstalovaná verze</span>
@@ -1610,13 +1610,7 @@
               </div>
               <div class="settings-item-desc" id="updateStatusText" data-i18n-html="settings.updateCheckDesc">Ověřte, zda je na GitHubu k dispozici novější verze aplikace Tracker.</div>
             </div>
-            <div class="settings-update-actions">
-              <button type="button" id="checkUpdateBtn" class="btn btn-secondary settings-action-btn">
-                <svg class="btn-svg-icon" id="checkUpdateIcon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
-                </svg>
-                <span id="checkUpdateBtnText" data-i18n="settings.checkUpdateBtn">Zkontrolovat aktualizace</span>
-              </button>
+            <div class="settings-update-actions" id="settingsUpdateActions">
               <button type="button" id="downloadUpdateBtn" class="btn btn-primary settings-action-btn hidden">
                 <svg class="btn-svg-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -1632,6 +1626,12 @@
                   <line x1="10" y1="14" x2="21" y2="3"></line>
                 </svg>
                 <span data-i18n="settings.viewReleaseNotes">Zobrazit novinky</span>
+              </button>
+              <button type="button" id="checkUpdateBtn" class="btn btn-secondary settings-action-btn">
+                <svg class="btn-svg-icon" id="checkUpdateIcon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                </svg>
+                <span id="checkUpdateBtnText" data-i18n="settings.checkUpdateBtn">Zkontrolovat aktualizace</span>
               </button>
             </div>
           </div>

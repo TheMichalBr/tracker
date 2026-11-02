@@ -3323,12 +3323,40 @@ img {
   }
 }
 
+.settings-update-row {
+  transition: all 0.2s ease-in-out;
+}
+
+.settings-update-row.has-update {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.settings-update-row.has-update .settings-card-text {
+  width: 100%;
+}
+
 .settings-update-actions {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
   flex-wrap: wrap;
+}
+
+.settings-update-row.has-update .settings-update-actions {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.settings-update-row.has-update .settings-update-actions .btn {
+  flex: 1 1 auto;
+  justify-content: center;
+  min-width: 135px;
 }
 
 .spin-animation {

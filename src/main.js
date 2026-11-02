@@ -2868,16 +2868,77 @@ async function handleCheckForUpdates(manual = true) {
   }
 
   try {
-    const res = await fetch(GITHUB_REPO_API, {
-      headers: { Accept: "application/vnd.github.v3+json" },
-      cache: "no-cache",
-    });
+    let release = null;
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
+    // 1. Primárně zkusíme spolehlivé volání přes Tauri backend (s User-Agent a webovým fallbackem bez rate limitu)
+    try {
+      const raw = await tauriInvoke("check_github_update_ipc");
+      if (raw) {
+        const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+        if (parsed && parsed.tag_name) {
+          release = parsed;
+        }
+      }
+    } catch (ipcErr) {
+      console.warn("Tauri check_github_update_ipc selhalo nebo není v aktuálním buildu:", ipcErr);
     }
 
-    const release = await res.json();
+    // 2. Přímý fetch přes GitHub REST API
+    if (!release) {
+      try {
+        const res = await fetch(GITHUB_REPO_API, {
+          headers: { Accept: "application/vnd.github.v3+json" },
+          cache: "no-cache",
+        });
+
+        if (res.ok) {
+          release = await res.json();
+        } else if (res.status === 403 || res.status === 429) {
+          console.warn("GitHub REST API rate limit vyčerpán (403/429), přepínám na CDN fallback...");
+        }
+      } catch (fetchErr) {
+        console.warn("Přímý fetch na GitHub API selhal:", fetchErr);
+      }
+    }
+
+    // 3. Spolehlivý CDN fallback přes raw.githubusercontent.com (má CORS * a nepodléhá limitu 60 req/hod)
+    if (!release) {
+      try {
+        const rawRes = await fetch(
+          "https://raw.githubusercontent.com/TheMichalBr/tracker/main/src-tauri/tauri.conf.json",
+          { cache: "no-cache" }
+        );
+        if (rawRes.ok) {
+          const conf = await rawRes.json();
+          if (conf && conf.version) {
+            const cleanVer = String(conf.version).trim().replace(/^v/i, "");
+            const tag = `v${cleanVer}`;
+            release = {
+              tag_name: tag,
+              name: `Tracker ${tag}`,
+              html_url: `https://github.com/TheMichalBr/tracker/releases/tag/${tag}`,
+              assets: [
+                {
+                  name: `Tracker_${cleanVer}_x64_en-US.msi`,
+                  browser_download_url: `https://github.com/TheMichalBr/tracker/releases/download/${tag}/Tracker_${cleanVer}_x64_en-US.msi`,
+                },
+                {
+                  name: `Tracker_${cleanVer}_x64-setup.exe`,
+                  browser_download_url: `https://github.com/TheMichalBr/tracker/releases/download/${tag}/Tracker_${cleanVer}_x64-setup.exe`,
+                },
+              ],
+            };
+          }
+        }
+      } catch (cdnErr) {
+        console.warn("CDN raw.githubusercontent.com fallback selhal:", cdnErr);
+      }
+    }
+
+    if (!release || !release.tag_name) {
+      throw new Error("UPDATE_CHECK_FAILED");
+    }
+
     latestReleaseData = release;
     const latestTag = release.tag_name || "";
     const isNewer = compareSemver(latestTag, APP_VERSION) > 0;
@@ -2888,6 +2949,9 @@ async function handleCheckForUpdates(manual = true) {
 
     if (isNewer) {
       // Nová verze k dispozici
+      const updateRow = document.getElementById("settingsUpdateRow");
+      if (updateRow) updateRow.classList.add("has-update");
+
       if (badgeStatus) {
         badgeStatus.className = "update-status-pill new-available";
         badgeStatus.textContent = latestTag;
@@ -2914,6 +2978,9 @@ async function handleCheckForUpdates(manual = true) {
       }
     } else {
       // Aktuální verze
+      const updateRow = document.getElementById("settingsUpdateRow");
+      if (updateRow) updateRow.classList.remove("has-update");
+
       const changelogBox = document.getElementById("updateChangelogBox");
       if (changelogBox) changelogBox.classList.add("hidden");
 
@@ -2942,24 +3009,35 @@ async function handleCheckForUpdates(manual = true) {
     }
   } catch (err) {
     console.warn("Chyba při kontrole aktualizací:", err);
+    const updateRow = document.getElementById("settingsUpdateRow");
+    if (updateRow) updateRow.classList.remove("has-update");
+
     const changelogBox = document.getElementById("updateChangelogBox");
     if (changelogBox) changelogBox.classList.add("hidden");
 
+    const isRateLimit = String(err?.message || "").includes("RATE_LIMIT") || String(err || "").includes("403");
+    const isEn = window.i18n && window.i18n.getLanguage() === "en";
+
     if (badgeStatus) {
       badgeStatus.className = "update-status-pill error";
-      const isEn = window.i18n && window.i18n.getLanguage() === "en";
-      badgeStatus.textContent = isEn ? "Offline" : "Chyba";
+      badgeStatus.textContent = isRateLimit ? (isEn ? "Rate limit" : "Limit API") : (isEn ? "Offline" : "Chyba");
       badgeStatus.classList.remove("hidden");
     }
     if (statusText) {
-      statusText.textContent = window.i18n
-        ? window.i18n.t("settings.updateCheckError")
-        : "Nepodařilo se ověřit aktualizace. Zkontrolujte připojení k internetu.";
+      if (isRateLimit) {
+        statusText.textContent = window.i18n
+          ? window.i18n.t("settings.rateLimitError")
+          : "Byl dočasně vyčerpán limit GitHub API (60 dotazů/hod). Zkuste to prosím za chvíli.";
+      } else {
+        statusText.textContent = window.i18n
+          ? window.i18n.t("settings.updateCheckError")
+          : "Nepodařilo se ověřit aktualizace. Zkontrolujte připojení k internetu.";
+      }
     }
     if (manual) {
-      const errMsg = window.i18n
-        ? window.i18n.t("settings.updateCheckError")
-        : "Nepodařilo se ověřit aktualizace.";
+      const errMsg = isRateLimit
+        ? (window.i18n ? window.i18n.t("settings.rateLimitError") : "Byl dočasně vyčerpán limit GitHub API.")
+        : (window.i18n ? window.i18n.t("settings.updateCheckError") : "Nepodařilo se ověřit aktualizace.");
       showToast(errMsg);
     }
   } finally {
@@ -2976,11 +3054,11 @@ async function handleCheckForUpdates(manual = true) {
 
 function handleDownloadUpdate() {
   if (!latestReleaseData) return;
-  // Pokusíme se najít přímý instalátor (.exe nebo .msi)
+  // Pokusíme se najít přímý instalátor: prioritně .msi balíček, poté .exe jako fallback
   if (Array.isArray(latestReleaseData.assets) && latestReleaseData.assets.length > 0) {
     const setupAsset =
-      latestReleaseData.assets.find((a) => a.name && (a.name.endsWith("-setup.exe") || a.name.endsWith(".exe"))) ||
-      latestReleaseData.assets.find((a) => a.name && a.name.endsWith(".msi")) ||
+      latestReleaseData.assets.find((a) => a.name && (a.name.toLowerCase().endsWith(".msi") || a.name.toLowerCase().endsWith("-setup.msi"))) ||
+      latestReleaseData.assets.find((a) => a.name && (a.name.toLowerCase().endsWith("-setup.exe") || a.name.toLowerCase().endsWith(".exe"))) ||
       latestReleaseData.assets[0];
 
     if (setupAsset && setupAsset.browser_download_url) {
@@ -3012,6 +3090,22 @@ async function fetchAndDisplayChangelog(latestTag) {
 
   const commitMessages = [];
 
+  // Pomocná funkce pro filtraci a očištění řádků poznámek k verzi
+  function processNoteLines(lines) {
+    if (!Array.isArray(lines) || lines.length === 0) return;
+    // První řádek je obvykle hlavní summary/název verze (např. "v1.0.12 - Tracker"), samotné poznámky začínají od 2. řádku
+    const noteLines = lines.length > 1 ? lines.slice(1) : lines;
+    for (const line of noteLines) {
+      if (/^merge (branch|pull request)/i.test(line)) continue;
+      // Přeskočíme případné samostatné řádky s verzí
+      if (/^v?\d+(\.\d+)+(\s*[-–—:]\s*tracker|\s*[-–—:]|\s*$)/i.test(line)) continue;
+      const cleanLine = line.replace(/^[-*•#]\s*/, "").trim();
+      if (cleanLine && !commitMessages.includes(cleanLine)) {
+        commitMessages.push(cleanLine);
+      }
+    }
+  }
+
   // 1. Zkusíme GitHub Compare API mezi aktuální a novou verzí
   try {
     const compareUrl = `https://api.github.com/repos/TheMichalBr/tracker/compare/v${cleanCurrent}...v${cleanLatest}`;
@@ -3027,13 +3121,7 @@ async function fetchAndDisplayChangelog(latestTag) {
           const rawMsg = c.commit?.message || "";
           if (!rawMsg) continue;
           const lines = rawMsg.split("\n").map((l) => l.trim()).filter(Boolean);
-          for (const line of lines) {
-            if (/^merge (branch|pull request)/i.test(line)) continue;
-            const cleanLine = line.replace(/^[-*•]\s*/, "").trim();
-            if (cleanLine && !commitMessages.includes(cleanLine)) {
-              commitMessages.push(cleanLine);
-            }
-          }
+          processNoteLines(lines);
         }
       }
     }
@@ -3046,19 +3134,14 @@ async function fetchAndDisplayChangelog(latestTag) {
     const rawBody = latestReleaseData.body.trim();
     if (rawBody && !rawBody.includes("Automatically generated release of the Tracker app")) {
       const lines = rawBody.split("\n").map((l) => l.trim()).filter(Boolean);
-      for (const line of lines) {
-        const cleanLine = line.replace(/^[-*•#]\s*/, "").trim();
-        if (cleanLine && !commitMessages.includes(cleanLine)) {
-          commitMessages.push(cleanLine);
-        }
-      }
+      processNoteLines(lines);
     }
   }
 
   // 3. Vykreslení nalezených změn
   changelogList.innerHTML = "";
   if (commitMessages.length > 0) {
-    const maxItems = commitMessages.slice(0, 10);
+    const maxItems = commitMessages.slice(0, 12);
     maxItems.forEach((msg) => {
       const li = document.createElement("li");
       li.className = "settings-changelog-item";
