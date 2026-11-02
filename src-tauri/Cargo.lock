@@ -4068,7 +4068,7 @@ dependencies = [
 
 [[package]]
 name = "tracker"
-version = "1.0.13"
+version = "1.1.0"
 dependencies = [
  "base64 0.22.1",
  "rfd",

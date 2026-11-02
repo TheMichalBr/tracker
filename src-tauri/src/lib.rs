@@ -7,6 +7,12 @@ use std::sync::Mutex;
 use tauri::Manager;
 use uuid::Uuid;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
+#[cfg(target_os = "windows")]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
+
 /// Kompletní reprezentace jedné položky (Film, Seriál, Hra)
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MediaItem {
@@ -742,8 +748,9 @@ fn open_data_folder(state: tauri::State<'_, AppState>) -> Result<(), String> {
 
     #[cfg(target_os = "windows")]
     {
-        std::process::Command::new("explorer")
-            .arg(path)
+        let mut cmd = std::process::Command::new("explorer");
+        cmd.creation_flags(CREATE_NO_WINDOW);
+        cmd.arg(path)
             .spawn()
             .map_err(|e| format!("Chyba při otevírání Průzkumníka: {}", e))?;
     }
@@ -899,8 +906,10 @@ fn download_and_save_image(
     }
 
     #[cfg(target_os = "windows")]
-    let output = std::process::Command::new("curl.exe")
-        .args([
+    let output = {
+        let mut cmd = std::process::Command::new("curl.exe");
+        cmd.creation_flags(CREATE_NO_WINDOW);
+        cmd.args([
             "-s",
             "-L",
             "--max-time",
@@ -910,7 +919,8 @@ fn download_and_save_image(
             trimmed,
         ])
         .output()
-        .map_err(|e| format!("Nepodařilo se spustit stahování curl: {}", e))?;
+        .map_err(|e| format!("Nepodařilo se spustit stahování curl: {}", e))?
+    };
 
     #[cfg(not(target_os = "windows"))]
     let output = std::process::Command::new("curl")
@@ -969,10 +979,49 @@ fn open_url(url: String) -> Result<(), String> {
 
     #[cfg(target_os = "windows")]
     {
-        std::process::Command::new("cmd")
-            .args(["/C", "start", "", trimmed])
-            .spawn()
-            .map_err(|e| format!("Chyba při otevírání odkazu: {}", e))?;
+        use std::ffi::OsStr;
+        use std::os::windows::ffi::OsStrExt;
+
+        let wide_url: Vec<u16> = OsStr::new(trimmed)
+            .encode_wide()
+            .chain(std::iter::once(0))
+            .collect();
+        let wide_op: Vec<u16> = OsStr::new("open")
+            .encode_wide()
+            .chain(std::iter::once(0))
+            .collect();
+
+        extern "system" {
+            fn ShellExecuteW(
+                hwnd: *mut std::ffi::c_void,
+                lp_operation: *const u16,
+                lp_file: *const u16,
+                lp_parameters: *const u16,
+                lp_directory: *const u16,
+                n_show_cmd: i32,
+            ) -> isize;
+        }
+
+        let ret = unsafe {
+            ShellExecuteW(
+                std::ptr::null_mut(),
+                wide_op.as_ptr(),
+                wide_url.as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                1, // SW_SHOWNORMAL
+            )
+        };
+
+        // Návratová hodnota > 32 značí úspěšné otevření přes ShellExecuteW
+        if ret <= 32 {
+            // Záchranný fallback bez cmd.exe přes GUI explorer.exe
+            let mut cmd = std::process::Command::new("explorer.exe");
+            cmd.creation_flags(CREATE_NO_WINDOW);
+            cmd.arg(trimmed)
+                .spawn()
+                .map_err(|e| format!("Chyba při otevírání odkazu: {}", e))?;
+        }
     }
     #[cfg(target_os = "macos")]
     {
@@ -1010,8 +1059,7 @@ fn check_github_update_ipc() -> Result<String, String> {
         let mut cmd = std::process::Command::new(curl_cmd);
         #[cfg(target_os = "windows")]
         {
-            use std::os::windows::process::CommandExt;
-            cmd.creation_flags(0x08000000); // CREATE_NO_WINDOW
+            cmd.creation_flags(CREATE_NO_WINDOW);
         }
         cmd
     };
