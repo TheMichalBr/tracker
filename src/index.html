@@ -280,7 +280,7 @@
       </div>
       <div class="splash-brand">
         <h1 class="splash-title">Tracker</h1>
-        <span class="splash-badge">v1.0</span>
+        <span class="splash-badge">v1.0.11</span>
       </div>
       <p class="splash-subtitle" data-i18n="main.subtitle">Evidence filmů, seriálů a her.</p>
       <div class="splash-loader-bar">
@@ -408,7 +408,7 @@
         <div>
           <div class="brand-title-row">
             <h1>Tracker</h1>
-            <span class="version-tag">v1.0</span>
+            <span class="version-tag">v1.0.11</span>
           </div>
           <p class="subtitle" data-i18n="main.subtitle">Evidence filmů, seriálů a her.</p>
         </div>
@@ -1334,7 +1334,7 @@
                 </button>
               </div>
             </div>
-            <select id="settingsAppLang" style="display: none;">
+            <select id="settingsAppLang" class="hidden" style="display: none !important;" aria-hidden="true" tabindex="-1">
               <option value="cs">Čeština</option>
               <option value="en">English</option>
             </select>
@@ -1380,7 +1380,7 @@
                 </button>
               </div>
             </div>
-            <select id="settingsDefaultView" style="display: none;">
+            <select id="settingsDefaultView" class="hidden" style="display: none !important;" aria-hidden="true" tabindex="-1">
               <option value="grid">Dlaždice</option>
               <option value="compact">Kompaktní mřížka</option>
               <option value="list">Detailní seznam</option>
@@ -1422,7 +1422,7 @@
                 </button>
               </div>
             </div>
-            <select id="settingsItemsPerPage" style="display: none;">
+            <select id="settingsItemsPerPage" class="hidden" style="display: none !important;" aria-hidden="true" tabindex="-1">
               <option value="12">12 položek</option>
               <option value="24">24 položek</option>
               <option value="48">48 položek</option>
@@ -1555,8 +1555,8 @@
             </div>
           </div>
 
-          <div>
-            <button type="button" id="optimizeCoversBtn" class="btn btn-secondary" style="width: 100%; justify-content: center;" title="Legacy: Převede stávající obálky na úsporný formát WebP (500×750 px)" data-i18n-title="settings.optimizeCoversTitle">
+          <div class="settings-fullwidth-action">
+            <button type="button" id="optimizeCoversBtn" class="btn btn-secondary settings-btn-fullwidth" style="width: 100%; justify-content: center;" title="Legacy: Převede stávající obálky na úsporný formát WebP (500×750 px)" data-i18n-title="settings.optimizeCoversTitle">
               <svg class="btn-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
               </svg>
@@ -1592,7 +1592,52 @@
           </div>
         </div>
 
-        <!-- 5. Podpora a hlášení chyb -->
+        <!-- 5. Aktualizace aplikace -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <svg class="settings-section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            <h3 class="settings-section-title" data-i18n="settings.sectionUpdates">Aktualizace aplikace</h3>
+          </div>
+          
+          <div class="settings-card-row">
+            <div class="settings-card-text">
+              <div class="settings-version-header">
+                <span class="settings-item-label" data-i18n="settings.currentVersionLabel">Nainstalovaná verze</span>
+                <span class="settings-version-pill" id="settingsCurrentVersion">v1.0.11</span>
+                <span id="updateBadgeStatus" class="update-status-pill hidden"></span>
+              </div>
+              <div class="settings-item-desc" id="updateStatusText" data-i18n-html="settings.updateCheckDesc">Ověřte, zda je na GitHubu k dispozici novější verze aplikace Tracker.</div>
+            </div>
+            <div class="settings-update-actions">
+              <button type="button" id="checkUpdateBtn" class="btn btn-secondary settings-action-btn">
+                <svg class="btn-svg-icon" id="checkUpdateIcon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                </svg>
+                <span id="checkUpdateBtnText" data-i18n="settings.checkUpdateBtn">Zkontrolovat aktualizace</span>
+              </button>
+              <button type="button" id="downloadUpdateBtn" class="btn btn-primary settings-action-btn hidden">
+                <svg class="btn-svg-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span id="downloadUpdateBtnText" data-i18n="settings.downloadUpdateBtn">Stáhnout novou verzi</span>
+              </button>
+              <button type="button" id="viewReleaseNotesBtn" class="btn btn-secondary settings-action-btn hidden" title="Zobrazit poznámky k vydání na GitHubu">
+                <svg class="btn-svg-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+                <span data-i18n="settings.viewReleaseNotes">Zobrazit novinky</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Podpora a hlášení chyb -->
         <div class="settings-section">
           <div class="settings-section-header">
             <svg class="settings-section-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">

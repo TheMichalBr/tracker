@@ -3018,6 +3018,20 @@ img {
   gap: 16px;
 }
 
+/* Pomocné skryté selecty v nastavení (vyloučení z flexbox toku a stoprocentní skrytí) */
+.settings-item select,
+#settingsAppLang,
+#settingsDefaultView,
+#settingsItemsPerPage {
+  display: none !important;
+  visibility: hidden !important;
+  position: absolute !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 .settings-item-label {
   font-size: 13px;
   font-weight: 600;
@@ -3203,6 +3217,17 @@ img {
   justify-content: center;
 }
 
+/* Akční tlačítko na plnou šířku (např. Optimalizace obálek) */
+.settings-fullwidth-action {
+  width: 100%;
+}
+
+#optimizeCoversBtn,
+.settings-btn-fullwidth {
+  width: 100% !important;
+  justify-content: center !important;
+}
+
 .settings-card-row {
   display: flex;
   align-items: center;
@@ -3229,6 +3254,90 @@ img {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+}
+
+/* Aktualizace aplikace */
+.settings-version-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.settings-version-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  line-height: 1;
+  background: rgba(99, 102, 241, 0.14);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.32);
+}
+
+.update-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.update-status-pill.up-to-date {
+  background: rgba(16, 185, 129, 0.14);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.update-status-pill.new-available {
+  background: rgba(245, 158, 11, 0.16);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  animation: pulse-update-glow 2s infinite ease-in-out;
+}
+
+.update-status-pill.error {
+  background: rgba(239, 68, 68, 0.14);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+@keyframes pulse-update-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 8px 2px rgba(245, 158, 11, 0.25);
+  }
+}
+
+.settings-update-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.spin-animation {
+  animation: spin-update 0.8s linear infinite;
+}
+
+@keyframes spin-update {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* API klíče sekce */

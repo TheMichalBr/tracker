@@ -72,7 +72,22 @@ const TRANSLATIONS = {
       backupHint: "📁 Uloží se do složky: Stažené soubory",
       exportBackupBtn: "Vytvořit zálohu (.json)",
 
-      // 5. Podpora a hlášení chyb
+      // 5. Aktualizace aplikace
+      sectionUpdates: "Aktualizace aplikace",
+      currentVersionLabel: "Nainstalovaná verze",
+      updateCheckDesc: "Ověřte, zda je na GitHubu k dispozici novější verze aplikace Tracker.",
+      checkUpdateBtn: "Zkontrolovat aktualizace",
+      checkingUpdates: "Ověřuji...",
+      checkAgainBtn: "Zkontrolovat znovu",
+      upToDateStatus: "Máte nejnovější verzi aplikace ({version}).",
+      updateAvailableStatus: "Je k dispozici nová verze: <strong>{version}</strong>!",
+      downloadUpdateBtn: "Stáhnout novou verzi",
+      viewReleaseNotes: "Zobrazit novinky",
+      updateCheckError: "Nepodařilo se ověřit aktualizace. Zkontrolujte připojení k internetu.",
+      newVersionToast: "Byla nalezena nová verze aplikace Tracker ({version})!",
+      upToDateToast: "Používáte nejnovější verzi ({version}).",
+
+      // 6. Podpora a hlášení chyb
       sectionSupport: "Podpora a hlášení chyb",
       supportDesc: "Našli jste v aplikaci chybu nebo máte nápad na vylepšení? Otevřete issue na GitHubu projektu.",
       reportBugBtn: "Nahlásit chybu",
@@ -432,7 +447,22 @@ const TRANSLATIONS = {
       backupHint: "📁 Saved to folder: Downloads",
       exportBackupBtn: "Create Backup (.json)",
 
-      // 5. Support & Bug Reports
+      // 5. Application Updates
+      sectionUpdates: "Application Updates",
+      currentVersionLabel: "Installed version",
+      updateCheckDesc: "Check if a newer version of Tracker is available on GitHub.",
+      checkUpdateBtn: "Check for Updates",
+      checkingUpdates: "Checking...",
+      checkAgainBtn: "Check Again",
+      upToDateStatus: "You have the latest version of the app ({version}).",
+      updateAvailableStatus: "A new version is available: <strong>{version}</strong>!",
+      downloadUpdateBtn: "Download New Version",
+      viewReleaseNotes: "View Release Notes",
+      updateCheckError: "Failed to check for updates. Please check your internet connection.",
+      newVersionToast: "A new version of Tracker was found ({version})!",
+      upToDateToast: "You are using the latest version ({version}).",
+
+      // 6. Support & Bug Reports
       sectionSupport: "Support & Bug Reports",
       supportDesc: "Found a bug or have an idea for improvement? Open an issue on GitHub.",
       reportBugBtn: "Report a Bug",

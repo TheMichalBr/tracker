@@ -991,6 +991,12 @@ fn open_url(url: String) -> Result<(), String> {
     Ok(())
 }
 
+/// 9. Příkaz: Získání aktuální verze aplikace přímo z Cargo.toml
+#[tauri::command]
+fn get_app_version() -> String {
+    env!("CARGO_PKG_VERSION").to_string()
+}
+
 /// Zobrazí hlavní okno aplikace po dokončení vykreslení HTML/CSS,
 /// čímž se stoprocentně zamezí jakémukoliv probliknutí šedé barvy WebView2.
 #[tauri::command]
@@ -1198,7 +1204,8 @@ pub fn run() {
             save_image_from_base64,
             download_and_save_image,
             update_item_status,
-            open_url
+            open_url,
+            get_app_version
         ])
         .run(tauri::generate_context!())
         .expect("Chyba při běhu aplikace Tracker");

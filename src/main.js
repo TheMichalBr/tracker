@@ -247,6 +247,12 @@ function setupGridImageObserver() {
   }
 }
 
+// Verze aplikace a repozitář pro aktualizace
+let APP_VERSION = "1.0.11";
+const GITHUB_REPO_API = "https://api.github.com/repos/TheMichalBr/tracker/releases/latest";
+let latestReleaseData = null;
+let isCheckingUpdate = false;
+
 // Globální stav
 let allItems = [];
 let activeFilter = "all";
@@ -510,6 +516,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.documentElement.removeAttribute("data-accent");
   localStorage.removeItem("tracker_accent_color");
 
+  // Synchronizace aktuální verze aplikace z Cargo.toml
+  syncAppVersion();
+
   // Aplikace jazyka na celou aplikaci
   if (window.i18n) {
     window.i18n.applyTranslations();
@@ -529,6 +538,19 @@ document.addEventListener("DOMContentLoaded", () => {
           curLang
         );
         refreshSettingsStorageInfo();
+        const badgeStatus = document.getElementById("updateBadgeStatus");
+        if (badgeStatus && !badgeStatus.classList.contains("hidden")) {
+          const isEn = curLang === "en";
+          if (badgeStatus.classList.contains("up-to-date")) {
+            badgeStatus.textContent = isEn ? "✓ Latest" : "✓ Aktuální";
+            const statusText = document.getElementById("updateStatusText");
+            if (statusText) {
+              statusText.textContent = window.i18n.t("settings.upToDateStatus", { version: `v${APP_VERSION}` });
+            }
+          } else if (badgeStatus.classList.contains("error")) {
+            badgeStatus.textContent = isEn ? "Offline" : "Chyba";
+          }
+        }
       }
       const currentTypeRadio = document.querySelector('input[name="itemType"]:checked');
       if (currentTypeRadio) {
@@ -924,6 +946,22 @@ function setupEventListeners() {
   if (reportBugBtn) {
     reportBugBtn.addEventListener("click", () => {
       openExternalUrl("https://github.com/TheMichalBr/tracker/issues?q=sort%3Aupdated-desc+is%3Aissue+state%3Aopen+");
+    });
+  }
+  const checkUpdateBtn = document.getElementById("checkUpdateBtn");
+  if (checkUpdateBtn) {
+    checkUpdateBtn.addEventListener("click", () => handleCheckForUpdates(true));
+  }
+  const downloadUpdateBtn = document.getElementById("downloadUpdateBtn");
+  if (downloadUpdateBtn) {
+    downloadUpdateBtn.addEventListener("click", handleDownloadUpdate);
+  }
+  const viewReleaseNotesBtn = document.getElementById("viewReleaseNotesBtn");
+  if (viewReleaseNotesBtn) {
+    viewReleaseNotesBtn.addEventListener("click", () => {
+      if (latestReleaseData && latestReleaseData.html_url) {
+        openExternalUrl(latestReleaseData.html_url);
+      }
     });
   }
   const openTmdbApiWebBtn = document.getElementById("openTmdbApiWebBtn");
@@ -2782,6 +2820,192 @@ function handleExportData() {
       ? window.i18n.t("settings.exportErrorToast")
       : "Nepodařilo se exportovat zálohu: ";
     showToast(prefix + err);
+  }
+}
+
+// ==========================================================================
+// Kontrola aktualizací z GitHub Releases API
+// ==========================================================================
+function compareSemver(v1, v2) {
+  if (!v1 || !v2) return 0;
+  const p1 = v1.toString().replace(/^v/i, "").split(".").map((n) => parseInt(n, 10) || 0);
+  const p2 = v2.toString().replace(/^v/i, "").split(".").map((n) => parseInt(n, 10) || 0);
+  const len = Math.max(p1.length, p2.length);
+  for (let i = 0; i < len; i++) {
+    const num1 = p1[i] || 0;
+    const num2 = p2[i] || 0;
+    if (num1 > num2) return 1;
+    if (num1 < num2) return -1;
+  }
+  return 0;
+}
+
+async function handleCheckForUpdates(manual = true) {
+  if (isCheckingUpdate) return;
+  isCheckingUpdate = true;
+
+  const checkBtn = document.getElementById("checkUpdateBtn");
+  const checkIcon = document.getElementById("checkUpdateIcon");
+  const checkBtnText = document.getElementById("checkUpdateBtnText");
+  const downloadBtn = document.getElementById("downloadUpdateBtn");
+  const notesBtn = document.getElementById("viewReleaseNotesBtn");
+  const statusText = document.getElementById("updateStatusText");
+  const badgeStatus = document.getElementById("updateBadgeStatus");
+
+  if (checkBtn) checkBtn.disabled = true;
+  if (checkIcon) checkIcon.classList.add("spin-animation");
+  if (checkBtnText) {
+    checkBtnText.textContent = window.i18n ? window.i18n.t("settings.checkingUpdates") : "Ověřuji...";
+  }
+  if (statusText) {
+    statusText.textContent = window.i18n
+      ? (window.i18n.getLanguage() === "en" ? "Checking for updates on GitHub..." : "Zjišťuji dostupnost nové verze na GitHubu...")
+      : "Zjišťuji dostupnost nové verze na GitHubu...";
+  }
+
+  try {
+    const res = await fetch(GITHUB_REPO_API, {
+      headers: { Accept: "application/vnd.github.v3+json" },
+      cache: "no-cache",
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    const release = await res.json();
+    latestReleaseData = release;
+    const latestTag = release.tag_name || "";
+    const isNewer = compareSemver(latestTag, APP_VERSION) > 0;
+
+    if (badgeStatus) {
+      badgeStatus.classList.remove("hidden");
+    }
+
+    if (isNewer) {
+      // Nová verze k dispozici
+      if (badgeStatus) {
+        badgeStatus.className = "update-status-pill new-available";
+        badgeStatus.textContent = latestTag;
+      }
+      if (statusText) {
+        statusText.innerHTML = window.i18n
+          ? window.i18n.t("settings.updateAvailableStatus", { version: latestTag })
+          : `Je k dispozici nová verze: <strong>${latestTag}</strong>!`;
+      }
+      if (downloadBtn) {
+        downloadBtn.classList.remove("hidden");
+      }
+      if (notesBtn) {
+        notesBtn.classList.remove("hidden");
+      }
+      if (manual) {
+        const toastMsg = window.i18n
+          ? window.i18n.t("settings.newVersionToast", { version: latestTag })
+          : `Byla nalezena nová verze aplikace Tracker (${latestTag})!`;
+        showToast(toastMsg);
+      }
+    } else {
+      // Aktuální verze
+      if (badgeStatus) {
+        badgeStatus.className = "update-status-pill up-to-date";
+        const isEn = window.i18n && window.i18n.getLanguage() === "en";
+        badgeStatus.textContent = isEn ? "✓ Latest" : "✓ Aktuální";
+      }
+      if (statusText) {
+        statusText.textContent = window.i18n
+          ? window.i18n.t("settings.upToDateStatus", { version: `v${APP_VERSION}` })
+          : `Máte nejnovější verzi aplikace (v${APP_VERSION}).`;
+      }
+      if (downloadBtn) {
+        downloadBtn.classList.add("hidden");
+      }
+      if (notesBtn) {
+        notesBtn.classList.add("hidden");
+      }
+      if (manual) {
+        const toastMsg = window.i18n
+          ? window.i18n.t("settings.upToDateToast", { version: `v${APP_VERSION}` })
+          : `Používáte nejnovější verzi (v${APP_VERSION}).`;
+        showToast(toastMsg);
+      }
+    }
+  } catch (err) {
+    console.warn("Chyba při kontrole aktualizací:", err);
+    if (badgeStatus) {
+      badgeStatus.className = "update-status-pill error";
+      const isEn = window.i18n && window.i18n.getLanguage() === "en";
+      badgeStatus.textContent = isEn ? "Offline" : "Chyba";
+      badgeStatus.classList.remove("hidden");
+    }
+    if (statusText) {
+      statusText.textContent = window.i18n
+        ? window.i18n.t("settings.updateCheckError")
+        : "Nepodařilo se ověřit aktualizace. Zkontrolujte připojení k internetu.";
+    }
+    if (manual) {
+      const errMsg = window.i18n
+        ? window.i18n.t("settings.updateCheckError")
+        : "Nepodařilo se ověřit aktualizace.";
+      showToast(errMsg);
+    }
+  } finally {
+    isCheckingUpdate = false;
+    if (checkIcon) checkIcon.classList.remove("spin-animation");
+    if (checkBtn) checkBtn.disabled = false;
+    if (checkBtnText) {
+      checkBtnText.textContent = window.i18n
+        ? window.i18n.t("settings.checkAgainBtn")
+        : "Zkontrolovat znovu";
+    }
+  }
+}
+
+function handleDownloadUpdate() {
+  if (!latestReleaseData) return;
+  // Pokusíme se najít přímý instalátor (.exe nebo .msi)
+  if (Array.isArray(latestReleaseData.assets) && latestReleaseData.assets.length > 0) {
+    const setupAsset =
+      latestReleaseData.assets.find((a) => a.name && (a.name.endsWith("-setup.exe") || a.name.endsWith(".exe"))) ||
+      latestReleaseData.assets.find((a) => a.name && a.name.endsWith(".msi")) ||
+      latestReleaseData.assets[0];
+
+    if (setupAsset && setupAsset.browser_download_url) {
+      openExternalUrl(setupAsset.browser_download_url);
+      return;
+    }
+  }
+
+  // Fallback: otevření stránky vydání na GitHubu
+  if (latestReleaseData.html_url) {
+    openExternalUrl(latestReleaseData.html_url);
+  }
+}
+
+/**
+ * Načte aktuální verzi aplikace z Rust backendu (Cargo.toml) a synchronizuje ji do celého UI
+ */
+async function syncAppVersion() {
+  try {
+    const v = await tauriInvoke("get_app_version");
+    if (v && typeof v === "string") {
+      const cleanVer = v.replace(/^v/i, "").trim();
+      if (cleanVer) {
+        APP_VERSION = cleanVer;
+
+        const splashBadge = document.querySelector(".splash-badge");
+        if (splashBadge) splashBadge.textContent = `v${APP_VERSION}`;
+
+        document.querySelectorAll(".version-tag").forEach((el) => {
+          el.textContent = `v${APP_VERSION}`;
+        });
+
+        const settingsVer = document.getElementById("settingsCurrentVersion");
+        if (settingsVer) settingsVer.textContent = `v${APP_VERSION}`;
+      }
+    }
+  } catch (err) {
+    // Tichý fallback na výchozí verzi (např. při spuštění v čistém webovém prohlížeči)
   }
 }
 
