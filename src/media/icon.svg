@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>Tracker</title>
+  <defs>
+    <linearGradient id="trk-body" x1="256" y1="125" x2="256" y2="436" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset=".58" stop-color="#F1F5F9"/>
+      <stop offset="1" stop-color="#D5DEEC"/>
+    </linearGradient>
+    <linearGradient id="trk-bridge" x1="256" y1="170" x2="256" y2="296" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E8EEF7"/>
+      <stop offset="1" stop-color="#B9C6D8"/>
+    </linearGradient>
+    <radialGradient id="trk-lens" cx=".32" cy=".24" r=".86">
+      <stop stop-color="#67E8F9"/>
+      <stop offset=".42" stop-color="#2789E8"/>
+      <stop offset="1" stop-color="#173C93"/>
+    </radialGradient>
+    <linearGradient id="trk-bezel" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#172641"/>
+      <stop offset="1" stop-color="#050A13"/>
+    </linearGradient>
+    <filter id="trk-shadow" x="-80" y="-80" width="672" height="672" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="7" stdDeviation="11" flood-color="#000713" flood-opacity=".28"/>
+    </filter>
+    <clipPath id="trk-left-lens"><circle cx="168" cy="372" r="49"/></clipPath>
+    <clipPath id="trk-right-lens"><circle cx="344" cy="372" r="49"/></clipPath>
+  </defs>
+  <rect width="512" height="512" fill="#0C1222"/>
+  <g filter="url(#trk-shadow)" transform="translate(0 -30)">
+    <path d="M123 241 153 152c5-16 20-27 37-27h20c18 0 33 13 36 31l13 85H123Z" fill="url(#trk-body)"/>
+    <path d="m389 241-30-89c-5-16-20-27-37-27h-20c-18 0-33 13-36 31l-13 85h136Z" fill="url(#trk-body)"/>
+    <path d="M224 170h64l11 73h-86l11-73Z" fill="url(#trk-bridge)"/>
+    <rect x="219" y="213" width="74" height="65" rx="24" fill="#E7EDF6"/>
+    <path d="M234 227h44" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" opacity=".72"/>
+    <path d="M113 226h107l28 122c11 50-25 98-73 98h-9c-53 0-91-53-76-106l23-114Z" fill="url(#trk-body)"/>
+    <path d="M399 226H292l-28 122c-11 50 25 98 73 98h9c53 0 91-53 76-106l-23-114Z" fill="url(#trk-body)"/>
+    <path d="M216 239h80l-8 57h-64l-8-57Z" fill="url(#trk-bridge)"/>
+    <circle cx="168" cy="372" r="73" fill="url(#trk-body)"/>
+    <circle cx="344" cy="372" r="73" fill="url(#trk-body)"/>
+    <circle cx="168" cy="372" r="58" fill="url(#trk-bezel)"/>
+    <circle cx="344" cy="372" r="58" fill="url(#trk-bezel)"/>
+    <circle cx="168" cy="372" r="49" fill="url(#trk-lens)"/>
+    <circle cx="344" cy="372" r="49" fill="url(#trk-lens)"/>
+    <g clip-path="url(#trk-left-lens)">
+      <path d="M119 393c17 23 36 33 59 33 17 0 31-5 42-14v20H119v-39Z" fill="#102E72" opacity=".44"/>
+      <path d="M119 360c15-24 37-37 66-37" fill="none" stroke="#CFFAFE" stroke-width="9" opacity=".7"/>
+      <circle cx="150" cy="344" r="4.5" fill="#FFFFFF" opacity=".54"/>
+      <path d="M120 402c14 12 30 18 47 19" fill="none" stroke="#5BB9FF" stroke-width="3.5" opacity=".32"/>
+    </g>
+    <g clip-path="url(#trk-right-lens)">
+      <path d="M295 393c17 23 36 33 59 33 17 0 31-5 42-14v20H295v-39Z" fill="#102E72" opacity=".44"/>
+      <path d="M295 360c15-24 37-37 66-37" fill="none" stroke="#CFFAFE" stroke-width="9" opacity=".7"/>
+      <circle cx="326" cy="344" r="4.5" fill="#FFFFFF" opacity=".54"/>
+      <path d="M296 402c14 12 30 18 47 19" fill="none" stroke="#5BB9FF" stroke-width="3.5" opacity=".32"/>
+    </g>
+  </g>
+</svg>
