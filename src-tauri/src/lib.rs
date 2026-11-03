@@ -47,6 +47,8 @@ pub struct MediaItem {
     pub trailer_url: String, // Odkaz na video trailer (např. YouTube)
     pub created_at: String,
     pub updated_at: String,
+    pub status_changed_at: Option<String>,
+    pub completed_at: Option<String>,
 }
 
 /// Vstupní data pro přidání nové položky
@@ -156,7 +158,7 @@ fn get_items(state: tauri::State<'_, AppState>) -> Result<Vec<MediaItem>, String
                 id, item_type, title, description, tags, genre, rating, api_rating, note, image_path,
                 release_year, duration, director, writer, cast_members, production, season_episodes,
                 developer, publisher, game_mode, platforms, engine, custom_metadata, created_at, updated_at,
-                status, trailer_url
+                status, trailer_url, status_changed_at, completed_at
              FROM media_items 
              ORDER BY id DESC",
         )
@@ -192,11 +194,13 @@ fn get_items(state: tauri::State<'_, AppState>) -> Result<Vec<MediaItem>, String
             let updated_at: String = row.get(24)?;
             let status: String = row.get(25).unwrap_or_else(|_| "completed".to_string());
             let trailer_url: String = row.get(26).unwrap_or_default();
+            let status_changed_at: Option<String> = row.get(27).ok().flatten();
+            let completed_at: Option<String> = row.get(28).ok().flatten();
 
             let custom_metadata: HashMap<String, String> =
                 serde_json::from_str(&custom_meta_raw).unwrap_or_default();
 
-            Ok((
+            Ok(MediaItem {
                 id,
                 item_type,
                 title,
@@ -207,6 +211,7 @@ fn get_items(state: tauri::State<'_, AppState>) -> Result<Vec<MediaItem>, String
                 api_rating,
                 note,
                 image_path,
+                image_data: None,
                 release_year,
                 duration,
                 director,
@@ -220,87 +225,28 @@ fn get_items(state: tauri::State<'_, AppState>) -> Result<Vec<MediaItem>, String
                 platforms,
                 engine,
                 custom_metadata,
-                created_at,
-                updated_at,
                 status,
                 trailer_url,
-            ))
+                created_at,
+                updated_at,
+                status_changed_at,
+                completed_at,
+            })
         })
         .map_err(|e| e.to_string())?;
 
     let mut result = Vec::new();
     for row in items_iter {
-        let (
-            id,
-            item_type,
-            title,
-            description,
-            tags,
-            genre,
-            rating,
-            api_rating,
-            note,
-            image_path,
-            release_year,
-            duration,
-            director,
-            writer,
-            cast_members,
-            production,
-            season_episodes,
-            developer,
-            publisher,
-            game_mode,
-            platforms,
-            engine,
-            custom_metadata,
-            created_at,
-            updated_at,
-            status,
-            trailer_url,
-        ) = row.map_err(|e| e.to_string())?;
+        let mut item = row.map_err(|e| e.to_string())?;
 
-        let image_data = if let Some(ref file_name) = image_path {
+        if let Some(ref file_name) = item.image_path {
             let full_path = state.covers_dir.join(file_name);
             if full_path.exists() {
-                Some(full_path.to_string_lossy().to_string())
-            } else {
-                None
+                item.image_data = Some(full_path.to_string_lossy().to_string());
             }
-        } else {
-            None
-        };
+        }
 
-        result.push(MediaItem {
-            id,
-            item_type,
-            title,
-            description,
-            tags,
-            genre,
-            rating,
-            api_rating,
-            note,
-            image_path,
-            image_data,
-            release_year,
-            duration,
-            director,
-            writer,
-            cast_members,
-            production,
-            season_episodes,
-            developer,
-            publisher,
-            game_mode,
-            platforms,
-            engine,
-            custom_metadata,
-            status,
-            trailer_url,
-            created_at,
-            updated_at,
-        });
+        result.push(item);
     }
 
     Ok(result)
@@ -382,11 +328,14 @@ fn add_item(
         "INSERT INTO media_items (
             item_type, title, description, tags, genre, rating, api_rating, note, image_path,
             release_year, duration, director, writer, cast_members, production, season_episodes,
-            developer, publisher, game_mode, platforms, engine, custom_metadata, status, trailer_url
+            developer, publisher, game_mode, platforms, engine, custom_metadata, status, trailer_url,
+            status_changed_at, completed_at
          ) VALUES (
             ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9,
             ?10, ?11, ?12, ?13, ?14, ?15, ?16,
-            ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24
+            ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24,
+            datetime('now', 'localtime'),
+            CASE WHEN ?23 = 'completed' THEN datetime('now', 'localtime') ELSE NULL END
          )",
         params![
             &item_type,
@@ -419,13 +368,13 @@ fn add_item(
 
     let last_id = conn.last_insert_rowid();
 
-    let (created_at, updated_at): (String, String) = conn
+    let (created_at, updated_at, status_changed_at, completed_at): (String, String, Option<String>, Option<String>) = conn
         .query_row(
-            "SELECT created_at, updated_at FROM media_items WHERE id = ?1",
+            "SELECT created_at, updated_at, status_changed_at, completed_at FROM media_items WHERE id = ?1",
             params![last_id],
-            |row| Ok((row.get(0)?, row.get(1)?)),
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2).ok(), row.get(3).ok())),
         )
-        .unwrap_or_else(|_| ("Nyní".to_string(), "Nyní".to_string()));
+        .unwrap_or_else(|_| ("Nyní".to_string(), "Nyní".to_string(), None, None));
 
     Ok(MediaItem {
         id: last_id,
@@ -456,6 +405,8 @@ fn add_item(
         trailer_url,
         created_at,
         updated_at,
+        status_changed_at,
+        completed_at,
     })
 }
 
@@ -586,6 +537,15 @@ fn update_item(
             platforms = ?20,
             engine = ?21,
             custom_metadata = ?22,
+            status_changed_at = CASE 
+                WHEN status != ?23 OR status_changed_at IS NULL THEN datetime('now', 'localtime') 
+                ELSE status_changed_at 
+            END,
+            completed_at = CASE 
+                WHEN ?23 = 'completed' AND (status != 'completed' OR completed_at IS NULL) THEN datetime('now', 'localtime')
+                WHEN ?23 != 'completed' THEN NULL
+                ELSE completed_at
+            END,
             status = ?23,
             trailer_url = ?24,
             updated_at = (datetime('now', 'localtime'))
@@ -620,13 +580,13 @@ fn update_item(
     )
     .map_err(|e| e.to_string())?;
 
-    let (created_at, updated_at): (String, String) = conn
+    let (created_at, updated_at, status_changed_at, completed_at): (String, String, Option<String>, Option<String>) = conn
         .query_row(
-            "SELECT created_at, updated_at FROM media_items WHERE id = ?1",
+            "SELECT created_at, updated_at, status_changed_at, completed_at FROM media_items WHERE id = ?1",
             params![item.id],
-            |row| Ok((row.get(0)?, row.get(1)?)),
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)),
         )
-        .unwrap_or_else(|_| ("Nyní".to_string(), "Nyní".to_string()));
+        .unwrap_or_else(|_| ("Nyní".to_string(), "Nyní".to_string(), None, None));
 
     Ok(MediaItem {
         id: item.id,
@@ -657,6 +617,8 @@ fn update_item(
         trailer_url,
         created_at,
         updated_at,
+        status_changed_at,
+        completed_at,
     })
 }
 
@@ -881,7 +843,12 @@ fn update_item_status(
 ) -> Result<(), String> {
     let conn = state.db.lock().map_err(|e| e.to_string())?;
     conn.execute(
-        "UPDATE media_items SET status = ?1, updated_at = datetime('now', 'localtime') WHERE id = ?2",
+        "UPDATE media_items SET 
+            status = ?1, 
+            updated_at = datetime('now', 'localtime'),
+            status_changed_at = datetime('now', 'localtime'),
+            completed_at = CASE WHEN ?1 = 'completed' THEN datetime('now', 'localtime') ELSE NULL END
+         WHERE id = ?2",
         params![status, id],
     )
     .map_err(|e| e.to_string())?;
@@ -1324,7 +1291,9 @@ pub fn run() {
                     status TEXT NOT NULL DEFAULT 'completed',
                     trailer_url TEXT NOT NULL DEFAULT '',
                     created_at DATETIME DEFAULT (datetime('now', 'localtime')),
-                    updated_at DATETIME DEFAULT (datetime('now', 'localtime'))
+                    updated_at DATETIME DEFAULT (datetime('now', 'localtime')),
+                    status_changed_at DATETIME DEFAULT (datetime('now', 'localtime')),
+                    completed_at DATETIME
                 );"
             ).expect("Nepodařilo se inicializovat schéma databáze");
 
@@ -1412,13 +1381,19 @@ pub fn run() {
                 ("custom_metadata", "TEXT NOT NULL DEFAULT '{}'"),
                 ("status", "TEXT NOT NULL DEFAULT 'completed'"),
                 ("trailer_url", "TEXT NOT NULL DEFAULT ''"),
-                ("updated_at", "DATETIME DEFAULT (datetime('now', 'localtime'))"),
+                ("updated_at", "DATETIME"),
+                ("status_changed_at", "DATETIME"),
+                ("completed_at", "DATETIME"),
             ];
 
             for (col_name, col_def) in columns_to_add {
                 let alter_query = format!("ALTER TABLE media_items ADD COLUMN {} {}", col_name, col_def);
                 let _ = conn.execute(&alter_query, []);
             }
+
+            let _ = conn.execute("UPDATE media_items SET updated_at = datetime('now', 'localtime') WHERE updated_at IS NULL", []);
+            let _ = conn.execute("UPDATE media_items SET status_changed_at = COALESCE(updated_at, datetime('now', 'localtime')) WHERE status_changed_at IS NULL", []);
+            let _ = conn.execute("UPDATE media_items SET completed_at = COALESCE(updated_at, datetime('now', 'localtime')) WHERE status = 'completed' AND completed_at IS NULL", []);
 
             app.manage(AppState {
                 db: Mutex::new(conn),

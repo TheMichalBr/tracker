@@ -456,6 +456,8 @@ const detailNoteWrap = document.getElementById("detailNoteWrap");
 const detailNote = document.getElementById("detailNote");
 const detailCustomMetaWrap = document.getElementById("detailCustomMetaWrap");
 const detailCustomMetaGrid = document.getElementById("detailCustomMetaGrid");
+const detailInfoWrap = document.getElementById("detailInfoWrap");
+const detailInfoGrid = document.getElementById("detailInfoGrid");
 const detailTrailerBtn = document.getElementById("detailTrailerBtn");
 const detailStatusBox = document.getElementById("detailStatusBox");
 const detailStatusPills = document.getElementById("detailStatusPills");
@@ -2118,11 +2120,34 @@ function updateDetailStatusView(item) {
 
       try {
         await tauriInvoke("update_item_status", { id: item.id, status: newStatus });
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        const seconds = String(now.getSeconds()).padStart(2, "0");
+        const nowFormatted = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
         item.status = newStatus;
+        item.updated_at = nowFormatted;
+        item.status_changed_at = nowFormatted;
+        if (newStatus === "completed") {
+          item.completed_at = nowFormatted;
+        } else {
+          item.completed_at = null;
+        }
+
         const idx = allItems.findIndex((i) => i.id === item.id);
-        if (idx !== -1) allItems[idx].status = newStatus;
+        if (idx !== -1) {
+          allItems[idx].status = newStatus;
+          allItems[idx].updated_at = nowFormatted;
+          allItems[idx].status_changed_at = nowFormatted;
+          allItems[idx].completed_at = item.completed_at;
+        }
 
         updateDetailStatusView(item);
+        renderDetailInfo(item);
         renderGrid();
         const updatedInfo = getStatusInfo(newStatus, item.item_type);
         showToast(`Stav byl změněn na: "${updatedInfo.label}".`);
@@ -2413,6 +2438,9 @@ function openDetailModal(item) {
     }
   }
 
+  // 4. Systémové informace a časové údaje (Vytvořeno, Upraveno, Změna stavu, Dokončení)
+  renderDetailInfo(item);
+
   detailModal.classList.remove("hidden");
   updateModalBodyLock();
 
@@ -2447,6 +2475,10 @@ function addDetailMetaCell(container, label, value) {
   else if (label === "Engine") iconHtml = "⚙️ ";
   else if (label === "Herní režim") iconHtml = "🕹️ ";
   else if (label === "Platformy") iconHtml = "🎮 ";
+  else if (label === "Datum vytvoření") iconHtml = "📅 ";
+  else if (label === "Datum poslední změny") iconHtml = "🔄 ";
+  else if (label === "Poslední změna stavu") iconHtml = "📌 ";
+  else if (label === "Datum dokončení" || label === "Datum dohrání") iconHtml = "🏆 ";
   else iconHtml = ""; // Odstraněna emoji pinned pro další podrobnosti
 
   cell.innerHTML = `
@@ -2454,6 +2486,60 @@ function addDetailMetaCell(container, label, value) {
     <span class="meta-cell-value">${escapeHtml(value)}</span>
   `;
   container.appendChild(cell);
+}
+
+function formatDateTime(dateStr) {
+  if (!dateStr || typeof dateStr !== "string") return "-";
+  const trimmed = dateStr.trim();
+  if (!trimmed || trimmed === "Nyní") return trimmed || "-";
+
+  const match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+  if (match) {
+    const [, year, month, day, hours, minutes] = match;
+    const d = parseInt(day, 10);
+    const m = parseInt(month, 10);
+    return `${d}. ${m}. ${year}, ${hours}:${minutes}`;
+  }
+
+  const dateObj = new Date(trimmed);
+  if (!isNaN(dateObj.getTime())) {
+    const d = dateObj.getDate();
+    const m = dateObj.getMonth() + 1;
+    const y = dateObj.getFullYear();
+    const hh = String(dateObj.getHours()).padStart(2, "0");
+    const mm = String(dateObj.getMinutes()).padStart(2, "0");
+    return `${d}. ${m}. ${y}, ${hh}:${mm}`;
+  }
+
+  return trimmed;
+}
+
+function renderDetailInfo(item) {
+  if (!detailInfoGrid) return;
+  detailInfoGrid.innerHTML = "";
+
+  // 1. Datum vytvoření
+  const createdAtVal = item.created_at ? formatDateTime(item.created_at) : "-";
+  addDetailMetaCell(detailInfoGrid, "Datum vytvoření", createdAtVal);
+
+  // 2. Datum poslední změny
+  const updatedAtVal = item.updated_at ? formatDateTime(item.updated_at) : createdAtVal;
+  addDetailMetaCell(detailInfoGrid, "Datum poslední změny", updatedAtVal);
+
+  // 3. Poslední změna stavu
+  const statusChangedVal = item.status_changed_at ? formatDateTime(item.status_changed_at) : updatedAtVal;
+  addDetailMetaCell(detailInfoGrid, "Poslední změna stavu", statusChangedVal);
+
+  // 4. Datum dokončení / dohrání (pouze pokud je stav dokončeno/dohráno)
+  if (item.status === "completed") {
+    const completedLabel = item.item_type === "Hra" ? "Datum dohrání" : "Datum dokončení";
+    const completedVal = item.completed_at ? formatDateTime(item.completed_at) : statusChangedVal;
+    addDetailMetaCell(detailInfoGrid, completedLabel, completedVal);
+  }
+
+  if (detailInfoWrap) {
+    detailInfoWrap.classList.remove("hidden");
+  }
 }
 
 function closeDetailModal() {
