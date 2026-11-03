@@ -876,26 +876,26 @@
             <div class="form-row">
               <div class="form-group flex-2">
                 <label for="itemTitle"><span data-i18n="form.titleLabel">Název</span> <span class="required" data-i18n-title="form.requiredTitle" title="Povinné pole">*</span></label>
-                <input type="text" id="itemTitle" required autocomplete="off" data-i18n-placeholder="form.titlePlaceholder" placeholder="Např. Interstellar, The Last of Us, Cyberpunk...">
+                <input type="text" id="itemTitle" required maxlength="60" autocomplete="off" data-i18n-placeholder="form.titlePlaceholder" placeholder="Např. Interstellar, The Last of Us, Cyberpunk...">
               </div>
               <div class="form-group flex-1">
                 <label for="itemReleaseYear" data-i18n="form.yearLabel">Rok vydání</label>
-                <input type="number" id="itemReleaseYear" min="0" max="5000" autocomplete="off" placeholder="2024">
+                <input type="number" id="itemReleaseYear" min="0" max="5000" maxlength="4" autocomplete="off" placeholder="2024">
               </div>
               <div class="form-group flex-1">
                 <label for="itemGenre" data-i18n="form.genreLabel">Žánr</label>
-                <input type="text" id="itemGenre" autocomplete="off" data-i18n-placeholder="form.genrePlaceholder" placeholder="Sci-Fi, RPG, Drama...">
+                <input type="text" id="itemGenre" maxlength="100" autocomplete="off" data-i18n-placeholder="form.genrePlaceholder" placeholder="Sci-Fi, RPG, Drama...">
               </div>
             </div>
 
             <div class="form-group">
               <label for="itemTags" data-i18n="form.tagsLabel">Klíčová slova (Tagy)</label>
-              <input type="text" id="itemTags" autocomplete="off" data-i18n-placeholder="form.tagsPlaceholder" placeholder="Oddělujte čárkou, např.: vesmír, cyberpunk, kooperace, otevřený svět">
+              <input type="text" id="itemTags" maxlength="100" autocomplete="off" data-i18n-placeholder="form.tagsPlaceholder" placeholder="Oddělujte čárkou, např.: vesmír, cyberpunk, kooperace, otevřený svět">
             </div>
 
             <div class="form-group">
               <label for="itemDescription" data-i18n="form.descLabel">Popis</label>
-              <textarea id="itemDescription" rows="3" autocomplete="off" data-i18n-placeholder="form.descPlaceholder" placeholder="Stručný popis příběhu, herního konceptu nebo synopse..."></textarea>
+              <textarea id="itemDescription" rows="3" maxlength="2000" autocomplete="off" data-i18n-placeholder="form.descPlaceholder" placeholder="Stručný popis příběhu, herního konceptu nebo synopse..."></textarea>
             </div>
           </div>
 
@@ -918,34 +918,34 @@
             <div class="form-row">
               <div class="form-group flex-1">
                 <label for="itemDirector" data-i18n="form.directorLabel">Režie</label>
-                <input type="text" id="itemDirector" autocomplete="off" data-i18n-placeholder="form.directorPlaceholder" placeholder="Např. Christopher Nolan">
+                <input type="text" id="itemDirector" maxlength="60" autocomplete="off" data-i18n-placeholder="form.directorPlaceholder" placeholder="Např. Christopher Nolan">
               </div>
               <div class="form-group flex-1">
                 <label for="itemWriter" data-i18n="form.writerLabel">Scénář</label>
-                <input type="text" id="itemWriter" autocomplete="off" data-i18n-placeholder="form.writerPlaceholder" placeholder="Např. Jonathan Nolan">
+                <input type="text" id="itemWriter" maxlength="60" autocomplete="off" data-i18n-placeholder="form.writerPlaceholder" placeholder="Např. Jonathan Nolan">
               </div>
             </div>
 
             <div class="form-row">
               <div class="form-group flex-1">
                 <label for="itemProduction" data-i18n="form.productionLabel">Produkce / Studio</label>
-                <input type="text" id="itemProduction" autocomplete="off" data-i18n-placeholder="form.productionPlaceholder" placeholder="Např. Warner Bros., HBO, Netflix">
+                <input type="text" id="itemProduction" maxlength="60" autocomplete="off" data-i18n-placeholder="form.productionPlaceholder" placeholder="Např. Warner Bros., HBO, Netflix">
               </div>
               <div class="form-group flex-1">
                 <label for="itemDuration" data-i18n="form.durationLabel">Délka</label>
-                <input type="text" id="itemDuration" autocomplete="off" data-i18n-placeholder="form.durationPlaceholder" placeholder="Např. 169 min nebo 50 min/ep">
+                <input type="text" id="itemDuration" maxlength="60" autocomplete="off" data-i18n-placeholder="form.durationPlaceholder" placeholder="Např. 169 min nebo 50 min/ep">
               </div>
             </div>
 
             <!-- POUZE PRO SERIÁL: Číslo řady / epizody -->
             <div id="fieldSeasonEpisodes" class="form-group hidden">
               <label for="itemSeasonEpisodes" data-i18n="form.seasonEpisodesLabel">Struktura - Číslo řady nebo epizody</label>
-              <input type="text" id="itemSeasonEpisodes" autocomplete="off" data-i18n-placeholder="form.seasonEpisodesPlaceholder" placeholder="Např. 2. série (8 epizod) nebo S02E05">
+              <input type="text" id="itemSeasonEpisodes" maxlength="60" autocomplete="off" data-i18n-placeholder="form.seasonEpisodesPlaceholder" placeholder="Např. 2. série (8 epizod) nebo S02E05">
             </div>
 
             <div class="form-group">
               <label for="itemCast" data-i18n="form.castLabel">Herecké obsazení</label>
-              <input type="text" id="itemCast" autocomplete="off" data-i18n-placeholder="form.castPlaceholder" placeholder="Herci oddělení čárkou, např.: Matthew McConaughey, Anne Hathaway...">
+              <input type="text" id="itemCast" maxlength="200" autocomplete="off" data-i18n-placeholder="form.castPlaceholder" placeholder="Herci oddělení čárkou, např.: Matthew McConaughey, Anne Hathaway...">
             </div>
           </div>
 
@@ -965,26 +965,26 @@
             <div class="form-row">
               <div class="form-group flex-1">
                 <label for="itemDeveloper" data-i18n="form.developerLabel">Vývojářské studio</label>
-                <input type="text" id="itemDeveloper" autocomplete="off" data-i18n-placeholder="form.developerPlaceholder" placeholder="Např. CD Projekt RED, FromSoftware">
+                <input type="text" id="itemDeveloper" maxlength="60" autocomplete="off" data-i18n-placeholder="form.developerPlaceholder" placeholder="Např. CD Projekt RED, FromSoftware">
               </div>
               <div class="form-group flex-1">
                 <label for="itemPublisher" data-i18n="form.publisherLabel">Vydavatel</label>
-                <input type="text" id="itemPublisher" autocomplete="off" data-i18n-placeholder="form.publisherPlaceholder" placeholder="Např. Sony, Bandai Namco, Xbox">
+                <input type="text" id="itemPublisher" maxlength="60" autocomplete="off" data-i18n-placeholder="form.publisherPlaceholder" placeholder="Např. Sony, Bandai Namco, Xbox">
               </div>
             </div>
 
             <div class="form-row">
               <div class="form-group flex-1">
                 <label for="itemGameMode" data-i18n="form.gameModeLabel">Herní režim</label>
-                <input type="text" id="itemGameMode" autocomplete="off" data-i18n-placeholder="form.gameModePlaceholder" placeholder="Singleplayer, Kooperace, Multiplayer...">
+                <input type="text" id="itemGameMode" maxlength="100" autocomplete="off" data-i18n-placeholder="form.gameModePlaceholder" placeholder="Singleplayer, Kooperace, Multiplayer...">
               </div>
               <div class="form-group flex-1">
                 <label for="itemPlatforms" data-i18n="form.platformsLabel">Platformy</label>
-                <input type="text" id="itemPlatforms" autocomplete="off" data-i18n-placeholder="form.platformsPlaceholder" placeholder="PC, PlayStation 5, Xbox Series X, Switch...">
+                <input type="text" id="itemPlatforms" maxlength="100" autocomplete="off" data-i18n-placeholder="form.platformsPlaceholder" placeholder="PC, PlayStation 5, Xbox Series X, Switch...">
               </div>
               <div class="form-group flex-1">
                 <label for="itemEngine" data-i18n="form.engineLabel">Herní Engine</label>
-                <input type="text" id="itemEngine" autocomplete="off" data-i18n-placeholder="form.enginePlaceholder" placeholder="Unreal Engine 5, Unity, Custom...">
+                <input type="text" id="itemEngine" maxlength="60" autocomplete="off" data-i18n-placeholder="form.enginePlaceholder" placeholder="Unreal Engine 5, Unity, Custom...">
               </div>
             </div>
           </div>
@@ -1031,14 +1031,14 @@
                   <span data-i18n="form.apiRatingLabel">Veřejné / API hodnocení</span>
                   <span class="info-badge" data-i18n-title="form.apiBadgeTitle" title="Příprava pro napojení na filmové/herní API">API</span>
                 </label>
-                <input type="number" id="itemApiRating" step="0.1" min="0" max="100" autocomplete="off" data-i18n-placeholder="form.apiRatingPlaceholder" placeholder="Např. 8.6 nebo 92">
+                <input type="text" inputmode="decimal" maxlength="6" id="itemApiRating" autocomplete="off" data-i18n-placeholder="form.apiRatingPlaceholder" placeholder="Např. 8.6 nebo 92">
                 <span class="input-hint" data-i18n="form.apiRatingHint">Např. IMDb / ČSFD / Metacritic skóre</span>
               </div>
             </div>
 
             <div class="form-group">
               <label for="itemNote" data-i18n="form.notesLabel">Osobní poznámky</label>
-              <textarea id="itemNote" rows="2" autocomplete="off" data-i18n-placeholder="form.notesPlaceholder" placeholder="Osobní postřehy, památné momenty, doporučení..."></textarea>
+              <textarea id="itemNote" rows="2" maxlength="2000" autocomplete="off" data-i18n-placeholder="form.notesPlaceholder" placeholder="Osobní postřehy, památné momenty, doporučení..."></textarea>
             </div>
 
             <div class="form-group">
@@ -1046,7 +1046,7 @@
                 <span data-i18n="form.trailerLabel">Odkaz na trailer (YouTube nebo video)</span>
                 <span class="info-badge badge-trailer" data-i18n-title="form.trailerBadgeTitle" title="Zadejte odkaz na YouTube upoutávku">Trailer</span>
               </label>
-              <input type="url" id="itemTrailerUrl" autocomplete="off" data-i18n-placeholder="form.trailerPlaceholder" placeholder="Např. https://www.youtube.com/watch?v=... nebo ID videa">
+              <input type="url" id="itemTrailerUrl" maxlength="300" autocomplete="off" data-i18n-placeholder="form.trailerPlaceholder" placeholder="Např. https://www.youtube.com/watch?v=... nebo ID videa">
               <span class="input-hint" data-i18n="form.trailerHint">V detailu se pak zobrazí tlačítko pro okamžité přehrání</span>
             </div>
           </div>

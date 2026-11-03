@@ -284,6 +284,61 @@ function sanitizeApiQuery(inputStr) {
   let str = inputStr.slice(0, 50);
   return str.replace(/[<>\\`{}[\]^~$|;="\x00-\x1F\x7F]/g, "");
 }
+
+// Bezpečná filtrace textových polí formuláře (odstranění řídicích znaků, nebezpečných tagů <> a omezení délky)
+function sanitizeFormFieldText(inputStr, maxLen = 60, allowMultiline = false) {
+  if (!inputStr || typeof inputStr !== "string") return "";
+  let str = inputStr.slice(0, maxLen);
+  if (allowMultiline) {
+    return str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "").replace(/[<>]/g, "");
+  }
+  return str.replace(/[\x00-\x1F\x7F]/g, "").replace(/[<>]/g, "");
+}
+
+// Bezpečná filtrace roku vydání (max. 4 číslice, limit 0 až 5000)
+function sanitizeYearInput(inputStr) {
+  if (!inputStr && inputStr !== 0) return "";
+  let str = String(inputStr).replace(/\D/g, "").slice(0, 4);
+  if (!str) return "";
+  let num = parseInt(str, 10);
+  if (num > 5000) {
+    str = "5000";
+  }
+  return str;
+}
+
+// Bezpečná filtrace veřejného / API hodnocení (0 až 100, celá čísla i desetiny s tečkou i čárkou)
+function sanitizeApiRatingInput(inputStr) {
+  if (!inputStr && inputStr !== 0) return "";
+  let str = String(inputStr).trim().slice(0, 6);
+  // Povolíme pouze číslice, tečku a čárku
+  str = str.replace(/[^0-9.,]/g, "");
+  let separatorFound = false;
+  let clean = "";
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i];
+    if (ch === "." || ch === ",") {
+      if (!separatorFound && clean.length > 0) {
+        clean += ch;
+        separatorFound = true;
+      }
+    } else {
+      clean += ch;
+    }
+  }
+  const numCheck = parseFloat(clean.replace(",", "."));
+  if (!isNaN(numCheck) && numCheck > 100) {
+    return "100";
+  }
+  return clean;
+}
+
+// Bezpečná filtrace odkazu na trailer (max. 300 znaků, odstranění mezer, uvozovek a řídicích znaků)
+function sanitizeTrailerUrl(inputStr) {
+  if (!inputStr || typeof inputStr !== "string") return "";
+  let str = inputStr.trim().slice(0, 300);
+  return str.replace(/[<>"'`\s\x00-\x1F\x7F]/g, "");
+}
 let currentStatusFilter = "all"; // 'all', 'backlog', 'in_progress', 'completed', 'dropped'
 let currentTrailerUrl = "";
 
@@ -1196,6 +1251,9 @@ function setupEventListeners() {
   // Odeslání formuláře
   mediaForm.addEventListener("submit", handleFormSubmit);
 
+  // Inicializace zabezpečení a limitů vstupních polí formuláře
+  setupFormInputSanitizers();
+
   // Vyhledávání v reálném čase s debounce (140 ms) pro plynulý chod bez problikávání
   searchInput.addEventListener("input", (e) => {
     const raw = e.target.value;
@@ -1563,7 +1621,73 @@ function handleRemoveImage() {
   imagePreviewImg.src = "";
 }
 
-// Přidání řádku pro vlastní metadata (s autocomplete vypnutým)
+// Nastavení zabezpečení a limitů délky pro formulářová pole
+function setupFormInputSanitizers() {
+  const bindField = (el, maxLen, allowMultiline = false) => {
+    if (!el) return;
+    el.addEventListener("input", () => {
+      const sanitized = sanitizeFormFieldText(el.value, maxLen, allowMultiline);
+      if (el.value !== sanitized) {
+        el.value = sanitized;
+      }
+    });
+  };
+
+  bindField(itemTitle, 60);
+  bindField(itemGenre, 100);
+  bindField(itemTags, 100);
+  bindField(itemDescription, 2000, true);
+
+  // Filmy / Seriály
+  bindField(itemDirector, 60);
+  bindField(itemWriter, 60);
+  bindField(itemProduction, 60);
+  bindField(itemDuration, 60);
+  bindField(itemSeasonEpisodes, 60);
+  bindField(itemCast, 200);
+
+  // Hry
+  bindField(itemDeveloper, 60);
+  bindField(itemPublisher, 60);
+  bindField(itemEngine, 60);
+  bindField(itemGameMode, 100);
+  bindField(itemPlatforms, 100);
+
+  // Rok vydání (max 4 číslice, 0 - 5000)
+  if (itemReleaseYear) {
+    itemReleaseYear.addEventListener("input", () => {
+      const sanitized = sanitizeYearInput(itemReleaseYear.value);
+      if (itemReleaseYear.value !== sanitized) {
+        itemReleaseYear.value = sanitized;
+      }
+    });
+  }
+
+  // Veřejné / API hodnocení (0 až 100, celá čísla i desetiny s tečkou i čárkou)
+  if (itemApiRating) {
+    itemApiRating.addEventListener("input", () => {
+      const sanitized = sanitizeApiRatingInput(itemApiRating.value);
+      if (itemApiRating.value !== sanitized) {
+        itemApiRating.value = sanitized;
+      }
+    });
+  }
+
+  // Osobní poznámky (2000 znaků)
+  bindField(itemNote, 2000, true);
+
+  // Trailer (max 300 znaků)
+  if (itemTrailerUrl) {
+    itemTrailerUrl.addEventListener("input", () => {
+      const sanitized = sanitizeTrailerUrl(itemTrailerUrl.value);
+      if (itemTrailerUrl.value !== sanitized) {
+        itemTrailerUrl.value = sanitized;
+      }
+    });
+  }
+}
+
+// Přidání řádku pro vlastní metadata (klíč max. 60 znaků, hodnota max. 500 znaků)
 function addCustomMetaRow(key = "", value = "") {
   const row = document.createElement("div");
   row.className = "custom-meta-row";
@@ -1571,12 +1695,27 @@ function addCustomMetaRow(key = "", value = "") {
   const valPh = window.i18n ? window.i18n.t("form.metaValPlaceholder") : "Hodnota (např. CZ dabing)";
   const removeTitle = window.i18n ? window.i18n.t("form.removeParamBtnTitle") : "Odebrat parametr";
   row.innerHTML = `
-    <input type="text" class="meta-key flex-1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-i18n-placeholder="form.metaKeyPlaceholder" placeholder="${escapeHtml(keyPh)}" value="${escapeHtml(key)}">
-    <input type="text" class="meta-val flex-2" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-i18n-placeholder="form.metaValPlaceholder" placeholder="${escapeHtml(valPh)}" value="${escapeHtml(value)}">
+    <input type="text" class="meta-key flex-1" maxlength="60" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-i18n-placeholder="form.metaKeyPlaceholder" placeholder="${escapeHtml(keyPh)}" value="${escapeHtml(key)}">
+    <input type="text" class="meta-val flex-2" maxlength="500" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-i18n-placeholder="form.metaValPlaceholder" placeholder="${escapeHtml(valPh)}" value="${escapeHtml(value)}">
     <button type="button" class="btn-remove-meta" data-i18n-title="form.removeParamBtnTitle" title="${escapeHtml(removeTitle)}">
       <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
     </button>
   `;
+
+  const keyInput = row.querySelector(".meta-key");
+  const valInput = row.querySelector(".meta-val");
+  if (keyInput) {
+    keyInput.addEventListener("input", () => {
+      const sanitized = sanitizeFormFieldText(keyInput.value, 60);
+      if (keyInput.value !== sanitized) keyInput.value = sanitized;
+    });
+  }
+  if (valInput) {
+    valInput.addEventListener("input", () => {
+      const sanitized = sanitizeFormFieldText(valInput.value, 500);
+      if (valInput.value !== sanitized) valInput.value = sanitized;
+    });
+  }
 
   row.querySelector(".btn-remove-meta").addEventListener("click", () => {
     row.remove();
@@ -1589,8 +1728,8 @@ function collectCustomMetadata() {
   const meta = {};
   const rows = customMetadataContainer.querySelectorAll(".custom-meta-row");
   rows.forEach((row) => {
-    const k = row.querySelector(".meta-key").value.trim();
-    const v = row.querySelector(".meta-val").value.trim();
+    const k = sanitizeFormFieldText(row.querySelector(".meta-key").value, 60).trim();
+    const v = sanitizeFormFieldText(row.querySelector(".meta-val").value, 500).trim();
     if (k) {
       meta[k] = v;
     }
@@ -1604,9 +1743,9 @@ function collectCustomMetadata() {
 async function handleFormSubmit(e) {
   e.preventDefault();
 
-  const title = itemTitle.value.trim();
+  const title = sanitizeFormFieldText(itemTitle.value, 60).trim();
   if (!title) {
-    showToast("Zadejte prosím název položky.");
+    showToast("Zadejte prosím název položky (max. 60 znaků).");
     return;
   }
 
@@ -1625,8 +1764,33 @@ async function handleFormSubmit(e) {
     rating = Math.round(parsed * 100) / 100;
   }
 
-  const releaseYearVal = itemReleaseYear.value ? parseInt(itemReleaseYear.value, 10) : null;
-  const apiRatingVal = itemApiRating.value ? parseFloat(itemApiRating.value.replace(",", ".")) : null;
+  let releaseYearVal = null;
+  if (itemReleaseYear && itemReleaseYear.value) {
+    const sanitizedYear = sanitizeYearInput(itemReleaseYear.value);
+    const parsedYear = parseInt(sanitizedYear, 10);
+    if (!isNaN(parsedYear) && parsedYear >= 0 && parsedYear <= 5000) {
+      releaseYearVal = parsedYear;
+    } else if (sanitizedYear) {
+      showToast("Rok vydání musí být číslo v rozmezí 0 až 5000.");
+      return;
+    }
+  }
+
+  let apiRatingVal = null;
+  if (itemApiRating && itemApiRating.value.trim()) {
+    const sanitizedApi = sanitizeApiRatingInput(itemApiRating.value);
+    const parsedApi = parseFloat(sanitizedApi.replace(",", "."));
+    if (isNaN(parsedApi) || parsedApi < 0 || parsedApi > 100) {
+      showToast("Veřejné / API hodnocení musí být číslo v rozmezí 0 až 100 (např. 8.6 nebo 92).");
+      return;
+    }
+    apiRatingVal = Math.round(parsedApi * 100) / 100;
+  }
+
+  let trailerUrlVal = "";
+  if (itemTrailerUrl && itemTrailerUrl.value.trim()) {
+    trailerUrlVal = sanitizeTrailerUrl(itemTrailerUrl.value);
+  }
 
   saveBtn.disabled = true;
   saveBtn.textContent = "Ukládám...";
@@ -1635,27 +1799,27 @@ async function handleFormSubmit(e) {
     const payload = {
       itemType: selectedType,
       title: title,
-      description: itemDescription.value.trim(),
-      tags: itemTags.value.trim(),
-      genre: itemGenre.value.trim(),
+      description: sanitizeFormFieldText(itemDescription.value, 2000, true).trim(),
+      tags: sanitizeFormFieldText(itemTags.value, 100).trim(),
+      genre: sanitizeFormFieldText(itemGenre.value, 100).trim(),
       rating: rating,
       apiRating: apiRatingVal,
-      note: itemNote.value.trim(),
+      note: sanitizeFormFieldText(itemNote.value, 2000, true).trim(),
       releaseYear: releaseYearVal,
-      director: itemDirector.value.trim(),
-      writer: itemWriter.value.trim(),
-      castMembers: itemCast.value.trim(),
-      production: itemProduction.value.trim(),
-      duration: itemDuration.value.trim(),
-      seasonEpisodes: selectedType === "Seriál" ? itemSeasonEpisodes.value.trim() : "",
-      developer: itemDeveloper.value.trim(),
-      publisher: itemPublisher.value.trim(),
-      gameMode: itemGameMode.value.trim(),
-      platforms: itemPlatforms.value.trim(),
-      engine: itemEngine.value.trim(),
+      director: sanitizeFormFieldText(itemDirector.value, 60).trim(),
+      writer: sanitizeFormFieldText(itemWriter.value, 60).trim(),
+      castMembers: sanitizeFormFieldText(itemCast.value, 200).trim(),
+      production: sanitizeFormFieldText(itemProduction.value, 60).trim(),
+      duration: sanitizeFormFieldText(itemDuration.value, 60).trim(),
+      seasonEpisodes: selectedType === "Seriál" ? sanitizeFormFieldText(itemSeasonEpisodes.value, 60).trim() : "",
+      developer: sanitizeFormFieldText(itemDeveloper.value, 60).trim(),
+      publisher: sanitizeFormFieldText(itemPublisher.value, 60).trim(),
+      gameMode: sanitizeFormFieldText(itemGameMode.value, 100).trim(),
+      platforms: sanitizeFormFieldText(itemPlatforms.value, 100).trim(),
+      engine: sanitizeFormFieldText(itemEngine.value, 60).trim(),
       customMetadata: collectCustomMetadata(),
       status: document.querySelector('input[name="itemStatus"]:checked')?.value || "completed",
-      trailerUrl: itemTrailerUrl ? itemTrailerUrl.value.trim() : "",
+      trailerUrl: trailerUrlVal,
     };
 
     if (editingItemId === null) {
@@ -1835,13 +1999,13 @@ function openFormModal(itemToEdit = null, prefillData = null) {
     const stRadio = document.querySelector(`input[name="itemStatus"][value="${st}"]`);
     if (stRadio) stRadio.checked = true;
 
-    if (itemTrailerUrl) itemTrailerUrl.value = prefillData.trailerUrl || "";
+    if (itemTrailerUrl) itemTrailerUrl.value = sanitizeTrailerUrl(prefillData.trailerUrl || "");
 
-    itemTitle.value = prefillData.title || "";
-    itemReleaseYear.value = prefillData.releaseYear || "";
-    itemGenre.value = prefillData.genre || "";
-    itemTags.value = prefillData.tags || "";
-    itemDescription.value = prefillData.description || "";
+    itemTitle.value = sanitizeFormFieldText(prefillData.title || "", 60);
+    itemReleaseYear.value = sanitizeYearInput(prefillData.releaseYear || "");
+    itemGenre.value = sanitizeFormFieldText(prefillData.genre || "", 100);
+    itemTags.value = sanitizeFormFieldText(prefillData.tags || "", 100);
+    itemDescription.value = sanitizeFormFieldText(prefillData.description || "", 2000, true);
 
     const hasPrefRating = prefillData.rating !== undefined && prefillData.rating !== null && prefillData.rating !== "";
     const prefRating = hasPrefRating ? parseFloat(prefillData.rating) : 1;
@@ -1853,23 +2017,23 @@ function openFormModal(itemToEdit = null, prefillData = null) {
       updateRatingInputWidth();
     }
     setNoRatingState(!hasPrefRating);
-    itemApiRating.value = prefillData.apiRating !== undefined && prefillData.apiRating !== null ? prefillData.apiRating : "";
-    itemNote.value = prefillData.note || "";
+    itemApiRating.value = prefillData.apiRating !== undefined && prefillData.apiRating !== null ? sanitizeApiRatingInput(prefillData.apiRating) : "";
+    itemNote.value = sanitizeFormFieldText(prefillData.note || "", 2000, true);
 
     // Filmy / Seriály
-    itemDirector.value = prefillData.director || "";
-    itemWriter.value = prefillData.writer || "";
-    itemProduction.value = prefillData.production || "";
-    itemDuration.value = prefillData.duration || "";
-    if (itemSeasonEpisodes) itemSeasonEpisodes.value = prefillData.seasonEpisodes || "";
-    itemCast.value = prefillData.castMembers || "";
+    itemDirector.value = sanitizeFormFieldText(prefillData.director || "", 60);
+    itemWriter.value = sanitizeFormFieldText(prefillData.writer || "", 60);
+    itemProduction.value = sanitizeFormFieldText(prefillData.production || "", 60);
+    itemDuration.value = sanitizeFormFieldText(prefillData.duration || "", 60);
+    if (itemSeasonEpisodes) itemSeasonEpisodes.value = sanitizeFormFieldText(prefillData.seasonEpisodes || "", 60);
+    itemCast.value = sanitizeFormFieldText(prefillData.castMembers || "", 200);
 
     // Hry
-    itemDeveloper.value = prefillData.developer || "";
-    itemPublisher.value = prefillData.publisher || "";
-    itemGameMode.value = prefillData.gameMode || "";
-    itemPlatforms.value = prefillData.platforms || "";
-    itemEngine.value = prefillData.engine || "";
+    itemDeveloper.value = sanitizeFormFieldText(prefillData.developer || "", 60);
+    itemPublisher.value = sanitizeFormFieldText(prefillData.publisher || "", 60);
+    itemGameMode.value = sanitizeFormFieldText(prefillData.gameMode || "", 100);
+    itemPlatforms.value = sanitizeFormFieldText(prefillData.platforms || "", 100);
+    itemEngine.value = sanitizeFormFieldText(prefillData.engine || "", 60);
 
     // Plakát
     if (prefillData.imageData || prefillData.imagePath) {
@@ -1885,7 +2049,7 @@ function openFormModal(itemToEdit = null, prefillData = null) {
 
     if (prefillData.customMetadata) {
       for (const [k, v] of Object.entries(prefillData.customMetadata)) {
-        addCustomMetaRow(k, v);
+        addCustomMetaRow(sanitizeFormFieldText(k, 60), sanitizeFormFieldText(v, 500));
       }
     }
   } else {
@@ -2333,7 +2497,7 @@ function openDetailModal(item) {
   if (item.genre && item.genre.trim() !== "") {
     const genres = item.genre.split(/[,/]/).map((s) => s.trim()).filter(Boolean);
     genres.forEach((g) => {
-      detailGenre.innerHTML += `<span class="genre-tag">${escapeHtml(g)}</span>`;
+      detailGenre.innerHTML += `<span class="genre-tag" title="${escapeHtml(g)}">${escapeHtml(g)}</span>`;
     });
     if (detailGenreWrap) detailGenreWrap.classList.remove("hidden");
   } else {
@@ -2346,7 +2510,7 @@ function openDetailModal(item) {
   if (item.tags) {
     const tags = item.tags.split(/[,/]/).map((s) => s.trim()).filter(Boolean);
     tags.forEach((t) => {
-      detailTags.innerHTML += `<span class="tag-pill">#${escapeHtml(t)}</span>`;
+      detailTags.innerHTML += `<span class="tag-pill" title="#${escapeHtml(t)}">#${escapeHtml(t)}</span>`;
     });
     if (detailTagsWrap) detailTagsWrap.classList.remove("hidden");
   } else {
@@ -3598,7 +3762,26 @@ function renderGrid() {
       // Rozvržení: Detailní seznam / Tabulka (Kompaktní a zarovnaná)
       const directorPrefix = window.i18n ? window.i18n.t("main.directorPrefix", {}, "Režie:") : "Režie:";
       const developerPrefix = window.i18n ? window.i18n.t("main.developerPrefix", {}, "Studio:") : "Studio:";
-      const creatorInfo = item.director ? `${directorPrefix} ${escapeHtml(item.director)}` : item.developer ? `${developerPrefix} ${escapeHtml(item.developer)}` : "—";
+
+      const rawTitle = item.title || "";
+      const truncatedTitleShort = rawTitle.length > 40 ? `${rawTitle.slice(0, 40)}...` : rawTitle;
+
+      const rawCreator = item.director ? item.director : item.developer ? item.developer : "";
+      const truncatedCreator = rawCreator.length > 30 ? `${rawCreator.slice(0, 30)}...` : rawCreator;
+      const fullCreatorInfo = item.director
+        ? `${directorPrefix} ${item.director}`
+        : item.developer
+        ? `${developerPrefix} ${item.developer}`
+        : "—";
+      const displayCreatorInfo = item.director
+        ? `${directorPrefix} ${escapeHtml(truncatedCreator)}`
+        : item.developer
+        ? `${developerPrefix} ${escapeHtml(truncatedCreator)}`
+        : "—";
+
+      const rawGenre = item.genre || "";
+      const truncatedGenre = rawGenre.length > 25 ? `${rawGenre.slice(0, 25)}...` : rawGenre;
+
       const typeLabel = getItemTypeLabel(item.item_type);
       const detailBtnText = window.i18n ? window.i18n.t("main.btnDetail", {}, "Detail") : "Detail";
       
@@ -3606,7 +3789,10 @@ function renderGrid() {
         <div class="card-poster">${posterHtml}</div>
         <div class="card-content">
           <div class="list-col-main">
-            <h3 class="card-title">${escapeHtml(item.title)}</h3>
+            <h3 class="card-title" title="${escapeHtml(rawTitle)}">
+              <span class="title-full">${escapeHtml(rawTitle)}</span>
+              <span class="title-short">${escapeHtml(truncatedTitleShort)}</span>
+            </h3>
             <span class="card-year">${item.release_year || "—"}</span>
           </div>
 
@@ -3615,11 +3801,11 @@ function renderGrid() {
           </div>
 
           <div class="list-col-genre">
-            ${item.genre ? `<span class="genre-tag">${escapeHtml(item.genre)}</span>` : `<span class="text-dim">—</span>`}
+            ${rawGenre ? `<span class="genre-tag" title="${escapeHtml(rawGenre)}">${escapeHtml(truncatedGenre)}</span>` : `<span class="text-dim">—</span>`}
           </div>
 
-          <div class="list-col-creator" title="${creatorInfo}">
-            ${creatorInfo}
+          <div class="list-col-creator" title="${escapeHtml(fullCreatorInfo)}">
+            ${displayCreatorInfo}
           </div>
 
           <div class="list-col-ratings">

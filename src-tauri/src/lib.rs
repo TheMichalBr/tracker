@@ -258,7 +258,7 @@ fn add_item(
     state: tauri::State<'_, AppState>,
     item: AddMediaItemInput,
 ) -> Result<MediaItem, String> {
-    let trimmed_title = item.title.trim().to_string();
+    let trimmed_title: String = item.title.trim().chars().take(60).collect();
     if trimmed_title.is_empty() {
         return Err("Název položky nesmí být prázdný.".to_string());
     }
@@ -269,30 +269,33 @@ fn add_item(
         }
     }
 
-    // Extrakce hodnot
+    // Extrakce a omezení hodnot (ochrana proti přetečení a abuse)
     let item_type = item.item_type;
-    let description = item.description.unwrap_or_default();
-    let tags = item.tags.unwrap_or_default();
-    let genre = item.genre.unwrap_or_default();
+    let description: String = item.description.unwrap_or_default().chars().take(2000).collect();
+    let tags: String = item.tags.unwrap_or_default().chars().take(100).collect();
+    let genre: String = item.genre.unwrap_or_default().chars().take(100).collect();
     let rating = item.rating;
     let db_rating = item.rating;
-    let api_rating = item.api_rating;
-    let note = item.note.unwrap_or_default();
-    let release_year = item.release_year;
-    let duration = item.duration.unwrap_or_default();
-    let director = item.director.unwrap_or_default();
-    let writer = item.writer.unwrap_or_default();
-    let cast_members = item.cast_members.unwrap_or_default();
-    let production = item.production.unwrap_or_default();
-    let season_episodes = item.season_episodes.unwrap_or_default();
-    let developer = item.developer.unwrap_or_default();
-    let publisher = item.publisher.unwrap_or_default();
-    let game_mode = item.game_mode.unwrap_or_default();
-    let platforms = item.platforms.unwrap_or_default();
-    let engine = item.engine.unwrap_or_default();
-    let custom_metadata = item.custom_metadata.unwrap_or_default();
+    let api_rating = item.api_rating.map(|r| r.clamp(0.0, 100.0));
+    let note: String = item.note.unwrap_or_default().chars().take(2000).collect();
+    let release_year = item.release_year.map(|y| y.clamp(0, 5000));
+    let duration: String = item.duration.unwrap_or_default().chars().take(60).collect();
+    let director: String = item.director.unwrap_or_default().chars().take(60).collect();
+    let writer: String = item.writer.unwrap_or_default().chars().take(60).collect();
+    let cast_members: String = item.cast_members.unwrap_or_default().chars().take(200).collect();
+    let production: String = item.production.unwrap_or_default().chars().take(60).collect();
+    let season_episodes: String = item.season_episodes.unwrap_or_default().chars().take(60).collect();
+    let developer: String = item.developer.unwrap_or_default().chars().take(60).collect();
+    let publisher: String = item.publisher.unwrap_or_default().chars().take(60).collect();
+    let game_mode: String = item.game_mode.unwrap_or_default().chars().take(100).collect();
+    let platforms: String = item.platforms.unwrap_or_default().chars().take(100).collect();
+    let engine: String = item.engine.unwrap_or_default().chars().take(60).collect();
+    let custom_metadata: HashMap<String, String> = item.custom_metadata.unwrap_or_default()
+        .into_iter()
+        .map(|(k, v)| (k.chars().take(60).collect(), v.chars().take(500).collect()))
+        .collect();
     let status = item.status.unwrap_or_else(|| "completed".to_string());
-    let trailer_url = item.trailer_url.unwrap_or_default();
+    let trailer_url: String = item.trailer_url.unwrap_or_default().chars().take(300).collect();
 
     // Zpracování obrázku, pokud byl zadán
     let mut saved_rel_path: Option<String> = None;
@@ -416,7 +419,7 @@ fn update_item(
     state: tauri::State<'_, AppState>,
     item: UpdateMediaItemInput,
 ) -> Result<MediaItem, String> {
-    let trimmed_title = item.title.trim().to_string();
+    let trimmed_title: String = item.title.trim().chars().take(60).collect();
     if trimmed_title.is_empty() {
         return Err("Název položky nesmí být prázdný.".to_string());
     }
@@ -487,28 +490,31 @@ fn update_item(
     }
 
     let item_type = item.item_type;
-    let description = item.description.unwrap_or_default();
-    let tags = item.tags.unwrap_or_default();
-    let genre = item.genre.unwrap_or_default();
+    let description: String = item.description.unwrap_or_default().chars().take(2000).collect();
+    let tags: String = item.tags.unwrap_or_default().chars().take(100).collect();
+    let genre: String = item.genre.unwrap_or_default().chars().take(100).collect();
     let rating = item.rating;
     let db_rating = item.rating;
-    let api_rating = item.api_rating;
-    let note = item.note.unwrap_or_default();
-    let release_year = item.release_year;
-    let duration = item.duration.unwrap_or_default();
-    let director = item.director.unwrap_or_default();
-    let writer = item.writer.unwrap_or_default();
-    let cast_members = item.cast_members.unwrap_or_default();
-    let production = item.production.unwrap_or_default();
-    let season_episodes = item.season_episodes.unwrap_or_default();
-    let developer = item.developer.unwrap_or_default();
-    let publisher = item.publisher.unwrap_or_default();
-    let game_mode = item.game_mode.unwrap_or_default();
-    let platforms = item.platforms.unwrap_or_default();
-    let engine = item.engine.unwrap_or_default();
-    let custom_metadata = item.custom_metadata.unwrap_or_default();
+    let api_rating = item.api_rating.map(|r| r.clamp(0.0, 100.0));
+    let note: String = item.note.unwrap_or_default().chars().take(2000).collect();
+    let release_year = item.release_year.map(|y| y.clamp(0, 5000));
+    let duration: String = item.duration.unwrap_or_default().chars().take(60).collect();
+    let director: String = item.director.unwrap_or_default().chars().take(60).collect();
+    let writer: String = item.writer.unwrap_or_default().chars().take(60).collect();
+    let cast_members: String = item.cast_members.unwrap_or_default().chars().take(200).collect();
+    let production: String = item.production.unwrap_or_default().chars().take(60).collect();
+    let season_episodes: String = item.season_episodes.unwrap_or_default().chars().take(60).collect();
+    let developer: String = item.developer.unwrap_or_default().chars().take(60).collect();
+    let publisher: String = item.publisher.unwrap_or_default().chars().take(60).collect();
+    let game_mode: String = item.game_mode.unwrap_or_default().chars().take(100).collect();
+    let platforms: String = item.platforms.unwrap_or_default().chars().take(100).collect();
+    let engine: String = item.engine.unwrap_or_default().chars().take(60).collect();
+    let custom_metadata: HashMap<String, String> = item.custom_metadata.unwrap_or_default()
+        .into_iter()
+        .map(|(k, v)| (k.chars().take(60).collect(), v.chars().take(500).collect()))
+        .collect();
     let status = item.status.unwrap_or_else(|| "completed".to_string());
-    let trailer_url = item.trailer_url.unwrap_or_default();
+    let trailer_url: String = item.trailer_url.unwrap_or_default().chars().take(300).collect();
 
     let custom_meta_json = serde_json::to_string(&custom_metadata)
         .unwrap_or_else(|_| "{}".to_string());
