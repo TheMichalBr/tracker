@@ -3,3 +3,4 @@
 # `cargo clean` – Cleans the `target` folder and deletes previous builds
 
 /src-tauri/target/
+/src/project/
