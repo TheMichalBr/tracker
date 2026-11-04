@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tracker</title>
-  <link rel="icon" type="image/svg+xml" href="../app-icon.svg">
+  <link rel="icon" type="image/svg+xml" href="media/icon.svg">
   
   <!-- Okamžitý tmavý podklad zabraňující jakémukoliv bílému probliknutí -->
   <style>
@@ -175,109 +175,59 @@
     <div class="splash-container">
       <div class="splash-logo-glow">
         <div class="splash-logo-wrapper">
-          <svg class="splash-telescope-svg" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg class="splash-telescope-svg" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <linearGradient id="splashBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#060913"/>
-                <stop offset="50%" stop-color="#0c1222"/>
-                <stop offset="100%" stop-color="#181d36"/>
+              <linearGradient id="splash-body" x1="256" y1="125" x2="256" y2="436" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#FFFFFF"/>
+                <stop offset=".58" stop-color="#F1F5F9"/>
+                <stop offset="1" stop-color="#D5DEEC"/>
               </linearGradient>
-              <linearGradient id="splashRimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
-                <stop offset="40%" stop-color="#6366f1" stop-opacity="0.6"/>
-                <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.2"/>
+              <linearGradient id="splash-bridge" x1="256" y1="170" x2="256" y2="296" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#E8EEF7"/>
+                <stop offset="1" stop-color="#B9C6D8"/>
               </linearGradient>
-              <radialGradient id="splashStarGlow" cx="76%" cy="23%" r="55%">
-                <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.32"/>
-                <stop offset="45%" stop-color="#6366f1" stop-opacity="0.15"/>
-                <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+              <radialGradient id="splash-lens" cx=".32" cy=".24" r=".86">
+                <stop stop-color="#67E8F9"/>
+                <stop offset=".42" stop-color="#2789E8"/>
+                <stop offset="1" stop-color="#173C93"/>
               </radialGradient>
-              <linearGradient id="splashAppBlueGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#818cf8"/>
-                <stop offset="20%" stop-color="#6366f1"/>
-                <stop offset="65%" stop-color="#4f46e5"/>
-                <stop offset="100%" stop-color="#3730a3"/>
+              <linearGradient id="splash-bezel" x1="0" y1="0" x2="0" y2="1">
+                <stop stop-color="#172641"/>
+                <stop offset="1" stop-color="#050A13"/>
               </linearGradient>
-              <linearGradient id="splashGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#fffbeb"/>
-                <stop offset="25%" stop-color="#fde047"/>
-                <stop offset="70%" stop-color="#f59e0b"/>
-                <stop offset="100%" stop-color="#d97706"/>
-              </linearGradient>
-              <linearGradient id="splashLensGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#a5f3fc"/>
-                <stop offset="35%" stop-color="#38bdf8"/>
-                <stop offset="100%" stop-color="#0284c7"/>
-              </linearGradient>
-              <linearGradient id="splashMountGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#3b4866"/>
-                <stop offset="50%" stop-color="#263354"/>
-                <stop offset="100%" stop-color="#151d30"/>
-              </linearGradient>
+              <filter id="splash-shadow" x="-80" y="-80" width="672" height="672" filterUnits="userSpaceOnUse">
+                <feDropShadow dx="0" dy="7" stdDeviation="11" flood-color="#000713" flood-opacity=".28"/>
+              </filter>
+              <clipPath id="splash-left-lens"><circle cx="168" cy="372" r="49"/></clipPath>
+              <clipPath id="splash-right-lens"><circle cx="344" cy="372" r="49"/></clipPath>
             </defs>
-
-            <rect width="512" height="512" rx="118" fill="url(#splashBgGrad)"/>
-            <rect x="4" y="4" width="504" height="504" rx="114" fill="none" stroke="url(#splashRimGrad)" stroke-width="3"/>
-            <rect width="512" height="512" rx="118" fill="url(#splashStarGlow)"/>
-
-            <g transform="translate(390, 115)">
-              <circle cx="0" cy="0" r="54" fill="#f59e0b" opacity="0.16"/>
-              <circle cx="0" cy="0" r="30" fill="#fde047" opacity="0.3"/>
-              <circle cx="0" cy="0" r="15" fill="#ffffff" opacity="0.45"/>
-              <polygon points="0,-46 10,-11 46,0 10,11 0,46 -10,11 -46,0 -10,-11" fill="url(#splashGoldGrad)"/>
-              <polygon points="0,-20 5,-5 20,0 5,5 0,20 -5,5 -20,0 -5,-5" fill="#ffffff" transform="rotate(45)" opacity="0.9"/>
-              <circle cx="0" cy="0" r="6" fill="#ffffff"/>
-            </g>
-
-            <g transform="translate(120, 105)">
-              <polygon points="0,-20 5,-5 20,0 5,5 0,20 -5,5 -20,0 -5,-5" fill="#38bdf8" opacity="0.95"/>
-              <circle cx="0" cy="0" r="3.5" fill="#ffffff"/>
-            </g>
-            <g transform="translate(255, 62)">
-              <polygon points="0,-14 3.5,-3.5 14,0 3.5,3.5 0,14 -3.5,3.5 -14,0 -3.5,-3.5" fill="#fbbf24" opacity="0.85"/>
-              <circle cx="0" cy="0" r="2.5" fill="#ffffff"/>
-            </g>
-            <g transform="translate(445, 235)">
-              <polygon points="0,-16 4,-4 16,0 4,4 0,16 -4,4 -16,0 -4,-4" fill="#c084fc" opacity="0.9"/>
-              <circle cx="0" cy="0" r="3" fill="#ffffff"/>
-            </g>
-            <circle cx="85" cy="225" r="5" fill="#ffffff" opacity="0.75"/>
-            <circle cx="210" cy="140" r="4.5" fill="#ffffff" opacity="0.65"/>
-            <circle cx="325" cy="190" r="5" fill="#ffffff" opacity="0.7"/>
-            <circle cx="155" cy="305" r="4" fill="#ffffff" opacity="0.5"/>
-
-            <polygon points="325,180 382,108 398,122" fill="#38bdf8" opacity="0.14"/>
-
-            <g>
-              <path d="M 125,450 C 125,422 160,412 205,412 C 250,412 285,422 285,450 Z" fill="url(#splashMountGrad)" stroke="#1e2942" stroke-width="3"/>
-              <rect x="155" y="445" width="100" height="10" rx="3" fill="#111827"/>
-              <path d="M 180,418 L 188,335 L 222,335 L 230,418 Z" fill="url(#splashMountGrad)" stroke="#1e2942" stroke-width="2"/>
-              <path d="M 190,418 L 195,335 L 215,335 L 220,418 Z" fill="#4f46e5" opacity="0.4"/>
-              <circle cx="205" cy="335" r="28" fill="#1e293b" stroke="url(#splashGoldGrad)" stroke-width="6"/>
-              <circle cx="205" cy="335" r="10" fill="url(#splashGoldGrad)"/>
-            </g>
-
-            <g transform="translate(205, 335) rotate(-42)">
-              <rect x="-90" y="-12" width="265" height="56" rx="14" fill="#000000" opacity="0.4" transform="translate(0, 12)"/>
-              <rect x="-112" y="-18" width="30" height="36" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="3"/>
-              <rect x="-126" y="-24" width="16" height="48" rx="5" fill="url(#splashGoldGrad)"/>
-              <circle cx="-82" cy="28" r="15" fill="url(#splashGoldGrad)"/>
-              <circle cx="-82" cy="28" r="8" fill="#0f172a"/>
-              <rect x="-82" y="-24" width="58" height="48" rx="5" fill="#1e293b" stroke="#334155" stroke-width="2"/>
-              <rect x="-26" y="-28" width="14" height="56" rx="3" fill="url(#splashGoldGrad)"/>
-              <rect x="-14" y="-30" width="175" height="60" rx="10" fill="url(#splashAppBlueGrad)" stroke="#818cf8" stroke-width="3.5"/>
-              <line x1="0" y1="-24" x2="150" y2="-24" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
-              <rect x="42" y="-34" width="16" height="68" rx="4" fill="url(#splashGoldGrad)"/>
-              <path d="M 158 -30 L 208 -40 L 208 40 L 158 30 Z" fill="#3730a3" stroke="#6366f1" stroke-width="3"/>
-              <rect x="202" y="-42" width="20" height="84" rx="6" fill="url(#splashGoldGrad)"/>
-              <ellipse cx="220" cy="0" rx="8.5" ry="40" fill="url(#splashLensGrad)"/>
-              <ellipse cx="222" cy="-12" rx="4" ry="20" fill="#ffffff" opacity="0.85"/>
-              <g transform="translate(38, -43)">
-                <rect x="-35" y="-12" width="120" height="18" rx="5" fill="#1e293b" stroke="#475569" stroke-width="2.5"/>
-                <rect x="78" y="-15" width="10" height="24" rx="2" fill="url(#splashGoldGrad)"/>
-                <ellipse cx="88" cy="-3" rx="2.5" ry="10" fill="url(#splashLensGrad)"/>
-                <rect x="-12" y="4" width="10" height="11" rx="2" fill="#334155"/>
-                <rect x="45" y="4" width="10" height="11" rx="2" fill="#334155"/>
+            <rect width="512" height="512" fill="#0C1222"/>
+            <g filter="url(#splash-shadow)" transform="translate(0 -30)">
+              <path d="M123 241 153 152c5-16 20-27 37-27h20c18 0 33 13 36 31l13 85H123Z" fill="url(#splash-body)"/>
+              <path d="m389 241-30-89c-5-16-20-27-37-27h-20c-18 0-33 13-36 31l-13 85h136Z" fill="url(#splash-body)"/>
+              <path d="M224 170h64l11 73h-86l11-73Z" fill="url(#splash-bridge)"/>
+              <rect x="219" y="213" width="74" height="65" rx="24" fill="#E7EDF6"/>
+              <path d="M234 227h44" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" opacity=".72"/>
+              <path d="M113 226h107l28 122c11 50-25 98-73 98h-9c-53 0-91-53-76-106l23-114Z" fill="url(#splash-body)"/>
+              <path d="M399 226H292l-28 122c-11 50 25 98 73 98h9c53 0 91-53 76-106l-23-114Z" fill="url(#splash-body)"/>
+              <path d="M216 239h80l-8 57h-64l-8-57Z" fill="url(#splash-bridge)"/>
+              <circle cx="168" cy="372" r="73" fill="url(#splash-body)"/>
+              <circle cx="344" cy="372" r="73" fill="url(#splash-body)"/>
+              <circle cx="168" cy="372" r="58" fill="url(#splash-bezel)"/>
+              <circle cx="344" cy="372" r="58" fill="url(#splash-bezel)"/>
+              <circle cx="168" cy="372" r="49" fill="url(#splash-lens)"/>
+              <circle cx="344" cy="372" r="49" fill="url(#splash-lens)"/>
+              <g clip-path="url(#splash-left-lens)">
+                <path d="M119 393c17 23 36 33 59 33 17 0 31-5 42-14v20H119v-39Z" fill="#102E72" opacity=".44"/>
+                <path d="M119 360c15-24 37-37 66-37" fill="none" stroke="#CFFAFE" stroke-width="9" opacity=".7"/>
+                <circle cx="150" cy="344" r="4.5" fill="#FFFFFF" opacity=".54"/>
+                <path d="M120 402c14 12 30 18 47 19" fill="none" stroke="#5BB9FF" stroke-width="3.5" opacity=".32"/>
+              </g>
+              <g clip-path="url(#splash-right-lens)">
+                <path d="M295 393c17 23 36 33 59 33 17 0 31-5 42-14v20H295v-39Z" fill="#102E72" opacity=".44"/>
+                <path d="M295 360c15-24 37-37 66-37" fill="none" stroke="#CFFAFE" stroke-width="9" opacity=".7"/>
+                <circle cx="326" cy="344" r="4.5" fill="#FFFFFF" opacity=".54"/>
+                <path d="M296 402c14 12 30 18 47 19" fill="none" stroke="#5BB9FF" stroke-width="3.5" opacity=".32"/>
               </g>
             </g>
           </svg>
@@ -301,111 +251,61 @@
     <!-- Horní navigační lišta -->
     <header class="navbar">
       <div class="brand">
-        <!-- SVG Ikona Dalekohledu -->
+        <!-- SVG Ikona Aplikace (Tracker Binoculars) -->
         <div class="brand-icon-wrapper">
-          <svg class="telescope-svg" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg class="telescope-svg" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <linearGradient id="navBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#060913"/>
-                <stop offset="50%" stop-color="#0c1222"/>
-                <stop offset="100%" stop-color="#181d36"/>
+              <linearGradient id="nav-body" x1="256" y1="125" x2="256" y2="436" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#FFFFFF"/>
+                <stop offset=".58" stop-color="#F1F5F9"/>
+                <stop offset="1" stop-color="#D5DEEC"/>
               </linearGradient>
-              <linearGradient id="navRimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
-                <stop offset="40%" stop-color="#6366f1" stop-opacity="0.6"/>
-                <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.2"/>
+              <linearGradient id="nav-bridge" x1="256" y1="170" x2="256" y2="296" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#E8EEF7"/>
+                <stop offset="1" stop-color="#B9C6D8"/>
               </linearGradient>
-              <radialGradient id="navStarGlow" cx="76%" cy="23%" r="55%">
-                <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.32"/>
-                <stop offset="45%" stop-color="#6366f1" stop-opacity="0.15"/>
-                <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+              <radialGradient id="nav-lens" cx=".32" cy=".24" r=".86">
+                <stop stop-color="#67E8F9"/>
+                <stop offset=".42" stop-color="#2789E8"/>
+                <stop offset="1" stop-color="#173C93"/>
               </radialGradient>
-              <linearGradient id="navAppBlueGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#818cf8"/>
-                <stop offset="20%" stop-color="#6366f1"/>
-                <stop offset="65%" stop-color="#4f46e5"/>
-                <stop offset="100%" stop-color="#3730a3"/>
+              <linearGradient id="nav-bezel" x1="0" y1="0" x2="0" y2="1">
+                <stop stop-color="#172641"/>
+                <stop offset="1" stop-color="#050A13"/>
               </linearGradient>
-              <linearGradient id="navGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#fffbeb"/>
-                <stop offset="25%" stop-color="#fde047"/>
-                <stop offset="70%" stop-color="#f59e0b"/>
-                <stop offset="100%" stop-color="#d97706"/>
-              </linearGradient>
-              <linearGradient id="navLensGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#a5f3fc"/>
-                <stop offset="35%" stop-color="#38bdf8"/>
-                <stop offset="100%" stop-color="#0284c7"/>
-              </linearGradient>
-              <linearGradient id="navMountGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#3b4866"/>
-                <stop offset="50%" stop-color="#263354"/>
-                <stop offset="100%" stop-color="#151d30"/>
-              </linearGradient>
+              <filter id="nav-shadow" x="-80" y="-80" width="672" height="672" filterUnits="userSpaceOnUse">
+                <feDropShadow dx="0" dy="7" stdDeviation="11" flood-color="#000713" flood-opacity=".28"/>
+              </filter>
+              <clipPath id="nav-left-lens"><circle cx="168" cy="372" r="49"/></clipPath>
+              <clipPath id="nav-right-lens"><circle cx="344" cy="372" r="49"/></clipPath>
             </defs>
-
-            <rect width="512" height="512" rx="118" fill="url(#navBgGrad)"/>
-            <rect x="4" y="4" width="504" height="504" rx="114" fill="none" stroke="url(#navRimGrad)" stroke-width="3"/>
-            <rect width="512" height="512" rx="118" fill="url(#navStarGlow)"/>
-
-            <g transform="translate(390, 115)">
-              <circle cx="0" cy="0" r="54" fill="#f59e0b" opacity="0.16"/>
-              <circle cx="0" cy="0" r="30" fill="#fde047" opacity="0.3"/>
-              <circle cx="0" cy="0" r="15" fill="#ffffff" opacity="0.45"/>
-              <polygon points="0,-46 10,-11 46,0 10,11 0,46 -10,11 -46,0 -10,-11" fill="url(#navGoldGrad)"/>
-              <polygon points="0,-20 5,-5 20,0 5,5 0,20 -5,5 -20,0 -5,-5" fill="#ffffff" transform="rotate(45)" opacity="0.9"/>
-              <circle cx="0" cy="0" r="6" fill="#ffffff"/>
-            </g>
-
-            <g transform="translate(120, 105)">
-              <polygon points="0,-20 5,-5 20,0 5,5 0,20 -5,5 -20,0 -5,-5" fill="#38bdf8" opacity="0.95"/>
-              <circle cx="0" cy="0" r="3.5" fill="#ffffff"/>
-            </g>
-            <g transform="translate(255, 62)">
-              <polygon points="0,-14 3.5,-3.5 14,0 3.5,3.5 0,14 -3.5,3.5 -14,0 -3.5,-3.5" fill="#fbbf24" opacity="0.85"/>
-              <circle cx="0" cy="0" r="2.5" fill="#ffffff"/>
-            </g>
-            <g transform="translate(445, 235)">
-              <polygon points="0,-16 4,-4 16,0 4,4 0,16 -4,4 -16,0 -4,-4" fill="#c084fc" opacity="0.9"/>
-              <circle cx="0" cy="0" r="3" fill="#ffffff"/>
-            </g>
-            <circle cx="85" cy="225" r="5" fill="#ffffff" opacity="0.75"/>
-            <circle cx="210" cy="140" r="4.5" fill="#ffffff" opacity="0.65"/>
-            <circle cx="325" cy="190" r="5" fill="#ffffff" opacity="0.7"/>
-            <circle cx="155" cy="305" r="4" fill="#ffffff" opacity="0.5"/>
-
-            <polygon points="325,180 382,108 398,122" fill="#38bdf8" opacity="0.14"/>
-
-            <g>
-              <path d="M 125,450 C 125,422 160,412 205,412 C 250,412 285,422 285,450 Z" fill="url(#navMountGrad)" stroke="#1e2942" stroke-width="3"/>
-              <rect x="155" y="445" width="100" height="10" rx="3" fill="#111827"/>
-              <path d="M 180,418 L 188,335 L 222,335 L 230,418 Z" fill="url(#navMountGrad)" stroke="#1e2942" stroke-width="2"/>
-              <path d="M 190,418 L 195,335 L 215,335 L 220,418 Z" fill="#4f46e5" opacity="0.4"/>
-              <circle cx="205" cy="335" r="28" fill="#1e293b" stroke="url(#navGoldGrad)" stroke-width="6"/>
-              <circle cx="205" cy="335" r="10" fill="url(#navGoldGrad)"/>
-            </g>
-
-            <g transform="translate(205, 335) rotate(-42)">
-              <rect x="-90" y="-12" width="265" height="56" rx="14" fill="#000000" opacity="0.4" transform="translate(0, 12)"/>
-              <rect x="-112" y="-18" width="30" height="36" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="3"/>
-              <rect x="-126" y="-24" width="16" height="48" rx="5" fill="url(#navGoldGrad)"/>
-              <circle cx="-82" cy="28" r="15" fill="url(#navGoldGrad)"/>
-              <circle cx="-82" cy="28" r="8" fill="#0f172a"/>
-              <rect x="-82" y="-24" width="58" height="48" rx="5" fill="#1e293b" stroke="#334155" stroke-width="2"/>
-              <rect x="-26" y="-28" width="14" height="56" rx="3" fill="url(#navGoldGrad)"/>
-              <rect x="-14" y="-30" width="175" height="60" rx="10" fill="url(#navAppBlueGrad)" stroke="#818cf8" stroke-width="3.5"/>
-              <line x1="0" y1="-24" x2="150" y2="-24" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
-              <rect x="42" y="-34" width="16" height="68" rx="4" fill="url(#navGoldGrad)"/>
-              <path d="M 158 -30 L 208 -40 L 208 40 L 158 30 Z" fill="#3730a3" stroke="#6366f1" stroke-width="3"/>
-              <rect x="202" y="-42" width="20" height="84" rx="6" fill="url(#navGoldGrad)"/>
-              <ellipse cx="220" cy="0" rx="8.5" ry="40" fill="url(#navLensGrad)"/>
-              <ellipse cx="222" cy="-12" rx="4" ry="20" fill="#ffffff" opacity="0.85"/>
-              <g transform="translate(38, -43)">
-                <rect x="-35" y="-12" width="120" height="18" rx="5" fill="#1e293b" stroke="#475569" stroke-width="2.5"/>
-                <rect x="78" y="-15" width="10" height="24" rx="2" fill="url(#navGoldGrad)"/>
-                <ellipse cx="88" cy="-3" rx="2.5" ry="10" fill="url(#navLensGrad)"/>
-                <rect x="-12" y="4" width="10" height="11" rx="2" fill="#334155"/>
-                <rect x="45" y="4" width="10" height="11" rx="2" fill="#334155"/>
+            <rect width="512" height="512" fill="#0C1222"/>
+            <g filter="url(#nav-shadow)" transform="translate(0 -30)">
+              <path d="M123 241 153 152c5-16 20-27 37-27h20c18 0 33 13 36 31l13 85H123Z" fill="url(#nav-body)"/>
+              <path d="m389 241-30-89c-5-16-20-27-37-27h-20c-18 0-33 13-36 31l-13 85h136Z" fill="url(#nav-body)"/>
+              <path d="M224 170h64l11 73h-86l11-73Z" fill="url(#nav-bridge)"/>
+              <rect x="219" y="213" width="74" height="65" rx="24" fill="#E7EDF6"/>
+              <path d="M234 227h44" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" opacity=".72"/>
+              <path d="M113 226h107l28 122c11 50-25 98-73 98h-9c-53 0-91-53-76-106l23-114Z" fill="url(#nav-body)"/>
+              <path d="M399 226H292l-28 122c-11 50 25 98 73 98h9c53 0 91-53 76-106l-23-114Z" fill="url(#nav-body)"/>
+              <path d="M216 239h80l-8 57h-64l-8-57Z" fill="url(#nav-bridge)"/>
+              <circle cx="168" cy="372" r="73" fill="url(#nav-body)"/>
+              <circle cx="344" cy="372" r="73" fill="url(#nav-body)"/>
+              <circle cx="168" cy="372" r="58" fill="url(#nav-bezel)"/>
+              <circle cx="344" cy="372" r="58" fill="url(#nav-bezel)"/>
+              <circle cx="168" cy="372" r="49" fill="url(#nav-lens)"/>
+              <circle cx="344" cy="372" r="49" fill="url(#nav-lens)"/>
+              <g clip-path="url(#nav-left-lens)">
+                <path d="M119 393c17 23 36 33 59 33 17 0 31-5 42-14v20H119v-39Z" fill="#102E72" opacity=".44"/>
+                <path d="M119 360c15-24 37-37 66-37" fill="none" stroke="#CFFAFE" stroke-width="9" opacity=".7"/>
+                <circle cx="150" cy="344" r="4.5" fill="#FFFFFF" opacity=".54"/>
+                <path d="M120 402c14 12 30 18 47 19" fill="none" stroke="#5BB9FF" stroke-width="3.5" opacity=".32"/>
+              </g>
+              <g clip-path="url(#nav-right-lens)">
+                <path d="M295 393c17 23 36 33 59 33 17 0 31-5 42-14v20H295v-39Z" fill="#102E72" opacity=".44"/>
+                <path d="M295 360c15-24 37-37 66-37" fill="none" stroke="#CFFAFE" stroke-width="9" opacity=".7"/>
+                <circle cx="326" cy="344" r="4.5" fill="#FFFFFF" opacity=".54"/>
+                <path d="M296 402c14 12 30 18 47 19" fill="none" stroke="#5BB9FF" stroke-width="3.5" opacity=".32"/>
               </g>
             </g>
           </svg>
@@ -1135,12 +1035,29 @@
        ========================================================================== -->
   <div id="detailModal" class="modal-overlay hidden">
     <div class="modal-card modal-detail">
-      <!-- Vrchní lišta: Název položky vlevo + zavírací tlačítko -->
-      <div class="modal-header detail-modal-header">
-        <div class="detail-header-title-wrap">
+      <!-- Ambientní vrstva v pozadí (aktivní pouze při přítomnosti plakátu) -->
+      <div class="detail-ambient-layer hidden" id="detailAmbientLayer" aria-hidden="true">
+        <img id="detailAmbientImg" class="detail-ambient-img" src="" alt="">
+      </div>
+
+      <!-- Vrchní lišta: Ikona a název položky vlevo + zavírací tlačítko (sladěno s ostatními modály) -->
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-header-icon" id="detailHeaderIcon">
+            <svg class="modal-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+              <line x1="7" y1="2" x2="7" y2="22"></line>
+              <line x1="17" y1="2" x2="17" y2="22"></line>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <line x1="2" y1="7" x2="7" y2="7"></line>
+              <line x1="2" y1="17" x2="7" y2="17"></line>
+              <line x1="17" y1="17" x2="22" y2="17"></line>
+              <line x1="17" y1="7" x2="22" y2="7"></line>
+            </svg>
+          </div>
           <h2 id="detailTitle" class="detail-header-title">Název položky</h2>
         </div>
-        <button id="closeDetailModalBtn" class="close-btn" aria-label="Zavřít">
+        <button id="closeDetailModalBtn" class="close-btn" data-i18n-aria="detail.closeAria" aria-label="Zavřít">
           <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
@@ -1151,16 +1068,16 @@
           <div class="detail-poster-wrap" id="detailPosterWrap"></div>
 
           <!-- Tlačítko pro spuštění traileru (pokud je odkaz k dispozici) -->
-          <button type="button" id="detailTrailerBtn" class="detail-trailer-btn hidden" title="Přehrát oficiální videoupoutávku">
+          <button type="button" id="detailTrailerBtn" class="detail-trailer-btn hidden" data-i18n-title="detail.playTrailerTitle" title="Přehrát oficiální videoupoutávku">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
               <polygon points="5 3 19 12 5 21 5 3"></polygon>
             </svg>
-            <span>Přehrát trailer</span>
+            <span data-i18n="detail.playTrailerBtn">Přehrát trailer</span>
           </button>
 
           <!-- Rychlá změna stavu sledování / hraní -->
           <div class="detail-status-box" id="detailStatusBox">
-            <span class="detail-sidebar-label">Stav</span>
+            <span class="detail-sidebar-label" data-i18n="detail.statusHeader">Stav</span>
             <div class="detail-status-pills" id="detailStatusPills">
               <button type="button" class="detail-status-btn" data-status="backlog" title="Chci vidět / hrát">
                 <span class="status-bullet bullet-backlog"></span>
@@ -1183,13 +1100,13 @@
 
           <!-- Klíčová slova pod plakátem -->
           <div id="detailTagsWrap" class="detail-tags-sidebar-box">
-            <span class="detail-sidebar-label">Klíčová slova</span>
+            <span class="detail-sidebar-label" data-i18n="detail.keywordsHeader">Klíčová slova</span>
             <div id="detailTags" class="detail-tags-list"></div>
           </div>
 
           <!-- Externí filmové a herní databáze (ČSFD, IMDb, Metacritic, Steam) -->
           <div id="detailLinksWrap" class="detail-links-sidebar-box">
-            <span class="detail-sidebar-label">Odkazy & Databáze</span>
+            <span class="detail-sidebar-label" data-i18n="detail.linksHeader">Odkazy & Databáze</span>
             <div id="detailLinksList" class="detail-links-list"></div>
           </div>
         </div>
@@ -1206,11 +1123,11 @@
             <!-- Hodnocení vpravo nahoře - výrazné velké karty -->
             <div class="detail-ratings-row" id="detailRatingsRow">
               <div class="rating-stat-card rating-user-badge" id="detailUserRatingBox">
-                <span class="rating-stat-label">Hodnocení</span>
+                <span class="rating-stat-label" data-i18n="detail.ratingUser">Hodnocení</span>
                 <span class="rating-stat-val" id="detailUserRating"></span>
               </div>
               <div class="rating-stat-card rating-api-badge" id="detailApiRatingBox">
-                <span class="rating-stat-label">Veřejné / API</span>
+                <span class="rating-stat-label" data-i18n="detail.ratingApi">Veřejné / API</span>
                 <span class="rating-stat-val api-val" id="detailApiRating"></span>
               </div>
             </div>
@@ -1223,7 +1140,7 @@
                 <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
                 <line x1="7" y1="7" x2="7.01" y2="7"></line>
               </svg>
-              <span>Žánry:</span>
+              <span data-i18n="detail.genresLabel">Žánry:</span>
             </span>
             <div id="detailGenre" class="detail-genre-row"></div>
           </div>
@@ -1234,44 +1151,44 @@
           <!-- 3. Popis děje -->
           <div id="detailDescriptionWrap" class="detail-card detail-description-card">
             <h4 class="detail-section-title">
-              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-              <span>Popis</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              <span data-i18n="detail.sectionDescription">Popis</span>
             </h4>
             <p id="detailDescription" class="detail-description-text"></p>
           </div>
 
-          <!-- 3. Technické podrobnosti a tvůrci -->
+          <!-- 4. Technické podrobnosti a tvůrci -->
           <div id="detailMetaWrap" class="detail-card detail-specs-card">
             <h4 class="detail-section-title">
-              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-              <span>Podrobnosti</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              <span data-i18n="detail.sectionSpecs">Podrobnosti</span>
             </h4>
             <div id="detailMetaGrid" class="detail-meta-grid"></div>
           </div>
 
-          <!-- 4. Vlastní přidaná metadata (přejmenováno na Další podrobnosti, hned za Podrobnostmi) -->
+          <!-- 5. Vlastní přidaná metadata (Další podrobnosti) -->
           <div id="detailCustomMetaWrap" class="detail-card detail-custom-card hidden">
             <h4 class="detail-section-title">
-              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
-              <span>Další podrobnosti</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+              <span data-i18n="detail.sectionCustomMeta">Další podrobnosti</span>
             </h4>
             <div id="detailCustomMetaGrid" class="detail-meta-grid"></div>
           </div>
 
-          <!-- 5. Osobní poznámky -->
+          <!-- 6. Osobní poznámky -->
           <div id="detailNoteWrap" class="detail-card detail-note-card">
             <h4 class="detail-section-title">
-              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-              <span>Poznámky</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              <span data-i18n="detail.sectionNotes">Poznámky</span>
             </h4>
             <div id="detailNote" class="detail-note-box"></div>
           </div>
 
-          <!-- 6. Informace o položce (Metadata a časové údaje) -->
+          <!-- 7. Informace o položce (Metadata a časové údaje) -->
           <div id="detailInfoWrap" class="detail-card detail-info-card">
             <h4 class="detail-section-title">
-              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-              <span>Informace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <span data-i18n="detail.sectionInfo">Informace</span>
             </h4>
             <div id="detailInfoGrid" class="detail-meta-grid"></div>
           </div>
@@ -1282,13 +1199,13 @@
       <div class="modal-footer">
         <button id="detailDeleteBtn" class="btn btn-danger-outline">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-          <span>Smazat záznam</span>
+          <span data-i18n="detail.btnDelete">Smazat záznam</span>
         </button>
         <div class="footer-right-actions">
-          <button id="detailCloseBtn" class="btn btn-secondary">Zavřít</button>
+          <button id="detailCloseBtn" class="btn btn-secondary" data-i18n="detail.btnClose">Zavřít</button>
           <button id="detailEditBtn" class="btn btn-primary">
             <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-            <span>Upravit položku</span>
+            <span data-i18n="detail.btnEdit">Upravit položku</span>
           </button>
         </div>
       </div>
@@ -1645,7 +1562,7 @@
                 </svg>
                 <span id="downloadUpdateBtnText" data-i18n="settings.downloadUpdateBtn">Stáhnout novou verzi</span>
               </button>
-              <button type="button" id="viewReleaseNotesBtn" class="btn btn-secondary settings-action-btn hidden" title="Zobrazit poznámky k vydání na GitHubu">
+              <button type="button" id="viewReleaseNotesBtn" class="btn btn-secondary settings-action-btn hidden" data-i18n-title="settings.viewReleaseNotesTitle" title="Zobrazit poznámky k vydání na GitHubu">
                 <svg class="btn-svg-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                   <polyline points="15 3 21 3 21 9"></polyline>
@@ -1920,16 +1837,16 @@
             </svg>
           </div>
           <div>
-            <h2 id="trailerModalTitle">Trailer</h2>
-            <p class="modal-subtitle" id="trailerModalSubtitle">Oficiální videoupoutávka</p>
+            <h2 id="trailerModalTitle" data-i18n="trailer.modalTitle">Trailer</h2>
+            <p class="modal-subtitle" id="trailerModalSubtitle" data-i18n="trailer.modalSubtitle">Oficiální videoupoutávka</p>
           </div>
         </div>
         <div class="trailer-header-actions">
-          <button type="button" id="trailerExternalBtn" class="btn btn-secondary btn-sm" title="Otevřít ve výchozím prohlížeči">
+          <button type="button" id="trailerExternalBtn" class="btn btn-secondary btn-sm" data-i18n-title="trailer.externalBtnTitle" title="Otevřít ve výchozím prohlížeči">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-            <span>Otevřít v prohlížeči</span>
+            <span data-i18n="trailer.externalBtn">Otevřít v prohlížeči</span>
           </button>
-          <button id="closeTrailerModalBtn" class="close-btn" aria-label="Zavřít trailer">
+          <button id="closeTrailerModalBtn" class="close-btn" data-i18n-aria="trailer.closeAria" aria-label="Zavřít trailer">
             <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
@@ -1955,13 +1872,13 @@
           </svg>
         </div>
         <div class="confirm-text-wrap">
-          <h3 id="confirmTitle">Potvrdit akci</h3>
-          <p id="confirmMessage">Opravdu si přejete provést tuto akci?</p>
+          <h3 id="confirmTitle" data-i18n="confirm.defaultTitle">Potvrdit akci</h3>
+          <p id="confirmMessage" data-i18n="confirm.defaultMessage">Opravdu si přejete provést tuto akci?</p>
         </div>
       </div>
       <div class="confirm-actions">
-        <button type="button" id="confirmCancelBtn" class="btn btn-secondary">Zrušit</button>
-        <button type="button" id="confirmOkBtn" class="btn btn-danger">Ano, smazat</button>
+        <button type="button" id="confirmCancelBtn" class="btn btn-secondary" data-i18n="confirm.defaultCancel">Zrušit</button>
+        <button type="button" id="confirmOkBtn" class="btn btn-danger" data-i18n="confirm.deleteOk">Ano, smazat</button>
       </div>
     </div>
   </div>

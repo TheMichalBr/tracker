@@ -1564,10 +1564,11 @@ img {
 }
 .modal-detail {
   max-width: 860px;
-  max-height: 88vh;
-  background: linear-gradient(165deg, #151d30 0%, #0c1220 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  width: 95%;
+  max-height: calc(100vh - 32px);
+  max-height: min(92vh, 860px);
+  display: flex;
+  flex-direction: column;
 }
 .modal-settings {
   max-width: 570px;
@@ -1603,11 +1604,15 @@ img {
   align-items: center;
   justify-content: center;
   color: var(--accent-primary-hover);
+  flex-shrink: 0;
 }
 
+.modal-header-icon svg,
 .modal-svg {
   width: 18px;
   height: 18px;
+  display: block;
+  flex-shrink: 0;
 }
 
 .modal-header h2 {
@@ -2405,62 +2410,120 @@ img {
    Modální okno: Detail položky (Upraveno: Kompaktní a harmonický layout)
    ========================================================================== */
 
-/* Vrchní lišta modálu detailu: Název vlevo, křížek vpravo */
-.modal-detail .modal-header,
-.modal-detail .modal-header.detail-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 24px;
-  height: 58px;
-  min-height: 58px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
-  box-sizing: border-box;
+/* Ambientní vrstva v pozadí modálu (aktivní pouze při přítomnosti plakátu) */
+.detail-ambient-layer {
+  position: absolute;
+  inset: -30px;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  transition: opacity 0.4s ease;
 }
 
-.detail-header-title-wrap {
+.detail-ambient-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.32);
+  filter: blur(65px) saturate(1.8);
+  opacity: 0.32;
+  display: block;
+  will-change: transform, opacity;
+}
+
+/* Zajištění, že obsah modálu je nad ambientní vrstvou */
+.modal-detail .modal-header,
+.modal-detail .detail-body,
+.modal-detail .modal-footer {
+  position: relative;
+  z-index: 1;
+}
+
+/* Skleněné lišty a karty (Glassmorphism - aktivní pouze s obálkou přes .has-ambient) */
+.modal-detail.has-ambient .modal-header {
+  background-color: rgba(18, 26, 48, 0.76);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-detail.has-ambient .modal-footer {
+  background-color: rgba(18, 26, 48, 0.76);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-detail.has-ambient .detail-card,
+.modal-detail.has-ambient .detail-status-box,
+.modal-detail.has-ambient .detail-tags-sidebar-box,
+.modal-detail.has-ambient .detail-links-sidebar-box {
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.modal-detail.has-ambient .detail-card:hover,
+.modal-detail.has-ambient .detail-status-box:hover,
+.modal-detail.has-ambient .detail-tags-sidebar-box:hover,
+.modal-detail.has-ambient .detail-links-sidebar-box:hover {
+  background: rgba(15, 23, 42, 0.65);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.modal-detail.has-ambient .detail-meta-cell {
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.modal-detail.has-ambient .detail-meta-cell:hover {
+  background: rgba(15, 23, 42, 0.72);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.modal-detail.has-ambient .detail-poster-wrap {
+  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.8), 0 0 35px -8px rgba(99, 102, 241, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.modal-detail.has-ambient .detail-poster-wrap:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 42px -6px rgba(0, 0, 0, 0.85), 0 0 45px -6px rgba(99, 102, 241, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+/* Vrchní lišta modálu detailu: Sjednocená s modal-large a modal-settings */
+.modal-detail .modal-header {
+  flex-shrink: 0;
+  padding: 15px 22px;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--bg-surface-elevated);
+}
+
+.modal-detail .modal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   flex: 1;
   min-width: 0;
-  padding-right: 16px;
-  display: flex;
-  align-items: center;
+  padding-right: 12px;
 }
 
-.detail-header-title {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.4px;
+.modal-detail .detail-header-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.2px;
   line-height: 1.25;
-  color: #ffffff;
   margin: 0;
   text-align: left;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.modal-detail .close-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-  padding: 0;
-}
-
-.modal-detail .close-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  transform: rotate(90deg);
+  min-width: 0;
 }
 
 /* Vnitřní obsah modálu detailu (Vzdušný, prostornější layout s většími fonty) */
@@ -2472,24 +2535,8 @@ img {
   overflow-y: auto;
   overscroll-behavior: contain;
   flex: 1;
+  min-height: 0;
   align-items: flex-start;
-}
-
-.detail-body::-webkit-scrollbar {
-  width: 6px;
-}
-
-.detail-body::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.detail-body::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.14);
-  border-radius: 3px;
-}
-
-.detail-body::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
 }
 
 /* LEVÝ SLOUPEC: Plakát + Klíčová slova (Tagy) pod ním */
@@ -2509,6 +2556,12 @@ img {
   box-shadow: 0 14px 32px -6px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08);
   background: radial-gradient(circle at 50% 30%, #151d32 0%, #090e18 100%);
   position: relative;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.detail-poster-wrap:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 38px -6px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.15);
 }
 
 .detail-poster-wrap img {
@@ -2523,20 +2576,26 @@ img {
 
 /* Klíčová slova (Tagy) v postranním panelu pod obrázkem */
 .detail-tags-sidebar-box {
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 10px;
+  background-color: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: border-color var(--transition);
+}
+
+.detail-tags-sidebar-box:hover {
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .detail-sidebar-label {
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.7px;
+  letter-spacing: 0.6px;
   color: var(--text-dim);
 }
 
@@ -2569,7 +2628,7 @@ img {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 16px;
 }
 
 /* Horní informační páska: Typ, Rok vlevo a výrazné velké Hodnocení vpravo */
@@ -2696,8 +2755,8 @@ img {
 .detail-divider {
   width: 100%;
   height: 1px;
-  background: rgba(255, 255, 255, 0.08);
-  margin: 4px 0;
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.28) 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
+  margin: 2px 0 4px 0;
 }
 
 /* Hodnocení vpravo nahoře: DALEKO VĚTŠÍ a výraznější bloky */
@@ -2836,19 +2895,28 @@ img {
   filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.6));
 }
 
-/* Karty obsahu v pravém sloupci - velkorysé a přehledné rozestupy */
+/* Karty obsahu v pravém sloupci - sjednocené s form-section a settings-section */
 .detail-card {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+  background-color: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
+  padding: 13px 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: border-color var(--transition);
+}
+
+.detail-card:hover {
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .detail-section-title {
   font-size: 13px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: #94a3b8;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: 0.25px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2859,55 +2927,44 @@ img {
 .detail-section-title svg {
   width: 15px;
   height: 15px;
-  color: #a5b4fc;
+  color: #818cf8;
+  filter: drop-shadow(0 0 6px rgba(129, 140, 248, 0.3));
   flex-shrink: 0;
 }
 
-.detail-section-title::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-/* Popis: Vzdušný vnitřní padding i odstup od nadpisu */
+/* Popis položky (Čistá, čitelná typografie bez zbytečného dvojitého boxování) */
 .detail-description-text {
-  font-size: 14.5px;
+  font-size: 13.5px;
   line-height: 1.7;
-  color: #e2e8f0;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035) 0%, rgba(255, 255, 255, 0.012) 100%);
-  padding: 16px 22px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-left: 4px solid var(--accent-primary);
+  color: #cbd5e1;
   margin: 0;
+  padding: 2px 0 0 0;
   white-space: pre-line;
   word-break: break-word;
   letter-spacing: 0.1px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Podrobnosti & Další podrobnosti: Větší mezery i vnitřní padding buněk */
+/* Podrobnosti & Další podrobnosti */
 .detail-meta-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 10px;
 }
 
 .detail-meta-cell {
-  background: rgba(255, 255, 255, 0.028);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 12px 18px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
 
 .detail-meta-cell:hover {
-  background: rgba(255, 255, 255, 0.055);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(15, 23, 42, 0.75);
+  border-color: rgba(255, 255, 255, 0.12);
   transform: translateY(-1px);
 }
 
@@ -2916,10 +2973,11 @@ img {
 }
 
 .meta-cell-label {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
+  text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #94a3b8;
+  color: var(--text-dim);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -2927,26 +2985,23 @@ img {
 }
 
 .meta-cell-value {
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 13.5px;
+  font-weight: 600;
   color: #f8fafc;
   word-break: break-word;
-  line-height: 1.5;
+  line-height: 1.45;
 }
 
-/* Poznámky: Vzdušný vnitřní padding i odstup od nadpisu */
+/* Osobní poznámky (Sjednoceno se stylem ostatních polí) */
 .detail-note-box {
-  font-size: 14.5px;
+  font-size: 13.5px;
   line-height: 1.7;
-  color: #fde68a;
-  background: rgba(245, 158, 11, 0.065);
-  border: 1px solid rgba(245, 158, 11, 0.24);
-  border-left: 4px solid #f59e0b;
-  padding: 16px 22px;
-  border-radius: 12px;
+  color: #cbd5e1;
   white-space: pre-line;
   word-break: break-word;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  margin: 0;
+  padding: 2px 0 0 0;
+  letter-spacing: 0.1px;
 }
 
 @media (max-width: 680px) {
@@ -2984,9 +3039,9 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
+  padding: 12px 22px;
+  border-top: 1px solid var(--border);
+  background-color: var(--bg-surface-elevated);
 }
 
 .modal-detail .footer-right-actions {
@@ -3000,12 +3055,12 @@ img {
 #detailDeleteBtn,
 #detailCloseBtn,
 #detailEditBtn {
-  height: 36px;
+  height: 34px;
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   line-height: 1;
   border-radius: var(--radius-md);
@@ -3030,8 +3085,8 @@ img {
 }
 
 #detailDeleteBtn:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.6);
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.55);
   color: #fca5a5;
   transform: translateY(-1px);
 }
@@ -3040,29 +3095,34 @@ img {
   transform: translateY(0);
 }
 
-/* Menší padding pro Zavřít a Upravit */
 #detailCloseBtn {
-  padding: 0 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.06);
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--text-muted);
   cursor: pointer;
 }
 
 #detailCloseBtn:hover {
   background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--text-main);
 }
 
 #detailEditBtn {
   gap: 6px;
-  padding: 0 13px;
-  border: 1px solid transparent;
+  padding: 0 16px;
+  border: 1px solid rgba(99, 102, 241, 0.4);
   background: linear-gradient(135deg, var(--accent-primary), var(--accent-primary-hover));
   color: #ffffff;
   cursor: pointer;
-  box-shadow: 0 3px 12px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+}
+
+#detailEditBtn:hover {
+  background: linear-gradient(135deg, var(--accent-primary-hover), #4338ca);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.45);
+  transform: translateY(-1px);
 }
 
 #detailEditBtn svg {
@@ -4709,17 +4769,26 @@ img {
     border-radius: var(--radius-lg);
   }
 
-  .modal-settings .modal-header {
+  .modal-settings .modal-header,
+  .modal-detail .modal-header {
     padding: 11px 18px;
   }
 
-  .modal-settings .modal-header h2 {
+  .modal-settings .modal-header h2,
+  .modal-detail .detail-header-title {
     font-size: 16px;
   }
 
-  .modal-settings .modal-header-icon {
+  .modal-settings .modal-header-icon,
+  .modal-detail .modal-header-icon {
     width: 28px;
     height: 28px;
+  }
+
+  .modal-header-icon svg,
+  .modal-svg {
+    width: 16px;
+    height: 16px;
   }
 
   .settings-content {
@@ -4914,13 +4983,19 @@ img {
 
 /* Interaktivní volič stavu v levém sloupci detailu */
 .detail-status-box {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-lg);
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: border-color var(--transition);
+}
+
+.detail-status-box:hover {
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .detail-status-pills {
@@ -4963,24 +5038,28 @@ img {
   border-color: rgba(59, 130, 246, 0.6);
   background: rgba(59, 130, 246, 0.15);
   color: #60a5fa;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.25);
 }
 
 .detail-status-btn[data-status="in_progress"].active {
   border-color: rgba(168, 85, 247, 0.6);
   background: rgba(168, 85, 247, 0.15);
   color: #c084fc;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.25);
 }
 
 .detail-status-btn[data-status="completed"].active {
   border-color: rgba(16, 185, 129, 0.6);
   background: rgba(16, 185, 129, 0.15);
   color: #34d399;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
 }
 
 .detail-status-btn[data-status="dropped"].active {
   border-color: rgba(239, 68, 68, 0.6);
   background: rgba(239, 68, 68, 0.15);
   color: #f87171;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.25);
 }
 
 /* Formulář: Segmentovaný přepínač stavu */
@@ -5152,13 +5231,19 @@ img {
    ========================================================================== */
 
 .detail-links-sidebar-box {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-lg);
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: border-color var(--transition);
+}
+
+.detail-links-sidebar-box:hover {
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .detail-links-list {

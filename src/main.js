@@ -118,6 +118,17 @@ const SVG_ICONS = {
 function handlePosterError(img) {
   if (!img || !img.parentElement) return;
   img.onerror = null;
+
+  // Pokud selhalo načtení plakátu v modálu detailu, deaktivujeme ambientní vrstvu
+  if (img.closest("#detailPosterWrap")) {
+    const detailModalCard = document.querySelector(".modal-card.modal-detail");
+    const detailAmbientLayer = document.getElementById("detailAmbientLayer");
+    const detailAmbientImg = document.getElementById("detailAmbientImg");
+    if (detailModalCard) detailModalCard.classList.remove("has-ambient");
+    if (detailAmbientLayer) detailAmbientLayer.classList.add("hidden");
+    if (detailAmbientImg) detailAmbientImg.removeAttribute("src");
+  }
+
   img.parentElement.innerHTML = `
     <div class="poster-placeholder">
       <div class="placeholder-eye-off">${SVG_ICONS.eyeOff}</div>
@@ -613,6 +624,9 @@ document.addEventListener("DOMContentLoaded", () => {
       window.i18n.applyTranslations();
       updateDropdownLabels();
       renderGrid();
+      if (currentItemDetail && detailModal && !detailModal.classList.contains("hidden")) {
+        openDetailModal(currentItemDetail);
+      }
       if (settingsModal && !settingsModal.classList.contains("hidden")) {
         const curLang = window.i18n.getLanguage();
         updateSettingsDropdownUI(
@@ -1438,17 +1452,22 @@ function updateModalBodyLock() {
 // Univerzální potvrzovací dialog (Žádný webový alert/confirm)
 // ==========================================================================
 function showConfirmDialog({
-  title = "Potvrzení",
-  message = "Opravdu chcete tuto akci provést?",
-  confirmText = "Ano, smazat",
-  cancelText = "Zrušit",
+  title = null,
+  message = null,
+  confirmText = null,
+  cancelText = null,
   danger = true,
-}) {
+} = {}) {
+  const finalTitle = title || (window.i18n ? window.i18n.t("confirm.defaultTitle", {}, "Potvrzení") : "Potvrzení");
+  const finalMessage = message || (window.i18n ? window.i18n.t("confirm.defaultMessage", {}, "Opravdu chcete tuto akci provést?") : "Opravdu chcete tuto akci provést?");
+  const finalConfirmText = confirmText || (window.i18n ? (danger ? window.i18n.t("confirm.deleteOk", {}, "Ano, smazat") : window.i18n.t("confirm.defaultOk", {}, "Potvrdit")) : (danger ? "Ano, smazat" : "Potvrdit"));
+  const finalCancelText = cancelText || (window.i18n ? window.i18n.t("confirm.defaultCancel", {}, "Zrušit") : "Zrušit");
+
   return new Promise((resolve) => {
-    confirmTitle.textContent = title;
-    confirmMessage.textContent = message;
-    confirmOkBtn.textContent = confirmText;
-    confirmCancelBtn.textContent = cancelText;
+    confirmTitle.textContent = finalTitle;
+    confirmMessage.textContent = finalMessage;
+    confirmOkBtn.textContent = finalConfirmText;
+    confirmCancelBtn.textContent = finalCancelText;
 
     if (danger) {
       confirmOkBtn.className = "btn btn-danger";
@@ -1856,11 +1875,24 @@ async function handleFormSubmit(e) {
 
 // Smazání položky s vlastním in-app dialogem
 async function handleDeleteItem(id, title, fromDetail = false) {
+  const dlgTitle = window.i18n
+    ? window.i18n.t("confirm.deleteTitle", {}, "Smazat záznam")
+    : "Smazat záznam";
+  const dlgMessage = window.i18n
+    ? window.i18n.t("confirm.deleteMessage", { title }, `Opravdu si přejete smazat "${title}" ze své sbírky? Tato akce je nevratná a odstraní také uložený plakát z disku.`)
+    : `Opravdu si přejete smazat "${title}" ze své sbírky? Tato akce je nevratná a odstraní také uložený plakát z disku.`;
+  const confirmText = window.i18n
+    ? window.i18n.t("confirm.deleteOk", {}, "Ano, smazat")
+    : "Ano, smazat";
+  const cancelText = window.i18n
+    ? window.i18n.t("confirm.deleteCancel", {}, "Zrušit")
+    : "Zrušit";
+
   const confirmed = await showConfirmDialog({
-    title: "Smazat záznam",
-    message: `Opravdu si přejete smazat "${title}" ze své sbírky? Tato akce je nevratná a odstraní také uložený plakát z disku.`,
-    confirmText: "Ano, smazat",
-    cancelText: "Zrušit",
+    title: dlgTitle,
+    message: dlgMessage,
+    confirmText,
+    cancelText,
     danger: true,
   });
 
@@ -1875,10 +1907,16 @@ async function handleDeleteItem(id, title, fromDetail = false) {
     if (fromDetail) {
       closeDetailModal();
     }
-    showToast(`Položka "${title}" byla smazána.`);
+    const toastMsg = window.i18n
+      ? window.i18n.t("confirm.itemDeletedToast", { title }, `Položka "${title}" byla smazána.`)
+      : `Položka "${title}" byla smazána.`;
+    showToast(toastMsg);
   } catch (err) {
     console.error("Chyba při mazání:", err);
-    showToast("Chyba při mazání: " + err);
+    const errMsg = window.i18n
+      ? window.i18n.t("confirm.deleteErrorToast", { error: String(err) }, "Chyba při mazání: " + err)
+      : "Chyba při mazání: " + err;
+    showToast(errMsg);
   }
 }
 
@@ -2208,10 +2246,20 @@ function openTrailerModal(url, title) {
   const trailerModalSubtitle = document.getElementById("trailerModalSubtitle");
 
   if (trailerModalTitle) {
-    trailerModalTitle.textContent = title ? `Trailer: ${title}` : "Přehrát trailer";
+    if (title) {
+      trailerModalTitle.textContent = window.i18n
+        ? window.i18n.t("trailer.modalTitleWithItem", { title }, `Trailer: ${title}`)
+        : `Trailer: ${title}`;
+    } else {
+      trailerModalTitle.textContent = window.i18n
+        ? window.i18n.t("trailer.modalTitle", {}, "Trailer")
+        : "Trailer";
+    }
   }
   if (trailerModalSubtitle) {
-    trailerModalSubtitle.textContent = "Oficiální videoupoutávka";
+    trailerModalSubtitle.textContent = window.i18n
+      ? window.i18n.t("trailer.modalSubtitle", {}, "Oficiální videoupoutávka")
+      : "Oficiální videoupoutávka";
   }
 
   // Zjištění YouTube ID
@@ -2235,9 +2283,12 @@ function openTrailerModal(url, title) {
         </iframe>
       `;
     } else {
+      const unsuppMsg = window.i18n
+        ? window.i18n.t("trailer.unsupportedVideo", {}, "Váš prohlížeč nepodporuje přehrávání tohoto formátu videa.")
+        : "Váš prohlížeč nepodporuje přehrávání tohoto formátu videa.";
       trailerPlayerWrap.innerHTML = `
         <video controls autoplay src="${escapeHtml(url)}" style="width: 100%; height: 100%;">
-          Váš prohlížeč nepodporuje přehrávání tohoto formátu videa.
+          ${escapeHtml(unsuppMsg)}
         </video>
       `;
     }
@@ -2270,14 +2321,36 @@ function updateDetailStatusView(item) {
   const completedText = document.getElementById("detailStatusTextCompleted");
   const droppedText = document.getElementById("detailStatusTextDropped");
 
-  if (backlogText) backlogText.textContent = isGame ? "Chci hrát" : "Chci vidět";
-  if (progressText) progressText.textContent = isGame ? "Hraji" : "Sleduji";
-  if (completedText) completedText.textContent = isGame ? "Dohráno" : "Dokončeno";
-  if (droppedText) droppedText.textContent = "Odloženo";
+  if (backlogText) {
+    backlogText.textContent = window.i18n
+      ? (isGame ? window.i18n.t("detail.statusBacklogGame", {}, "Chci hrát") : window.i18n.t("detail.statusBacklogMovie", {}, "Chci vidět"))
+      : (isGame ? "Chci hrát" : "Chci vidět");
+  }
+  if (progressText) {
+    progressText.textContent = window.i18n
+      ? (isGame ? window.i18n.t("detail.statusProgressGame", {}, "Hraji") : window.i18n.t("detail.statusProgressMovie", {}, "Sleduji"))
+      : (isGame ? "Hraji" : "Sleduji");
+  }
+  if (completedText) {
+    completedText.textContent = window.i18n
+      ? (isGame ? window.i18n.t("detail.statusCompletedGame", {}, "Dohráno") : window.i18n.t("detail.statusCompletedMovie", {}, "Dokončeno"))
+      : (isGame ? "Dohráno" : "Dokončeno");
+  }
+  if (droppedText) {
+    droppedText.textContent = window.i18n
+      ? window.i18n.t("detail.statusDropped", {}, "Odloženo")
+      : "Odloženo";
+  }
 
   const buttons = document.querySelectorAll(".detail-status-btn");
   buttons.forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.status === status);
+    const s = btn.dataset.status;
+    btn.classList.toggle("active", s === status);
+    if (s === "backlog") btn.title = window.i18n ? window.i18n.t("detail.statusBacklogTitle", {}, "Chci vidět / hrát") : "Chci vidět / hrát";
+    else if (s === "in_progress") btn.title = window.i18n ? window.i18n.t("detail.statusProgressTitle", {}, "Právě sleduji / hraji") : "Právě sleduji / hraji";
+    else if (s === "completed") btn.title = window.i18n ? window.i18n.t("detail.statusCompletedTitle", {}, "Dokončeno / zhlédnuto") : "Dokončeno / zhlédnuto";
+    else if (s === "dropped") btn.title = window.i18n ? window.i18n.t("detail.statusDroppedTitle", {}, "Odloženo / zrušeno") : "Odloženo / zrušeno";
+
     btn.onclick = async () => {
       const newStatus = btn.dataset.status;
       if (item.status === newStatus) return;
@@ -2314,10 +2387,16 @@ function updateDetailStatusView(item) {
         renderDetailInfo(item);
         renderGrid();
         const updatedInfo = getStatusInfo(newStatus, item.item_type);
-        showToast(`Stav byl změněn na: "${updatedInfo.label}".`);
+        const statusMsg = window.i18n
+          ? window.i18n.t("detail.statusChangedToast", { label: updatedInfo.label }, `Stav byl změněn na: "${updatedInfo.label}".`)
+          : `Stav byl změněn na: "${updatedInfo.label}".`;
+        showToast(statusMsg);
       } catch (err) {
         console.error("Chyba při změně stavu:", err);
-        showToast("Nepodařilo se změnit stav: " + err);
+        const errMsg = window.i18n
+          ? window.i18n.t("detail.statusChangeErrorToast", { error: String(err) }, "Nepodařilo se změnit stav: " + err)
+          : "Nepodařilo se změnit stav: " + err;
+        showToast(errMsg);
       }
     };
   });
@@ -2337,7 +2416,7 @@ function renderDetailLinks(item) {
       tag: "ČSFD",
       tagClass: "tag-csfd",
       url: `https://www.csfd.cz/hledat/?q=${titleEnc}`,
-      hint: "Hledat na Česko-Slovenské filmové databázi",
+      hint: window.i18n ? window.i18n.t("detail.hintCsfd", {}, "Vyhledat na ČSFD.cz") : "Vyhledat na ČSFD.cz",
     });
 
     let imdbId = item.custom_metadata?.["IMDb ID"] || item.custom_metadata?.["imdb_id"];
@@ -2347,7 +2426,9 @@ function renderDetailLinks(item) {
       tag: "IMDb",
       tagClass: "tag-imdb",
       url: imdbUrl,
-      hint: imdbId ? `Přejít přímo na IMDb (${imdbId})` : "Hledat na IMDb",
+      hint: imdbId
+        ? (window.i18n ? window.i18n.t("detail.hintImdbId", { id: imdbId }, `Přejít přímo na IMDb (${imdbId})`) : `Přejít přímo na IMDb (${imdbId})`)
+        : (window.i18n ? window.i18n.t("detail.hintImdbSearch", {}, "Hledat na IMDb") : "Hledat na IMDb"),
     });
 
     let tmdbId = item.custom_metadata?.["TMDB ID"] || item.custom_metadata?.["tmdb_id"];
@@ -2358,7 +2439,7 @@ function renderDetailLinks(item) {
       tag: "TMDB",
       tagClass: "tag-tmdb",
       url: tmdbUrl,
-      hint: "Zobrazit na TMDB",
+      hint: window.i18n ? window.i18n.t("detail.hintTmdb", {}, "Zobrazit na TMDB") : "Zobrazit na TMDB",
     });
   } else if (item.item_type === "Hra") {
     links.push({
@@ -2366,7 +2447,7 @@ function renderDetailLinks(item) {
       tag: "Steam",
       tagClass: "tag-steam",
       url: `https://store.steampowered.com/search/?term=${titleEnc}`,
-      hint: "Vyhledat na platformě Steam",
+      hint: window.i18n ? window.i18n.t("detail.hintSteam", {}, "Vyhledat na platformě Steam") : "Vyhledat na platformě Steam",
     });
 
     links.push({
@@ -2374,7 +2455,7 @@ function renderDetailLinks(item) {
       tag: "MC",
       tagClass: "tag-metacritic",
       url: `https://www.metacritic.com/search/${titleEnc}/`,
-      hint: "Zobrazit recenze na Metacritic",
+      hint: window.i18n ? window.i18n.t("detail.hintMetacritic", {}, "Zobrazit recenze na Metacritic") : "Zobrazit recenze na Metacritic",
     });
 
     let rawgId = item.custom_metadata?.["RAWG ID"];
@@ -2384,7 +2465,7 @@ function renderDetailLinks(item) {
       tag: "RAWG",
       tagClass: "tag-rawg",
       url: rawgUrl,
-      hint: "Zobrazit na herní databázi RAWG",
+      hint: window.i18n ? window.i18n.t("detail.hintRawg", {}, "Zobrazit na herní databázi RAWG") : "Zobrazit na herní databázi RAWG",
     });
   }
 
@@ -2437,15 +2518,28 @@ function renderStarRatingHtml(ratingVal) {
     }
   }
 
-  return `<div class="rating-stars-group" title="${num} z 10 (${Math.round(starScore * 10) / 10} z 5)">${starsHtml}</div>`;
+  const tooltipText = window.i18n
+    ? window.i18n.t("detail.ratingOutOfTen", { val: num }, `${num} z 10`)
+    : `${num} z 10`;
+  return `<div class="rating-stars-group" title="${escapeHtml(tooltipText)} (${Math.round(starScore * 10) / 10} / 5)">${starsHtml}</div>`;
 }
 
 // Zobrazení detailu položky
 function openDetailModal(item) {
   currentItemDetail = item;
 
-  // Typ a Rok s SVG ikonou
+  // Nastavení ikony v hlavičce modálu
+  const detailHeaderIcon = document.getElementById("detailHeaderIcon");
   const typeIcon = item.item_type === "Film" ? SVG_ICONS.film : item.item_type === "Seriál" ? SVG_ICONS.series : SVG_ICONS.game;
+  if (detailHeaderIcon) {
+    detailHeaderIcon.innerHTML = typeIcon;
+    const svgEl = detailHeaderIcon.querySelector("svg");
+    if (svgEl) {
+      svgEl.classList.add("modal-svg");
+    }
+  }
+
+  // Typ a Rok s SVG ikonou
   detailTypeBadge.className = `card-type-badge type-${escapeHtml(item.item_type)}`;
   detailTypeBadge.innerHTML = `${typeIcon} <span>${escapeHtml(getItemTypeLabel(item.item_type))}</span>`;
 
@@ -2456,12 +2550,34 @@ function openDetailModal(item) {
     detailYearBadge.classList.add("hidden");
   }
 
-  // Plakát (v modálu se zobrazí ihned bez zpoždění a bez animace)
+  // Plakát a Ambient Glow (v modálu se zobrazí ihned; ambientní vrstva a skleněný efekt se aktivují pouze při přítomnosti plakátu)
   detailPosterWrap.innerHTML = "";
   const detailCoverSrc = getCoverUrl(item.image_data);
+  const detailModalCard = document.querySelector(".modal-card.modal-detail");
+  const detailAmbientLayer = document.getElementById("detailAmbientLayer");
+  const detailAmbientImg = document.getElementById("detailAmbientImg");
+
   if (detailCoverSrc) {
+    if (detailAmbientImg) {
+      detailAmbientImg.src = detailCoverSrc;
+    }
+    if (detailAmbientLayer) {
+      detailAmbientLayer.classList.remove("hidden");
+    }
+    if (detailModalCard) {
+      detailModalCard.classList.add("has-ambient");
+    }
     detailPosterWrap.innerHTML = `<img src="${detailCoverSrc}" alt="${escapeHtml(item.title)}" draggable="false" onerror="handlePosterError(this)">`;
   } else {
+    if (detailAmbientLayer) {
+      detailAmbientLayer.classList.add("hidden");
+    }
+    if (detailAmbientImg) {
+      detailAmbientImg.removeAttribute("src");
+    }
+    if (detailModalCard) {
+      detailModalCard.classList.remove("has-ambient");
+    }
     detailPosterWrap.innerHTML = `
       <div class="poster-placeholder">
         <div class="placeholder-eye-off">${SVG_ICONS.eyeOff}</div>
@@ -2529,20 +2645,51 @@ function openDetailModal(item) {
   detailMetaGrid.innerHTML = "";
 
   if (item.item_type === "Film" || item.item_type === "Seriál") {
-    if (item.director) addDetailMetaCell(detailMetaGrid, "Režie", item.director);
-    if (item.writer) addDetailMetaCell(detailMetaGrid, "Scénář", item.writer);
-    if (item.production) addDetailMetaCell(detailMetaGrid, "Produkce", item.production);
-    if (item.duration) addDetailMetaCell(detailMetaGrid, "Délka", item.duration);
-    if (item.item_type === "Seriál" && item.season_episodes) {
-      addDetailMetaCell(detailMetaGrid, "Řada / Epizody", item.season_episodes);
+    if (item.director) {
+      const lbl = window.i18n ? window.i18n.t("detail.director", {}, "Režie") : "Režie";
+      addDetailMetaCell(detailMetaGrid, lbl, item.director);
     }
-    if (item.cast_members) addDetailMetaCell(detailMetaGrid, "Obsazení", item.cast_members);
+    if (item.writer) {
+      const lbl = window.i18n ? window.i18n.t("detail.writer", {}, "Scénář") : "Scénář";
+      addDetailMetaCell(detailMetaGrid, lbl, item.writer);
+    }
+    if (item.production) {
+      const lbl = window.i18n ? window.i18n.t("detail.production", {}, "Produkce") : "Produkce";
+      addDetailMetaCell(detailMetaGrid, lbl, item.production);
+    }
+    if (item.duration) {
+      const lbl = window.i18n ? window.i18n.t("detail.duration", {}, "Délka") : "Délka";
+      addDetailMetaCell(detailMetaGrid, lbl, item.duration);
+    }
+    if (item.item_type === "Seriál" && item.season_episodes) {
+      const lbl = window.i18n ? window.i18n.t("detail.seasonEpisodes", {}, "Řada / Epizody") : "Řada / Epizody";
+      addDetailMetaCell(detailMetaGrid, lbl, item.season_episodes);
+    }
+    if (item.cast_members) {
+      const lbl = window.i18n ? window.i18n.t("detail.cast", {}, "Obsazení") : "Obsazení";
+      addDetailMetaCell(detailMetaGrid, lbl, item.cast_members);
+    }
   } else if (item.item_type === "Hra") {
-    if (item.developer) addDetailMetaCell(detailMetaGrid, "Vývojářské studio", item.developer);
-    if (item.publisher) addDetailMetaCell(detailMetaGrid, "Vydavatel", item.publisher);
-    if (item.engine) addDetailMetaCell(detailMetaGrid, "Engine", item.engine);
-    if (item.game_mode) addDetailMetaCell(detailMetaGrid, "Herní režim", item.game_mode);
-    if (item.platforms) addDetailMetaCell(detailMetaGrid, "Platformy", item.platforms);
+    if (item.developer) {
+      const lbl = window.i18n ? window.i18n.t("detail.developer", {}, "Vývojářské studio") : "Vývojářské studio";
+      addDetailMetaCell(detailMetaGrid, lbl, item.developer);
+    }
+    if (item.publisher) {
+      const lbl = window.i18n ? window.i18n.t("detail.publisher", {}, "Vydavatel") : "Vydavatel";
+      addDetailMetaCell(detailMetaGrid, lbl, item.publisher);
+    }
+    if (item.engine) {
+      const lbl = window.i18n ? window.i18n.t("detail.engine", {}, "Engine") : "Engine";
+      addDetailMetaCell(detailMetaGrid, lbl, item.engine);
+    }
+    if (item.game_mode) {
+      const lbl = window.i18n ? window.i18n.t("detail.gameMode", {}, "Herní režim") : "Herní režim";
+      addDetailMetaCell(detailMetaGrid, lbl, item.game_mode);
+    }
+    if (item.platforms) {
+      const lbl = window.i18n ? window.i18n.t("detail.platforms", {}, "Platformy") : "Platformy";
+      addDetailMetaCell(detailMetaGrid, lbl, item.platforms);
+    }
   }
 
   if (detailMetaWrap) {
@@ -2624,26 +2771,29 @@ function openDetailModal(item) {
 
 function addDetailMetaCell(container, label, value) {
   const cell = document.createElement("div");
-  const isWide = String(value).length > 32 || label === "Obsazení" || label === "Herecké obsazení" || label === "Platformy" || label === "Vývojářské studio";
+  const norm = String(label).toLowerCase().trim();
+  const isWide = String(value).length > 32 ||
+    norm.includes("obsazení") || norm.includes("cast") ||
+    norm.includes("platform") || norm.includes("studio") || norm.includes("developer");
   cell.className = `detail-meta-cell${isWide ? " full-width" : ""}`;
 
   let iconHtml = "";
-  if (label === "Režie") iconHtml = "🎬 ";
-  else if (label === "Scénář") iconHtml = "✍️ ";
-  else if (label === "Produkce") iconHtml = "🏢 ";
-  else if (label === "Délka") iconHtml = "⏱️ ";
-  else if (label === "Řada / Epizody") iconHtml = "📺 ";
-  else if (label === "Obsazení" || label === "Herecké obsazení") iconHtml = "🎭 ";
-  else if (label === "Vývojářské studio") iconHtml = "💻 ";
-  else if (label === "Vydavatel") iconHtml = "📦 ";
-  else if (label === "Engine") iconHtml = "⚙️ ";
-  else if (label === "Herní režim") iconHtml = "🕹️ ";
-  else if (label === "Platformy") iconHtml = "🎮 ";
-  else if (label === "Datum vytvoření") iconHtml = "📅 ";
-  else if (label === "Datum poslední změny") iconHtml = "🔄 ";
-  else if (label === "Poslední změna stavu") iconHtml = "📌 ";
-  else if (label === "Datum dokončení" || label === "Datum dohrání") iconHtml = "🏆 ";
-  else iconHtml = ""; // Odstraněna emoji pinned pro další podrobnosti
+  if (norm.includes("režie") || norm.includes("director")) iconHtml = "🎬 ";
+  else if (norm.includes("scénář") || norm.includes("writer") || norm.includes("screenplay")) iconHtml = "✍️ ";
+  else if (norm.includes("produkce") || norm.includes("production")) iconHtml = "🏢 ";
+  else if (norm.includes("délka") || norm.includes("duration")) iconHtml = "⏱️ ";
+  else if (norm.includes("řada") || norm.includes("epizod") || norm.includes("season")) iconHtml = "📺 ";
+  else if (norm.includes("obsazení") || norm.includes("cast")) iconHtml = "🎭 ";
+  else if (norm.includes("vývojář") || norm.includes("developer")) iconHtml = "💻 ";
+  else if (norm.includes("vydavatel") || norm.includes("publisher")) iconHtml = "📦 ";
+  else if (norm.includes("engine")) iconHtml = "⚙️ ";
+  else if (norm.includes("herní režim") || norm.includes("game mode")) iconHtml = "🕹️ ";
+  else if (norm.includes("platform")) iconHtml = "🎮 ";
+  else if (norm.includes("vytvoření") || norm.includes("creation")) iconHtml = "📅 ";
+  else if (norm.includes("poslední změny") || norm.includes("modified")) iconHtml = "🔄 ";
+  else if (norm.includes("změna stavu") || norm.includes("status changed")) iconHtml = "📌 ";
+  else if (norm.includes("dokončení") || norm.includes("dohrání") || norm.includes("finished") || norm.includes("completion")) iconHtml = "🏆 ";
+  else iconHtml = "";
 
   cell.innerHTML = `
     <span class="meta-cell-label">${iconHtml}${escapeHtml(label)}</span>
@@ -2655,13 +2805,21 @@ function addDetailMetaCell(container, label, value) {
 function formatDateTime(dateStr) {
   if (!dateStr || typeof dateStr !== "string") return "-";
   const trimmed = dateStr.trim();
-  if (!trimmed || trimmed === "Nyní") return trimmed || "-";
+  const isEn = window.i18n && window.i18n.getLanguage() === "en";
+  if (!trimmed || trimmed === "Nyní" || trimmed === "Just now") {
+    return isEn ? (window.i18n ? window.i18n.t("detail.nowTime", {}, "Just now") : "Just now") : (window.i18n ? window.i18n.t("detail.nowTime", {}, "Nyní") : "Nyní");
+  }
 
   const match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
   if (match) {
     const [, year, month, day, hours, minutes] = match;
     const d = parseInt(day, 10);
     const m = parseInt(month, 10);
+    if (isEn) {
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const monStr = monthNames[m - 1] || m;
+      return `${monStr} ${d}, ${year}, ${hours}:${minutes}`;
+    }
     return `${d}. ${m}. ${year}, ${hours}:${minutes}`;
   }
 
@@ -2672,6 +2830,11 @@ function formatDateTime(dateStr) {
     const y = dateObj.getFullYear();
     const hh = String(dateObj.getHours()).padStart(2, "0");
     const mm = String(dateObj.getMinutes()).padStart(2, "0");
+    if (isEn) {
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const monStr = monthNames[dateObj.getMonth()] || m;
+      return `${monStr} ${d}, ${y}, ${hh}:${mm}`;
+    }
     return `${d}. ${m}. ${y}, ${hh}:${mm}`;
   }
 
@@ -2684,19 +2847,25 @@ function renderDetailInfo(item) {
 
   // 1. Datum vytvoření
   const createdAtVal = item.created_at ? formatDateTime(item.created_at) : "-";
-  addDetailMetaCell(detailInfoGrid, "Datum vytvoření", createdAtVal);
+  const createdLabel = window.i18n ? window.i18n.t("detail.createdAt", {}, "Datum vytvoření") : "Datum vytvoření";
+  addDetailMetaCell(detailInfoGrid, createdLabel, createdAtVal);
 
   // 2. Datum poslední změny
   const updatedAtVal = item.updated_at ? formatDateTime(item.updated_at) : createdAtVal;
-  addDetailMetaCell(detailInfoGrid, "Datum poslední změny", updatedAtVal);
+  const updatedLabel = window.i18n ? window.i18n.t("detail.updatedAt", {}, "Datum poslední změny") : "Datum poslední změny";
+  addDetailMetaCell(detailInfoGrid, updatedLabel, updatedAtVal);
 
   // 3. Poslední změna stavu
   const statusChangedVal = item.status_changed_at ? formatDateTime(item.status_changed_at) : updatedAtVal;
-  addDetailMetaCell(detailInfoGrid, "Poslední změna stavu", statusChangedVal);
+  const statusChangedLabel = window.i18n ? window.i18n.t("detail.statusChangedAt", {}, "Poslední změna stavu") : "Poslední změna stavu";
+  addDetailMetaCell(detailInfoGrid, statusChangedLabel, statusChangedVal);
 
   // 4. Datum dokončení / dohrání (pouze pokud je stav dokončeno/dohráno)
   if (item.status === "completed") {
-    const completedLabel = item.item_type === "Hra" ? "Datum dohrání" : "Datum dokončení";
+    const isGame = item.item_type === "Hra";
+    const completedLabel = window.i18n
+      ? (isGame ? window.i18n.t("detail.completedAtGame", {}, "Datum dohrání") : window.i18n.t("detail.completedAtMovie", {}, "Datum dokončení"))
+      : (isGame ? "Datum dohrání" : "Datum dokončení");
     const completedVal = item.completed_at ? formatDateTime(item.completed_at) : statusChangedVal;
     addDetailMetaCell(detailInfoGrid, completedLabel, completedVal);
   }
@@ -2710,6 +2879,13 @@ function closeDetailModal() {
   if (detailBody && currentItemDetail && currentItemDetail.id) {
     itemDetailScrollPositions.set(currentItemDetail.id, detailBody.scrollTop);
   }
+  const detailModalCard = document.querySelector(".modal-card.modal-detail");
+  const detailAmbientLayer = document.getElementById("detailAmbientLayer");
+  const detailAmbientImg = document.getElementById("detailAmbientImg");
+  if (detailModalCard) detailModalCard.classList.remove("has-ambient");
+  if (detailAmbientLayer) detailAmbientLayer.classList.add("hidden");
+  if (detailAmbientImg) detailAmbientImg.removeAttribute("src");
+
   detailModal.classList.add("hidden");
   currentItemDetail = null;
   detailModalItemBeforeEdit = null;

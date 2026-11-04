@@ -85,6 +85,7 @@ const TRANSLATIONS = {
       updateAvailableStatus: "Je k dispozici nová verze: <strong>{version}</strong>!",
       downloadUpdateBtn: "Stáhnout novou verzi",
       viewReleaseNotes: "Zobrazit novinky",
+      viewReleaseNotesTitle: "Zobrazit poznámky k vydání na GitHubu",
       updateCheckError: "Nepodařilo se ověřit aktualizace. Zkontrolujte připojení k internetu.",
       rateLimitBadge: "Limit API",
       rateLimitError: "Byl dočasně vyčerpán limit GitHub API (60 dotazů/hod). Zkuste to prosím za chvíli.",
@@ -390,16 +391,100 @@ const TRANSLATIONS = {
       emptyFilterTitle: "Žádné položky v této kategorii",
       emptyFilterText: "Ve vybraném filtru se momentálně nenachází žádný záznam.",
       emptyAddNewBtn: "Přidat nový záznam"
+    },
+    detail: {
+      closeAria: "Zavřít",
+      playTrailerBtn: "Přehrát trailer",
+      playTrailerTitle: "Přehrát oficiální videoupoutávku",
+      statusHeader: "Stav",
+      statusBacklogMovie: "Chci vidět",
+      statusBacklogGame: "Chci hrát",
+      statusBacklogTitle: "Chci vidět / hrát",
+      statusProgressMovie: "Sleduji",
+      statusProgressGame: "Hraji",
+      statusProgressTitle: "Právě sleduji / hraji",
+      statusCompletedMovie: "Dokončeno",
+      statusCompletedGame: "Dohráno",
+      statusCompletedTitle: "Dokončeno / zhlédnuto",
+      statusDropped: "Odloženo",
+      statusDroppedTitle: "Odloženo / zrušeno",
+      keywordsHeader: "Klíčová slova",
+      linksHeader: "Odkazy & Databáze",
+      ratingUser: "Hodnocení",
+      ratingApi: "Veřejné / API",
+      genresLabel: "Žánry:",
+      sectionDescription: "Popis",
+      sectionSpecs: "Podrobnosti",
+      sectionCustomMeta: "Další podrobnosti",
+      sectionNotes: "Poznámky",
+      sectionInfo: "Informace",
+      btnDelete: "Smazat záznam",
+      btnClose: "Zavřít",
+      btnEdit: "Upravit položku",
+
+      // Specifikace
+      director: "Režie",
+      writer: "Scénář",
+      production: "Produkce",
+      duration: "Délka",
+      seasonEpisodes: "Řada / Epizody",
+      cast: "Obsazení",
+      developer: "Vývojářské studio",
+      publisher: "Vydavatel",
+      engine: "Engine",
+      gameMode: "Herní režim",
+      platforms: "Platformy",
+
+      // Časové údaje a metadata
+      createdAt: "Datum vytvoření",
+      updatedAt: "Datum poslední změny",
+      statusChangedAt: "Poslední změna stavu",
+      completedAtMovie: "Datum dokončení",
+      completedAtGame: "Datum dohrání",
+      nowTime: "Nyní",
+
+      // Odkazy do externích databází
+      hintCsfd: "Vyhledat na ČSFD.cz",
+      hintImdbId: "Přejít přímo na IMDb ({id})",
+      hintImdbSearch: "Hledat na IMDb",
+      hintTmdb: "Zobrazit na TMDB",
+      hintSteam: "Vyhledat na platformě Steam",
+      hintMetacritic: "Zobrazit recenze na Metacritic",
+      hintRawg: "Zobrazit na herní databázi RAWG",
+      ratingOutOfTen: "{val} z 10",
+      statusChangedToast: "Stav byl změněn na: \"{label}\".",
+      statusChangeErrorToast: "Nepodařilo se změnit stav: {error}"
+    },
+    confirm: {
+      defaultTitle: "Potvrdit akci",
+      defaultMessage: "Opravdu si přejete provést tuto akci?",
+      defaultOk: "Potvrdit",
+      defaultCancel: "Zrušit",
+      deleteTitle: "Smazat záznam",
+      deleteMessage: "Opravdu si přejete smazat \"{title}\" ze své sbírky? Tato akce je nevratná a odstraní také uložený plakát z disku.",
+      deleteOk: "Ano, smazat",
+      deleteCancel: "Zrušit",
+      itemDeletedToast: "Položka \"{title}\" byla smazána.",
+      deleteErrorToast: "Chyba při mazání: {error}"
+    },
+    trailer: {
+      modalTitle: "Trailer",
+      modalTitleWithItem: "Trailer: {title}",
+      modalSubtitle: "Oficiální videoupoutávka",
+      externalBtnTitle: "Otevřít ve výchozím prohlížeči",
+      externalBtn: "Otevřít v prohlížeči",
+      closeAria: "Zavřít trailer",
+      unsupportedVideo: "Váš prohlížeč nepodporuje přehrávání tohoto formátu videa."
     }
   },
   en: {
     settings: {
-      headerTitle: "Application Settings",
+      headerTitle: "Application settings",
       closeAria: "Close",
 
       // 1. Language
       sectionLanguage: "Language",
-      langLabel: "Application Language",
+      langLabel: "Application language",
       langDesc: "Select your preferred user interface language",
       langCs: "Čeština",
       langEn: "English",
@@ -473,6 +558,7 @@ const TRANSLATIONS = {
       updateAvailableStatus: "A new version is available: <strong>{version}</strong>!",
       downloadUpdateBtn: "Download New Version",
       viewReleaseNotes: "View Release Notes",
+      viewReleaseNotesTitle: "View release notes on GitHub",
       updateCheckError: "Failed to check for updates. Please check your internet connection.",
       rateLimitBadge: "Rate limit",
       rateLimitError: "GitHub API hourly rate limit (60 req/hr) exceeded. Please try again shortly.",
@@ -510,8 +596,8 @@ const TRANSLATIONS = {
       exportErrorToast: "Failed to export backup: "
     },
     form: {
-      modalTitleAdd: "Add New Item",
-      modalTitleEdit: "Edit Item",
+      modalTitleAdd: "Add new item",
+      modalTitleEdit: "Edit item",
       modalTitleEditWithTitle: "Edit: {title}",
       modalTitleAddWithTitle: "Add: {title}",
       importTmdbBtnTitle: "Prefill from international TMDB database",
@@ -536,7 +622,7 @@ const TRANSLATIONS = {
       statusDropped: "Dropped",
 
       // 2. Basic information
-      sectionBasicInfo: "Basic Information",
+      sectionBasicInfo: "Basic information",
       titleLabel: "Title",
       requiredTitle: "Required field",
       titlePlaceholder: "e.g. Interstellar, The Last of Us, Cyberpunk...",
@@ -550,7 +636,7 @@ const TRANSLATIONS = {
       descPlaceholder: "Brief synopsis, story summary or game concept...",
 
       // 3. Movie / Series details
-      sectionFilmSeries: "Movie / Series Details",
+      sectionFilmSeries: "Movie / Series details",
       directorLabel: "Director",
       directorPlaceholder: "e.g. Christopher Nolan",
       writerLabel: "Screenplay / Writer",
@@ -565,7 +651,7 @@ const TRANSLATIONS = {
       castPlaceholder: "Actors separated by comma, e.g.: Matthew McConaughey, Anne Hathaway...",
 
       // 4. Game details
-      sectionGame: "Game Details",
+      sectionGame: "Game details",
       developerLabel: "Developer Studio",
       developerPlaceholder: "e.g. CD Projekt RED, FromSoftware",
       publisherLabel: "Publisher",
@@ -594,7 +680,7 @@ const TRANSLATIONS = {
       trailerHint: "A direct play button will appear in the item details",
 
       // 6. Image / Cover Art
-      sectionPoster: "Image / Cover Art",
+      sectionPoster: "Image / Cover art",
       selectImageBtn: "Choose Image from Disk",
       noImageSelected: "No new file selected",
       removeImageBtnTitle: "Remove image",
@@ -604,9 +690,9 @@ const TRANSLATIONS = {
       noPosterFound: "No cover was found",
 
       // 7. Custom metadata
-      sectionCustomMeta: "Custom Metadata",
+      sectionCustomMeta: "Custom metadata",
       customMetaSubtitle: "Add any additional parameters (e.g. Dubbing, Playtime, Soundtrack...)",
-      addMetaParamBtn: "Add Parameter",
+      addMetaParamBtn: "Add parameter",
       metaKeyPlaceholder: "Key (e.g. Dubbing)",
       metaValPlaceholder: "Value (e.g. English)",
       removeParamBtnTitle: "Remove parameter",
@@ -618,7 +704,7 @@ const TRANSLATIONS = {
       saveChangesBtn: "Save Changes"
     },
     apiModal: {
-      headerTitle: "Add via Online API",
+      headerTitle: "Add via online API",
       headerSubtitle: "Search and automatically prefill all details and cover art.",
       closeBtnAria: "Close",
 
@@ -706,7 +792,7 @@ const TRANSLATIONS = {
       // Add button and dropdown
       addBtn: "Add",
       addBtnTitle: "Add item",
-      addManualTitle: "Add Manually",
+      addManualTitle: "Add manually",
       addManualSub: "Create an item from scratch (movie, series, game)",
       addTmdbTitle: "Add via API",
       addTmdbPill: "ONLINE",
@@ -778,6 +864,90 @@ const TRANSLATIONS = {
       emptyFilterTitle: "No items in this category",
       emptyFilterText: "There are currently no items matching your selected filter.",
       emptyAddNewBtn: "Add new item"
+    },
+    detail: {
+      closeAria: "Close",
+      playTrailerBtn: "Play trailer",
+      playTrailerTitle: "Play official video trailer",
+      statusHeader: "Status",
+      statusBacklogMovie: "Watchlist",
+      statusBacklogGame: "Backlog",
+      statusBacklogTitle: "Want to watch / play",
+      statusProgressMovie: "Watching",
+      statusProgressGame: "Playing",
+      statusProgressTitle: "Currently watching / playing",
+      statusCompletedMovie: "Completed",
+      statusCompletedGame: "Finished",
+      statusCompletedTitle: "Completed / finished",
+      statusDropped: "Dropped",
+      statusDroppedTitle: "Dropped / abandoned",
+      keywordsHeader: "Keywords",
+      linksHeader: "Links & Databases",
+      ratingUser: "Rating",
+      ratingApi: "Public / API",
+      genresLabel: "Genres:",
+      sectionDescription: "Description",
+      sectionSpecs: "Details",
+      sectionCustomMeta: "Additional details",
+      sectionNotes: "Notes",
+      sectionInfo: "Information",
+      btnDelete: "Delete item",
+      btnClose: "Close",
+      btnEdit: "Edit item",
+
+      // Specifications
+      director: "Director",
+      writer: "Screenplay / Writer",
+      production: "Production",
+      duration: "Duration",
+      seasonEpisodes: "Season / Episodes",
+      cast: "Cast",
+      developer: "Developer Studio",
+      publisher: "Publisher",
+      engine: "Engine",
+      gameMode: "Game Mode",
+      platforms: "Platforms",
+
+      // Timestamps and metadata
+      createdAt: "Creation Date",
+      updatedAt: "Last Modified",
+      statusChangedAt: "Status Changed",
+      completedAtMovie: "Completion Date",
+      completedAtGame: "Finished Date",
+      nowTime: "Just now",
+
+      // External database links
+      hintCsfd: "Search on CSFD.cz",
+      hintImdbId: "Go directly to IMDb ({id})",
+      hintImdbSearch: "Search on IMDb",
+      hintTmdb: "View on TMDB",
+      hintSteam: "Search on Steam",
+      hintMetacritic: "View reviews on Metacritic",
+      hintRawg: "View on RAWG database",
+      ratingOutOfTen: "{val} of 10",
+      statusChangedToast: "Status changed to: \"{label}\".",
+      statusChangeErrorToast: "Failed to change status: {error}"
+    },
+    confirm: {
+      defaultTitle: "Confirm Action",
+      defaultMessage: "Are you sure you want to perform this action?",
+      defaultOk: "Confirm",
+      defaultCancel: "Cancel",
+      deleteTitle: "Delete Item",
+      deleteMessage: "Are you sure you want to delete \"{title}\" from your collection? This action is permanent and will also delete the stored cover image from disk.",
+      deleteOk: "Yes, delete",
+      deleteCancel: "Cancel",
+      itemDeletedToast: "Item \"{title}\" has been deleted.",
+      deleteErrorToast: "Error deleting item: {error}"
+    },
+    trailer: {
+      modalTitle: "Trailer",
+      modalTitleWithItem: "Trailer: {title}",
+      modalSubtitle: "Official video trailer",
+      externalBtnTitle: "Open in default browser",
+      externalBtn: "Open in browser",
+      closeAria: "Close trailer",
+      unsupportedVideo: "Your browser does not support playback of this video format."
     }
   }
 };
