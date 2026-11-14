@@ -39,22 +39,51 @@ jobs:
 
       - name: Generate changelog from commits
         id: changelog
-        shell: bash
+        shell: python
         run: |
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          if [ -n "$PREV_TAG" ]; then
-            COMMITS=$(git log "$PREV_TAG"..HEAD --pretty=format:"- %s (\`%h\`)" --no-merges)
-          else
-            COMMITS=$(git log -n 15 --pretty=format:"- %s (\`%h\`)" --no-merges)
-          fi
-          if [ -z "$COMMITS" ]; then
-            COMMITS="- Maintenance and performance improvements"
-          fi
-          {
-            echo "commits<<EOF"
-            echo "$COMMITS"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
+          import subprocess
+          import os
+
+          try:
+              prev_tag = subprocess.check_output(
+                  ["git", "describe", "--tags", "--abbrev=0", "HEAD^"],
+                  stderr=subprocess.DEVNULL
+              ).decode("utf-8").strip()
+              rev_range = f"{prev_tag}..HEAD"
+          except Exception:
+              rev_range = "HEAD"
+
+          log_args = ["git", "log", "--no-merges", "--format=format:__COMMIT__%s (`%h`)%n%b"]
+          if ".." in rev_range:
+              log_args.append(rev_range)
+          else:
+              log_args.extend(["-n", "15"])
+
+          try:
+              raw_log = subprocess.check_output(log_args).decode("utf-8", errors="replace")
+          except Exception:
+              raw_log = ""
+
+          formatted = []
+          for line in raw_log.splitlines():
+              if line.startswith("__COMMIT__"):
+                  title = line.replace("__COMMIT__", "").strip()
+                  formatted.append(f"\n- **{title}**")
+              elif line.strip():
+                  stripped = line.strip()
+                  if not stripped.startswith(("-", "*")):
+                      formatted.append(f"  - {stripped}")
+                  else:
+                      formatted.append(f"  {stripped}")
+
+          changelog = "\n".join(formatted).strip()
+          if not changelog:
+              changelog = "- Maintenance and performance improvements"
+
+          output_file = os.environ.get("GITHUB_OUTPUT")
+          if output_file:
+              with open(output_file, "a", encoding="utf-8") as f:
+                  f.write(f"commits<<EOF\n{changelog}\nEOF\n")
 
       - name: Compiling and creating installer
         id: tauri_build
