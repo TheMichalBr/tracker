@@ -1029,6 +1029,7 @@ fn check_github_update_ipc() -> Result<String, String> {
 
     // Pomocná funkce pro vytvoření procesu curl bez otevírání konzolového okna na Windows
     let create_curl_cmd = || {
+        #[allow(unused_mut)]
         let mut cmd = std::process::Command::new(curl_cmd);
         #[cfg(target_os = "windows")]
         {
