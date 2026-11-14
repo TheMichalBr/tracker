@@ -1,9 +1,10 @@
-name: "Tracker - Windows 11/10 Release"
+name: "Tracker - Multiplatform Release"
 on:
   workflow_dispatch:
   push:
     tags:
       - 'v*'
+
 jobs:
   build-tauri:
     permissions:
@@ -13,14 +14,28 @@ jobs:
       matrix:
         include:
           - platform: 'windows-latest'
+          - platform: 'macos-latest'
+          - platform: 'ubuntu-latest'
+
     runs-on: ${{ matrix.platform }}
     steps:
-
       - name: Download code
         uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+
       - name: Installing rust
         uses: dtolnay/rust-toolchain@stable
-      - name: Compiling and creating an installer
+
+      - name: Add macOS compilation targets
+        if: matrix.platform == 'macos-latest'
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
+      - name: Compiling and creating installer
         id: tauri_build
         uses: tauri-apps/tauri-action@v0
         env:
@@ -28,11 +43,27 @@ jobs:
         with:
           tagName: v__VERSION__
           releaseName: 'Tracker v__VERSION__'
-          releaseBody: 'Automatically generated release of the Tracker app for Windows 11/10.'
+          releaseBody: |
+            ### Tracker v__VERSION__
+
+            Multiplatform release of Tracker for **Windows**, **macOS**, and **Linux**.
+
+            - **Windows:**
+              - `Tracker_..._x64-setup.exe` / `.msi` – Official Windows installer.
+              - `Tracker_..._x64_Portable.exe` – Portable standalone version (no installation needed; stores database and cache locally in the `data/` folder).
+
+            - **macOS:**
+              - `Tracker_..._universal.dmg` – Universal installer disk image for both **Apple Silicon** (M1/M2/M3/M4) and **Intel** Macs.
+
+            - **Linux:**
+              - `tracker_..._amd64.deb` – Package installer for **Debian, Ubuntu, Linux Mint**, and derivatives.
+              - `tracker_..._amd64.AppImage` – Universal standalone portable package for **all Linux distributions** (grant execution permission with `chmod +x`).
           releaseDraft: false
           prerelease: false
+          args: ${{ matrix.platform == 'macos-latest' && '--target universal-apple-darwin' || '' }}
 
-      - name: Upload portable executable
+      - name: Upload Windows portable executable
+        if: matrix.platform == 'windows-latest'
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
